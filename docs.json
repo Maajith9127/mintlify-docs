@@ -14,7 +14,7 @@
         "tab": "Docs",
         "groups": [
           {
-            "group": "Welcome",
+            "group": "Intro",
             "pages": [
               "index"
             ]
@@ -25,26 +25,34 @@
               {
                 "group": "December",
                 "pages": [
-                  "2025/december/day-01",
-                  "2025/december/day-02"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "2026",
-            "pages": [
-              {
-                "group": "January",
-                "pages": [
-                  "2026/january/day-01",
-                  "2026/january/day-02"
-                ]
-              },
-              {
-                "group": "February",
-                "pages": [
-                  "2026/february/day-01"
+                  "2025/december/day-04",
+                  "2025/december/day-05",
+                  "2025/december/day-06",
+                  "2025/december/day-07",
+                  "2025/december/day-08",
+                  "2025/december/day-09",
+                  "2025/december/day-10",
+                  "2025/december/day-11",
+                  "2025/december/day-12",
+                  "2025/december/day-13",
+                  "2025/december/day-14",
+                  "2025/december/day-15",
+                  "2025/december/day-16",
+                  "2025/december/day-17",
+                  "2025/december/day-18",
+                  "2025/december/day-19",
+                  "2025/december/day-20",
+                  "2025/december/day-21",
+                  "2025/december/day-22",
+                  "2025/december/day-23",
+                  "2025/december/day-24",
+                  "2025/december/day-25",
+                  "2025/december/day-26",
+                  "2025/december/day-27",
+                  "2025/december/day-28",
+                  "2025/december/day-29",
+                  "2025/december/day-30",
+                  "2025/december/day-31"
                 ]
               }
             ]
