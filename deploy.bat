@@ -1,7 +1,11 @@
 @echo off
-set /p msg="Commit message: "
+if "%~1"=="" (
+    set msg=Update docs
+) else (
+    set msg=%*
+)
 git add .
 git commit -m "%msg%"
 git push
-echo Done! Changes pushed to GitHub.
+echo Done!
 pause
