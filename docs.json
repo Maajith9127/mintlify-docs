@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Mint Starter Kit",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#4B9EFF",
+    "light": "#2D83FF",
+    "dark": "#0D0D0F"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -72,21 +72,21 @@
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/Maajith_cmt",
+      "linkedin": "https://www.linkedin.com/in/abdul-maajith-99165026b",
+      "github": "https://github.com/mintlify"
     }
   }
 }
