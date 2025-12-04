@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "sapphire",
+  "theme": "mint",
   "name": "CommitT",
   "colors": {
     "primary": "#4B9EFF",
