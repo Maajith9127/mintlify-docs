@@ -18,6 +18,36 @@
             "pages": [
               "index"
             ]
+          },
+          {
+            "group": "2025",
+            "pages": [
+              {
+                "group": "December",
+                "pages": [
+                  "2025/december/day-01",
+                  "2025/december/day-02"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "2026",
+            "pages": [
+              {
+                "group": "January",
+                "pages": [
+                  "2026/january/day-01",
+                  "2026/january/day-02"
+                ]
+              },
+              {
+                "group": "February",
+                "pages": [
+                  "2026/february/day-01"
+                ]
+              }
+            ]
           }
         ]
       }
