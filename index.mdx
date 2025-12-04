@@ -5,13 +5,144 @@ description: "The story behind CommitT — building in public, one day at a time
 
 # Hey, I'm Abdul Maajith
 
-I'm building CommitT — an app to help people (mostly me) actually stick to their habits.
+I'm building CommitT — an app that forces you to keep your promises to yourself.
 
-The idea is simple: I kept making promises to myself and breaking them. Wake up early? Nope. Go to gym? Maybe tomorrow. Study consistently? Let's not talk about it.
+Here's the problem: I kept saying "I'll wake up at 5 AM" and then waking up at 9. I said "I'll go to the gym" and then watched YouTube for 3 hours. Classic.
 
-So I thought — what if I built something that makes it really hard to lie to myself?
+So I built something that makes it genuinely painful to break commitments. Not motivational quotes. Not reminders. Actual consequences.
 
-That's CommitT. It's basically support wheels for your habits. Use it until you don't need it anymore.
+---
+
+## What is CommitT?
+
+CommitT is an app where you make a promise, and the app makes sure you keep it using:
+
+- Live photo/video verification
+- Randomised challenges (so you can't fake it)
+- Money penalties (yes, real money)
+- Accountability partners (social pressure works)
+- App blocking (Instagram can wait)
+- AI verification (no screenshots allowed)
+- Strict mode (can't uninstall when things get hard)
+
+Basically: if you say you'll do something, the app MAKES you do it. If you don't, you pay.
+
+---
+
+## How it actually works
+
+Let me walk you through a real example.
+
+**The commitment:** Wake up at 5 AM for 30 days.
+
+**Step 1: You create the task**
+
+```
+Habit: Wake up at 5 AM
+Repeat: Daily
+Verification: Live Photo
+Penalty: Rs.300
+Duration: 30 days
+```
+
+You also set "randomised verification" between 5:00 AM and 5:15 AM. The app picks a random minute in that window so you can't game it.
+
+**Step 2: The app schedules everything**
+
+CommitT calculates tomorrow's challenge time (say, 5:07 AM), schedules the job, and your phone now shows: "Next verification: 5:07 AM tomorrow."
+
+**Step 3: 5:07 AM hits**
+
+Your phone vibrates. A modal pops up:
+
+```
+Live Photo Challenge
+Take a picture showing yourself + today's challenge pattern.
+Timer: 60 seconds
+```
+
+A random visual challenge appears — like "Show 2 fingers near your face" or "Hold your water bottle."
+
+You have 60 seconds. Front camera only. No screenshots.
+
+**Step 4: You take the photo**
+
+Image + challenge + timestamp goes to the backend.
+
+**Step 5: Backend verifies**
+
+The system checks:
+- Moire pattern detection (AI) — ensures you didn't photograph another screen
+- Challenge match — ensures your pose/object is correct
+- Time check — ensures it was within the 60 second window
+
+Pass = verified. Fail = penalty.
+
+**Step 6: Results**
+
+If you woke up: green block on your calendar. Nice.
+
+If you slept through it: Rs.300 deducted from your wallet. You wake up annoyed but slightly more disciplined.
+
+**Step 7: Accountability partner gets notified**
+
+If you added a friend, they see when you fail. They see your history. You can't hide.
+
+Social pressure is brutal but effective.
+
+**Step 8: Month summary**
+
+After 30 days you get:
+- Total successful days
+- Total penalties paid
+- Streak data
+- Performance graph
+
+And hopefully, a new habit.
+
+---
+
+## App Blocking (the nuclear option)
+
+CommitT doesn't just remind you. It removes your ability to cheat.
+
+**Example:** Block Instagram from 5 PM to 8 PM daily.
+
+```
+Task: Study Time
+Time: 5 PM - 8 PM
+App Block: Instagram, YouTube, Snapchat
+Strict Mode: ON
+Penalty: Rs.200
+```
+
+At 5 PM, block mode activates. If you try to open Instagram:
+
+```
+Instagram is blocked for your commitment.
+Time left: 2 hours 58 minutes
+```
+
+You literally cannot open it.
+
+**Strict Mode means:**
+- Can't uninstall CommitT
+- Can't force-stop it
+- Can't disable accessibility
+- Can't change your phone's time/date
+- Can't kill background processes
+
+Try any of that and your accountability partner gets notified. Or penalty triggers immediately.
+
+At 8 PM, apps unlock. You get a message: "Done for today. You stayed disciplined for 3 hours."
+
+---
+
+## Why this exists
+
+Because willpower is unreliable. Systems work better.
+
+CommitT is basically support wheels for adults. Use it until you don't need it anymore. Then the habits are just... part of you.
 
 ---
 
@@ -19,24 +150,21 @@ That's CommitT. It's basically support wheels for your habits. Use it until you 
 
 Proof that I'm actually building this thing.
 
-Every day I'll drop updates here:
+Every day I'll post updates:
 - What I worked on
 - What broke
 - What I learned
-- Random thoughts
 
-No fancy marketing speak. Just real progress (or lack of it).
+No marketing fluff. Just real progress.
 
 ---
 
 ## Why build in public?
 
-Because it keeps me honest. If I say I'm building something, this doc will show whether that's true or just talk.
+Keeps me honest. If I say I'm building something, this doc shows whether that's true or just talk.
 
-Plus, maybe someone finds it useful. Or entertaining. Or a cautionary tale. We'll see.
+Plus maybe someone finds it useful. Or entertaining. Or learns what not to do.
 
 ---
 
-That's it. Welcome to CommitT.
-
-Let's see where this goes.
+That's CommitT. Let's see where this goes.
