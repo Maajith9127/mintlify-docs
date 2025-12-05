@@ -1,10 +1,270 @@
 ---
 title: "December 5th, 2025"
-description: "Daily update"
+description: "6 hours of debugging. Zero successful builds. One painful lesson."
 ---
 
-## December 5th, 2025
+<toc>
+- [6:00 PM - Starting Fresh](#600-pm--starting-fresh)
+- [6:10 PM - Setting Up WSL](#610-pm--setting-up-wsl)
+- [6:40 PM - Preparing to Build](#640-pm--preparing-to-build)
+- [6:50 PM - Gradle Download](#650-pm--gradle-download-starts)
+- [7:15 PM - Break](#715-pm--break)
+- [8:00 PM - Build Attempt 1](#800-pm--build-attempt-1)
+- [8:40 PM - Stuck at 83%](#840-pm--stuck-at-83)
+- [9:20 PM - No Movement](#920-pm--no-movement)
+- [9:45 PM - Restart](#945-pm--restarting-the-attempt)
+- [10:00 PM - Build Attempt 2](#1000-pm--build-attempt-2)
+- [10:30 PM - BIOS Accident](#1030-pm--bios-accident)
+- [11:00 PM - Stuck Again](#1100-pm--stuck-again)
+- [11:30 PM - Realization](#1130-pm--realization)
+- [12:00 AM - Final Failure](#1200-am--the-final-failure)
+- [Root Cause](#root-cause)
+</toc>
 
-<Info>
-Soon to be updated!
-</Info>
+# December 5th, 2025
+
+**The Android Build That Refused to Build**
+
+Today was supposed to be the day I finally got the Android build working. Six hours later, I'm writing this with zero successful builds and a very clear understanding of why.
+
+Let me walk you through the entire disaster.
+
+---
+
+## 6:00 PM — Starting Fresh
+
+I was already frustrated with the old environment. Nothing was working properly, so I decided to nuke everything and start clean.
+
+Deleted folders. Reset native code. Reinstalled dependencies.
+
+The classic "maybe if I start fresh it'll magically work" approach.
+
+Spoiler: it did not magically work.
+
+---
+
+## 6:10 PM — Setting Up WSL
+
+Opened Ubuntu on WSL. First task: get my Android phone detected.
+
+```bash
+adb devices
+```
+
+Nothing. Empty list. Great start.
+
+So I went through the whole ritual:
+- Installed ADB
+- Enabled USB debugging on phone
+- Added USB rules
+- Restarted the adb server
+
+Eventually the device showed up. Small win. At least something was working.
+
+---
+
+## 6:40 PM — Preparing to Build
+
+Navigated to the project folder:
+
+```
+/mnt/c/CommitT/mono/apps/native
+```
+
+Ran the build command:
+
+```bash
+bun x expo run:android
+```
+
+And so began the long chain of build processes that would consume my entire evening.
+
+---
+
+## 6:50 PM — Gradle Download Starts
+
+Gradle started downloading:
+
+```
+gradle-8.14.3.zip
+```
+
+This took forever. The download crawled. Sometimes it just sat there doing nothing.
+
+After about 20 minutes, it finally finished and the actual Android build started.
+
+I thought the hard part was over. I was wrong.
+
+---
+
+## 7:15 PM — Break
+
+Took a break. Came back later with the intention of finishing everything tonight.
+
+Famous last words.
+
+---
+
+## 8:00 PM — Build Attempt 1
+
+Restarted the command:
+
+```bash
+bun x expo run:android
+```
+
+Gradle started building from scratch. Progress bar moved: 30%... 40%... 60%... 80%...
+
+Then the warnings started appearing:
+
+```
+Hard link failed. Doing a slower copy instead.
+```
+
+This happened over and over. CMake tasks. NDK-related stuff. All complaining about hard links.
+
+I ignored it. Surely it would still work, right?
+
+---
+
+## 8:40 PM — Stuck at 83%
+
+The build hit 83% and just... stopped.
+
+Slowly crawled to 90%. Terminal kept showing:
+
+```
+IDLE IDLE IDLE
+```
+
+Gradle was not progressing. I sat there for 15-20 minutes watching nothing happen.
+
+This is the developer equivalent of watching paint dry, except the paint is also on fire.
+
+---
+
+## 9:20 PM — No Movement
+
+Still stuck:
+
+```
+90% EXECUTING [32m ...]
+```
+
+By now it was obvious something in the native build was blocked. Those hard-link warnings weren't just warnings — they were the problem.
+
+Working inside `/mnt/c` on WSL means Windows filesystem. Windows filesystem doesn't properly support hard links. Every hard link operation was falling back to slow copies.
+
+---
+
+## 9:45 PM — Restarting the Attempt
+
+Killed the stuck process. Restarted Ubuntu. Tried everything again:
+- Verified `adb devices`
+- Reconnected phone
+- Checked debugging was on
+
+Everything looked fine. The problem wasn't the device.
+
+---
+
+## 10:00 PM — Build Attempt 2
+
+Ran it again:
+
+```bash
+bun x expo run:android
+```
+
+Same slow process. Same warnings:
+
+```
+Hard link failed. Doing slower copy instead.
+```
+
+This confirmed it. WSL + Windows filesystem was the root problem. Not my code. Not Expo. Not my phone.
+
+The environment itself was broken for this use case.
+
+---
+
+## 10:30 PM — BIOS Accident
+
+While switching between screens, I accidentally entered BIOS.
+
+Panicked for a second. Exited safely. Continued.
+
+Just another thing to add to the chaos of this evening.
+
+---
+
+## 11:00 PM — Stuck Again
+
+Build reached the exact same state:
+
+```
+90% EXECUTING [43m ...]
+```
+
+Frozen. Repeated "IDLE" messages.
+
+This proved the issue was consistent. Not random. Not a fluke. The same thing happened every single time at the same point.
+
+---
+
+## 11:30 PM — Realization
+
+I started questioning everything.
+
+Every step felt like it was working against me. The setup inside `/mnt/c` was never going to allow this build to complete. The filesystem limitations were fundamental, not fixable with workarounds.
+
+Six hours in, and I was no closer to a working build than when I started.
+
+---
+
+## 12:00 AM — The Final Failure
+
+Gradle finally gave up:
+
+```
+Gradle build daemon disappeared unexpectedly
+```
+
+The daemon timed out and crashed. Final confirmation that this environment is not stable enough for Android native builds.
+
+I just stared at the screen. Six hours. Nothing to show for it.
+
+---
+
+## Root Cause
+
+Here's what actually went wrong:
+
+1. Project was inside `/mnt/c` on WSL
+2. Android NDK requires hard links
+3. Hard links don't work properly on `/mnt/c` (Windows filesystem)
+4. WSL converts hard links into slow fallback copies
+5. Native builds take forever and freeze around 90%
+6. Gradle daemon eventually times out and crashes
+
+**Nothing was wrong with my code.**
+**Nothing was wrong with Expo.**
+**Nothing was wrong with my device.**
+
+The environment setup was the only thing blocking the build.
+
+---
+
+## 12:30 AM — End of Day
+
+After more than six hours of trying, deleting, reinstalling, debugging, reconnecting devices, analyzing logs, and sitting through multiple freezes — the build did not complete.
+
+But now I finally know exactly why.
+
+Tomorrow's plan: move the project to the native Linux filesystem inside WSL, not `/mnt/c`. That should fix everything.
+
+Today was painful. But at least it wasn't wasted. I learned something.
+
+That's the whole point of building in public. Even the failures get documented.
+
+See you tomorrow.
