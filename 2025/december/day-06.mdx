@@ -1,10 +1,273 @@
 ---
 title: "December 6th, 2025"
-description: "Daily update"
+description: "The day Windows broke me. And Linux saved me. And one tiny flag fixed everything."
 ---
 
-## December 6th, 2025
+<toc>
+- [6:00 PM - The Collapse](#600-pm--the-collapse)
+- [7:00 PM - The Snap](#700-pm--the-snap)
+- [8:00 PM - Fresh Start in WSL](#800-pm--fresh-start-in-wsl)
+- [9:00 PM - The Build](#900-pm--the-build)
+- [9:30 PM - Wrong Branch](#930-pm--wrong-branch)
+- [10:00 PM - Correct Branch](#1000-pm--correct-branch)
+- [10:45 PM - Finally Understanding](#1045-pm--finally-understanding)
+- [11:30 PM - New Problem](#1130-pm--new-problem)
+- [12:00 AM - The One Flag](#1200-am--the-one-flag)
+</toc>
 
-<Info>
-Soon to be updated!
-</Info>
+# December 6th, 2025
+
+**The Day I Almost Opened a Juice Shop**
+
+Yesterday was painful. Today was worse. But it ended with the app actually running on my phone.
+
+Here's the full story.
+
+---
+
+## 6:00 PM — The Collapse
+
+Around 6 PM, my day officially collapsed.
+
+Gradle was happily torturing me with:
+
+```
+path exceeds 260 characters
+```
+
+I did EVERYTHING a normal, responsible, tech-loving human would do:
+
+- Enabled long path support
+- Restarted Windows
+- Checked registry
+- Googled like a desperate uncle
+- Even tried pleading
+
+But Windows behaved like: "No. Not today. Suffer."
+
+I got frustrated and thought: "Bun is the criminal. Let's switch to npm or pnpm."
+
+Then I remembered that I built my entire monorepo on Bun because I "love speed". So switching meant breaking EVERYTHING.
+
+At this point I was just looking at the screen like: "Super. I am now officially the problem."
+
+---
+
+## 7:00 PM — The Snap
+
+By 7:30 PM, my internal organs started giving up.
+
+Every solution online felt like therapy advice from aliens.
+
+I snapped. Absolutely snapped.
+
+"Windows doesn't want to cooperate? Fine. I'll use Linux. Enough."
+
+Opened WSL like a man entering the gym after a breakup.
+
+Fresh Ubuntu shell. Pure oxygen. Felt like life rebooted.
+
+I told myself: "Fresh clone. Fresh install. Fresh mind. No NTFS nonsense now."
+
+For the first time that evening, something resembled hope.
+
+---
+
+## 8:00 PM — Fresh Start in WSL
+
+Inside WSL, I cloned my repo again.
+
+It actually downloaded smoothly — no drama, no warnings, no stupidity.
+
+```bash
+git clone [repo]
+cd CommitT
+bun install
+```
+
+Installed Bun. Installed deps. Installed Android SDK. Did everything clean.
+
+But mentally, I was a hollow human.
+
+I thought: "Okay Maajith... one last attempt. If this fails, I'll go start a juice shop."
+
+---
+
+## 9:00 PM — The Build
+
+With full fear and zero confidence, I typed:
+
+```bash
+bun expo run:android
+```
+
+And waited like a man awaiting exam results.
+
+Then... magic.
+
+No freezing. No choking. No Windows drama. Gradle was actually... cooperating?
+
+I felt suspicious. Too smooth. Something was wrong.
+
+And yes — because this is my life —
+
+---
+
+## 9:30 PM — Wrong Branch
+
+The build finished.
+
+I saw:
+
+```
+BUILD SUCCESSFUL
+```
+
+For a second, I smiled like a proud dad.
+
+Then reality slapped me:
+
+**I BUILT THE WRONG BRANCH.**
+
+I cloned the default branch — NOT my latest CommitT branch.
+
+I just stared at the screen like: "I am a certified clown. Why am I like this?"
+
+Back to cloning. Back to reinstalling. Back to accepting my fate.
+
+---
+
+## 10:00 PM — Correct Branch
+
+Now I cloned the correct branch.
+
+```bash
+git clone -b main [repo]
+bun install
+bun expo run:android
+```
+
+Installed everything again. Hit build again.
+
+And Linux, my hero, said: "Sure bro. No problem."
+
+At 10:42 PM, I saw the REAL success message.
+
+```
+BUILD SUCCESSFUL in 8m 23s
+```
+
+Correct branch. Correct environment. Correct everything.
+
+This one actually felt good — because this time, it was me who fixed it. Not luck. Not guesswork. Actual understanding.
+
+---
+
+## 10:45 PM — Finally Understanding
+
+Finally, after HOURS of fighting errors like a headless chicken, everything started making logical sense.
+
+I understood:
+
+- It wasn't Bun's fault
+- It wasn't Expo
+- It wasn't React Native
+- It wasn't "my laptop is cursed"
+
+**The real villain was: Windows NTFS + file paths + hard-link restrictions.**
+
+All the freezes, CMake loops, 90% hangs — everything connected together.
+
+For the first time in 5 hours, I didn't feel like a circus monkey smashing the keyboard.
+
+I actually felt like a software engineer again.
+
+I sat back and said: "Okay. Now I get why everything broke. Finally makes sense."
+
+---
+
+## 11:30 PM — New Problem
+
+So the build worked.
+
+I happily scanned the Expo QR code.
+
+Expo immediately slapped me:
+
+```
+failed to connect to /172.19.xx.xx
+```
+
+I found out the sad truth:
+
+**WSL runs in a VIRTUAL NETWORK. My phone is on WiFi. They cannot talk.**
+
+Even if I pray. Even if I sacrifice a goat.
+
+```
+WSL IP:   172.19.x.x
+Phone IP: 172.17.x.x
+```
+
+Two different universes. No communication. No chance.
+
+I realized: "Fantastic. Build problem solved. App still can't run. Beautiful life."
+
+---
+
+## 12:00 AM — The One Flag
+
+I didn't know whether to cry or laugh.
+
+But then... I tried:
+
+```bash
+bun expo start --tunnel
+```
+
+One small command. One tiny option.
+
+And suddenly:
+
+```
+Tunnel connected.
+Tunnel ready.
+Expo opened.
+Phone connected.
+APP RAN.
+```
+
+I sat there like: "Wait wait wait... after SIX hours of suffering... the solution was THIS ONE OPTION???"
+
+I felt happy. I felt stupid. I felt relieved. I felt defeated. All emotions unlocked like PUBG skins.
+
+But one thing was certain:
+
+**It finally worked.**
+
+---
+
+## Lessons Learned
+
+1. **Windows NTFS is not your friend for native builds** — hard links, path limits, all of it
+2. **WSL is the move** — but keep your project in the Linux filesystem, not `/mnt/c`
+3. **Always check which branch you're on** — I'm still embarrassed
+4. **WSL networking is isolated** — use `--tunnel` for Expo when your phone can't reach WSL directly
+5. **Sometimes the fix is one flag** — after hours of debugging, the answer was `--tunnel`
+
+---
+
+## Final Thoughts
+
+Two days of suffering. Countless errors. Multiple emotional breakdowns.
+
+But now I have:
+- A working build environment
+- A running app on my phone
+- Actual understanding of what went wrong
+
+Tomorrow, I actually get to write code instead of fighting my tools.
+
+That's progress.
+
+See you tomorrow.
