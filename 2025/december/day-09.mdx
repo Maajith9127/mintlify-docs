@@ -1,10 +1,312 @@
 ---
 title: "December 9th, 2025"
-description: "Daily update"
+description: "Permissions, Authentication setup, and documenting the entire CommitT flow for AI understanding."
 ---
 
-## December 9th, 2025
+# December 9th, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day We Got Serious About Structure**
+
+Today was split into two sessions: 10 AM to 12 PM, then 6 PM to 11 PM. Solid progress on permissions, authentication, and documentation.
+
+---
+
+## 10:00 AM - 12:00 PM — Morning Session
+
+### Permission Page Complete
+
+Built the full Permissions Setup UI in Expo Native with all 7 required permissions:
+
+- Camera
+- Location
+- Notifications
+- Alarms and Reminders
+- Battery Optimization
+- Appear On Top
+- Accessibility
+
+**Features added:**
+- Scrollable layout
+- Dynamic red/blue title coloring based on permission status
+- Clean design using the ConditionCard component
+
+### ConditionCard Updates
+
+Updated ConditionCard to support:
+- Custom title color
+- Custom icon color
+- Clean, reusable UI for permissions
+
+---
+
+## 6:00 PM - 11:00 PM — Evening Session
+
+### Core Tasks Identified
+
+Listed the main tasks for the app:
+- Authentication
+- State management
+- DB schema planning
+- Permission page (DONE)
+- Strict Mode UI
+- Separate style tokens (padding, colors, radius)
+
+Decided to start with Authentication first.
+
+### Auth Dependencies Installed
+
+Inside `mono/packages/backend`, installed:
+- better-auth
+- @convex-dev/better-auth
+- @better-auth/expo
+- convex
+
+```bash
+bun install
+bun dev
+```
+
+Convex backend successfully started.
+
+### Created Convex Auth Files
+
+Created `packages/backend/convex/auth.ts`:
+
+```typescript
+import { betterAuth } from "better-auth";
+import { convexAdapter } from "@convex-dev/better-auth/adapter";
+
+export const auth = betterAuth({
+  adapter: convexAdapter(),
+  emailAndPassword: { enabled: true },
+  magicLink: { enabled: true },
+  socialProviders: {
+    google: {
+      enabled: true,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+  },
+});
+```
+
+Convex compiled successfully after fixing import names.
+
+### Google Cloud Setup
+
+- Created a new Google Cloud Project (CommitT)
+- Opened Google Auth Platform
+- Set up OAuth consent screen
+- Configured "External" audience
+- Navigated to "Create OAuth Client"
+
+---
+
+## CommitT Flow Documentation (AI-Friendly)
+
+Also documented the entire CommitT flow in a structured format that any AI model can understand.
+
+### 1. Commitment Overview
+
+**User Input Fields:**
+
+- **Commitment Name:** Free-text title for the commitment (e.g., "GYM 2027")
+- **Conditions Section:** List of conditions the user must satisfy
+
+```json
+{
+  "type": "time",
+  "from": "1:40 AM",
+  "to": "3:40 AM"
+}
+```
+
+### 2. Digital Commitment (Restrictions)
+
+Defines what digital behaviors the user wants to restrict during the commitment.
+
+**Applications:**
+```json
+{
+  "applications": ["AC Remote Control"]
+}
+```
+
+**Websites:**
+```json
+{
+  "websites": ["youtube.com", "facebook.com"]
+}
+```
+
+**AI Rules:**
+```json
+{
+  "ai_rules": [
+    "block_adult_websites",
+    "limit_social_apps"
+  ]
+}
+```
+
+### 3. Penalties
+
+If the user fails the commitment, penalties get triggered:
+
+- **Money Penalty:** `{ "penalty_type": "money", "amount": 500 }`
+- **Embarrassing Photo:** `{ "penalty_type": "embarrassing_photo" }`
+- **Cringe Message:** `{ "penalty_type": "cringe_message" }`
+- **Block Favourite App:** `{ "penalty_type": "block_app" }`
+
+### 4. Penalty Waivers (Earn Your Way Out)
+
+If you fail, you can waive the penalty by completing a challenge:
+
+- **Solve CAPTCHAs:** `{ "waiver_type": "captcha", "quantity": 100 }`
+- **Write Long Paragraph:** `{ "waiver_type": "write_paragraph", "min_words": 3000 }`
+- **Redo With More Intensity:** `{ "waiver_type": "redo" }`
+- **Run 5KM:** `{ "waiver_type": "run", "distance_km": 5 }`
+
+### 5. Permissions Required
+
+```json
+{
+  "permissions": {
+    "camera": "live photo / video verification",
+    "location": "required for run tasks",
+    "notifications": "reminders and randomized checks",
+    "alarms": "wake-up commitments",
+    "battery_optimization": "prevent system killing background tasks"
+  }
+}
+```
+
+---
+
+## Full AI-Friendly Object Model
+
+```json
+{
+  "commitment_name": "GYM 2027",
+  "conditions": [
+    {
+      "type": "time",
+      "from": "1:40 AM",
+      "to": "3:40 AM"
+    }
+  ],
+  "digital_commitments": {
+    "applications": ["AC Remote Control"],
+    "websites": ["youtube.com", "facebook.com"],
+    "ai_rules": ["block_adult_websites", "limit_social_apps"]
+  },
+  "penalties": [
+    {
+      "penalty_type": "money",
+      "amount": 500
+    }
+  ],
+  "penalty_waivers": [
+    {
+      "waiver_type": "captcha",
+      "quantity": 100
+    }
+  ],
+  "permissions_required": [
+    "camera",
+    "location",
+    "notifications",
+    "alarms",
+    "battery_optimization"
+  ]
+}
+```
+
+---
+
+## Q&A Summary
+
+**Q1: What UI page did we build first?**
+A: The Permissions Page with all 7 required permissions.
+
+**Q2: What permissions did we include?**
+A: Camera, Location, Notifications, Alarms & Reminders, Battery Optimization, Appear On Top, Accessibility.
+
+**Q3: What visual rules did we apply?**
+A: Title color = blue if granted, red if not granted. Used existing ConditionCard. Full page scroll enabled.
+
+**Q4: What did we modify in ConditionCard?**
+A: Allowed passing custom title components and custom icon color.
+
+**Q5: Which task did we decide to start next?**
+A: Authentication (BetterAuth + Convex).
+
+**Q6: Did we install all backend dependencies?**
+A: Yes. Ran `bun install` inside packages/backend.
+
+**Q7: Did Convex backend start successfully?**
+A: Yes. `bun dev` logged into Convex, created the .env.local, and backend is running.
+
+**Q8: Did we create the Convex BetterAuth integration file?**
+A: Yes. Added `convex/auth.ts` with proper configuration.
+
+**Q9: Which auth provider did we enable first?**
+A: Google OAuth.
+
+**Q10: What did we configure inside Google Cloud?**
+A: Created CommitT project, set up OAuth consent screen, configured External audience.
+
+---
+
+## Summary
+
+**Morning (10 AM - 12 PM):**
+- Completed Permission Page UI
+- Updated ConditionCard component
+
+**Evening (6 PM - 11 PM):**
+- Identified core tasks
+- Installed auth dependencies
+- Set up Convex backend
+- Created auth configuration
+- Started Google Cloud OAuth setup
+- Documented entire CommitT flow in AI-friendly format
+
+Good progress today. Authentication foundation is laid. Tomorrow we continue with the OAuth flow.
+
+
+---
+
+## Proof of Work
+
+<Frame caption="CommitT UI - Screen 1">
+  <img src="/2025/december/pow/9th1.png" alt="CommitT Screen 1" />
+</Frame>
+
+<Frame caption="CommitT UI - Screen 2">
+  <img src="/2025/december/pow/9th2.png" alt="CommitT Screen 2" />
+</Frame>
+
+<Frame caption="CommitT UI - Screen 3">
+  <img src="/2025/december/pow/9th3.png" alt="CommitT Screen 3" />
+</Frame>
+
+<Frame caption="CommitT UI - Screen 4">
+  <img src="/2025/december/pow/9th4.png" alt="CommitT Screen 4" />
+</Frame>
+
+<Frame caption="CommitT UI - Screen 5">
+  <img src="/2025/december/pow/9th5.png" alt="CommitT Screen 5" />
+</Frame>
+
+<Frame caption="CommitT UI - Screen 6">
+  <img src="/2025/december/pow/9th6.png" alt="CommitT Screen 6" />
+</Frame>
+
+<Frame caption="CommitT UI - Screen 7">
+  <img src="/2025/december/pow/9th7.png" alt="CommitT Screen 7" />
+</Frame>
+
+<Frame caption="CommitT UI - Screen 8">
+  <img src="/2025/december/pow/9th8.png" alt="CommitT Screen 8" />
+</Frame>
