@@ -1,10 +1,417 @@
 ---
 title: "December 11th, 2025"
-description: "Daily update"
+description: "Deep dive into Android signing, RSA, SHA, certificates, and debugging BetterAuth + Convex integration."
 ---
 
-## December 11th, 2025
+# December 11th, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day I Finally Understood Android Signing and Authentication**
+
+Today was split into two major learning sessions: understanding Android's entire signing system from scratch, and debugging BetterAuth + Convex integration.
+
+---
+
+## Part 1: Android Signing Deep Dive
+
+### Why Does Android Need Signing?
+
+Android MUST ensure three things:
+- The APK really came from the developer
+- The APK was not modified by anyone
+- Updates must be signed by the same developer
+
+To achieve this, Android uses public-key cryptography:
+- Developer keeps a private key (SECRET)
+- Developer gives everyone a public key (PUBLIC)
+- Everyone can verify, but only the private key can sign
+
+---
+
+### The Keystore: The Heart of Everything
+
+A keystore contains:
+
+**1. Private key**
+- Your true identity. Secret.
+- Created by Gradle for debug builds
+- Created by you for release builds
+
+**2. Public key (derived from private key)**
+- Mathematically linked to private key
+- Impossible to reverse
+
+**3. Certificate**
+- Public wrapper containing: public key, your metadata (subject, issuer, validity), the signature
+
+The certificate goes INSIDE the APK and is visible to everyone. Your private key never goes inside the APK.
+
+---
+
+### How Certificates Are Built
+
+The certificate includes:
+- Version
+- Serial Number
+- Signature Algorithm ID
+- Issuer
+- Subject
+- Validity Period
+- Public Key Info
+- Extensions (like KeyUsage)
+- Signature: `RSA(private_key, SHA256(TBS))`
+
+Structure:
+```
+Certificate = TBS Certificate + Signature
+```
+
+Where TBS = To Be Signed (includes everything except the signature).
+
+---
+
+### The Signing Algorithm (SHA256withRSA)
+
+**Step 1:** Hash the certificate data (TBS) using SHA-256
+```
+Output: HASH1
+```
+
+**Step 2:** Encrypt the hash with PRIVATE KEY using RSA
+```
+Output: SIGNATURE
+```
+
+So:
+```
+SIGNATURE = RSA(private_key, SHA256(TBS))
+```
+
+This proves:
+- You OWN the private key
+- The certificate has not been altered
+
+---
+
+### APK Signing is Different (And More Powerful)
+
+This was the missing piece I discovered.
+
+Android does NOT just sign the certificate. Android signs THE ENTIRE APK CONTENT.
+
+APK Signing Scheme v1/v2/v3 do this:
+```
+APK content → SHA256 → HASH_APK
+Signature = RSA(private_key, HASH_APK)
+```
+
+Then it stores:
+- Your certificate
+- Your APK signature
+
+Inside special META-INF or signature blocks. This is what prevents attackers from modifying your app.
+
+---
+
+### Why You Cannot Copy Certificate + Signature
+
+My old confusion: "If someone copies the certificate and signature from App A and pastes them to App B... Why doesn't it work?"
+
+**The truth:**
+
+The signature signs the hash of the entire APK, not just the certificate.
+
+```
+Signature_A = RSA(private_key, SHA256(APK_A_Content))
+```
+
+If attacker copies it to App B:
+- Signature_A and Certificate_A applied to APK_B
+- Android computes: `hash_B = SHA256(APK_B_Content)`
+- Android decrypts: `hash_A = RSA_Decrypt(public_key, Signature_A)`
+- Compare: `hash_A != hash_B` → INVALID
+
+Verification fails INSTANTLY.
+
+EVEN IF:
+- Attacker copied both certificate AND signature
+- Attacker did not touch the certificate fields
+- Attacker had infinite money
+- Attacker had supercomputers
+
+It STILL fails because only your private key can produce a signature matching APK_B's hash.
+
+---
+
+### Why Modifying the Certificate or Signature Is Impossible
+
+APK is a ZIP with strict structure. If attacker tries to:
+- Modify certificate
+- Modify META-INF files
+- Modify signature blocks
+
+EVEN 1 BYTE difference breaks the entire signing scheme. Google Play + Android Package Manager detect tampering immediately.
+
+---
+
+### Why Public Certificate Is SAFE to Expose
+
+People worry: "Anyone can see my certificate. Won't they pretend to be me?"
+
+**NO.** Because:
+- Certificate contains public key → safe
+- Signature contains encrypted hash → safe
+- Only the private key can generate a valid signature
+
+Knowing the result of `RSA(private_key, hash)` DOES NOT help you derive private key.
+
+Knowing: public key, signature, hash is completely safe. Modern crypto makes reversing this mathematically impossible.
+
+---
+
+### Why SHA-1 Fingerprint Exists (OAuth)
+
+Google OAuth asks for SHA-1. Why?
+
+Because SHA-1 fingerprint uniquely identifies YOUR certificate.
+
+Google servers store:
+```
+Package name: com.anonymous.mono
+SHA1: 55:32:39:...
+OAuth Client ID: ...
+```
+
+When your app sends a login request:
+- Google Play Services sends: your package name, your certificate's SHA-1
+- Google checks if they match
+
+If attacker copies your SHA-1? Still useless because they cannot produce a valid APK signature.
+
+---
+
+### The PRIVATE KEY = YOUR IDENTITY
+
+Everything depends on ONE thing only: **Your private key.**
+
+- If you lose it → You can NEVER update your app again
+- If someone steals it → They can impersonate your app COMPLETELY
+
+So keystore must be protected like: money, passwords, seed phrases.
+
+---
+
+### Final Clean Summary
+
+**When building APK:**
+- Gradle generates or uses your private key
+- Creates certificate containing your public key
+- Signs entire APK with private key
+
+**APK contains:**
+- Certificate (public)
+- Signature (public)
+- Your code
+
+**Verification:**
+```
+Android → SHA256(APK) → hash_B
+RSA_DECRYPT(public_key, signature) → hash_A
+if hash_A == hash_B → VALID
+else → INVALID
+```
+
+**Attacker cannot:**
+- Modify APK
+- Reuse signature
+- Reuse certificate
+- Produce new valid signature
+- Spoof SHA-1
+- Bypass OAuth
+
+Without YOUR private key → they are completely locked out.
+
+**THE FINAL ONE-LINER:**
+> Your private key signs the APK. The signature proves authenticity. The certificate exposes nothing dangerous. Copy-pasting signatures or certificates NEVER works.
+
+---
+
+## Part 2: BetterAuth + Convex Debugging
+
+### Understood BetterAuth Client Setup
+
+Went through this block:
+
+```typescript
+export const authClient = createAuthClient({
+  baseURL: process.env.EXPO_PUBLIC_CONVEX_SITE_URL,
+  plugins: [
+    anonymousClient(),
+    expoClient({ scheme, storagePrefix, storage }),
+    convexClient(),
+  ],
+});
+```
+
+**What each plugin enables:**
+- `anonymousClient()` → allows functions you can call without logging in (public access)
+- `expoClient()` → injects deep linking + secure storage into auth flow for React Native
+- `convexClient()` → syncs BetterAuth with Convex backend (session, user, tokens)
+
+**What createAuthClient does:**
+Creates a fully configured auth client your app will use for:
+- `oauth.signIn("google")`
+- `auth.getSession()`
+- `auth.getUser()`
+- Secure token storage
+- Deep link callback handling
+
+---
+
+### Why We Need Deep Linking (expoClient)
+
+Discussed how the OS knows which app to return to after Google login.
+
+Examples:
+- Your scheme = "mono"
+- Redirect URI = `mono://auth/callback`
+
+This is how Google redirects back into the app after login.
+
+---
+
+### Set Up Sign-In Screen Logic
+
+Updated the Signin screen to:
+- Check if a previous session exists (using `authClient.auth.getSession()`)
+- Redirect if logged in (using `router.replace("/(main)/commits")`)
+- Added Google login handler (using `authClient.oauth.signIn("google")`)
+
+Logged:
+- Session object
+- User object
+
+Both were returning 404 because backend auth routes were not active yet.
+
+---
+
+### Identified the REAL Problem
+
+This was the big discovery today:
+
+**The auth routes `/auth/session`, `/auth/user` were returning 404**
+
+This means:
+- BetterAuth backend was not deployed OR
+- Correct Convex deployment not linked OR
+- Env variables were pointing to the wrong convex.site URL
+
+Investigated all three.
+
+---
+
+### Ran Convex Backend Locally
+
+Executed:
+```bash
+bun dev
+```
+
+Got:
+```
+Convex functions ready!
+```
+
+This means backend code compiled, but BetterAuth routes still not registered.
+
+---
+
+### Compared ENV Files
+
+Checked backend env, frontend env, native env, and saw:
+
+**Mixed deployments:**
+- Some envs pointing to `watchful-ptarmigan-492`
+- Some pointing to `different-dotterel-809`
+- Some `.site` urls not updated
+- Some `.cloud` urls mismatched
+
+This mismatch caused 404 on `/auth/session`.
+
+---
+
+### Tested the Route in Browser
+
+Opened:
+```
+https://watchful-ptarmigan-492.convex.site/auth/session
+```
+
+Got:
+```
+No matching routes found
+```
+
+This confirmed that deployment did not contain BetterAuth endpoints.
+
+Meaning:
+- Either wrong deployment
+- Or backend not deployed to cloud after adding auth.ts
+
+---
+
+### Final Attempt: Corrected the .env.local
+
+Gave a fully fixed env:
+```
+CONVEX_DEPLOYMENT=dev:different-dotterel-809
+CONVEX_URL=https://different-dotterel-809.convex.cloud
+EXPO_PUBLIC_CONVEX_URL=https://different-dotterel-809.convex.cloud
+EXPO_PUBLIC_CONVEX_SITE_URL=https://different-dotterel-809.convex.site
+```
+
+But frontend still logs 404 session → So troubleshooting stops here for tonight.
+
+---
+
+## Summary: What's Left for Tomorrow
+
+1. Confirm the backend actually deployed with BetterAuth routes
+2. Hit this URL in browser:
+```
+https://different-dotterel-809.convex.site/auth/session
+```
+
+Should NOT see "No matching routes found". Should see:
+```json
+{ "user": null, "session": null }
+```
+
+Once backend is correct → everything on the frontend will immediately work.
+
+Tomorrow we can debug:
+- Backend deployment
+- Convex status
+- Convex logs
+- File placement (convex/auth.ts)
+- Correct URL wiring
+- Google redirect URI
+- Deep linking setup
+
+---
+
+## What I Learned Today
+
+- BetterAuth client architecture
+- Expo deep linking
+- OAuth redirection
+- Convex + BetterAuth integration
+- Why sessions return 404
+- How environment variables wire a system
+- How backend routes work in Convex
+- Complete Android signing system (RSA, SHA, certificates)
+- Why copy-pasting signatures never works
+- Why public certificates are safe
+
+This was a big chunk of real authentication engineering and cryptography fundamentals.
+
+Tomorrow: Fix BetterAuth and get Google OAuth working.
