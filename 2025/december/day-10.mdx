@@ -1,10 +1,351 @@
 ---
 title: "December 10th, 2025"
-description: "Daily update"
+description: "Time pickers, Expo tunnels, and the day I realized third-party libraries are a trap."
 ---
 
-## December 10th, 2025
+# December 10th, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day I Stopped Trusting Third-Party Libraries**
+
+Today was a mix of late-night flow diagrams, Expo networking battles, and the realization that sometimes you just need to build it yourself.
+
+---
+
+## 1:54 AM — Flow Diagrams at 2AM
+
+**Question:** "Let me finalize the CommitT flow structure."
+
+**Story:**
+
+At 1:54 AM, I was still sitting in front of the laptop like an NPC that forgot to despawn.
+
+Honestly, even my brain was like: "Bro... again? We JUST did an update 2 minutes ago. Do you even sleep, or do you just recharge on Wi-Fi?"
+
+But no, I opened CommitT anyway — because apparently my version of self-care is not doing self-care.
+
+The funny thing is, I wasn't even stressed this time. I was just casually scrolling through the flow like: "Damn... this actually looks like a real app. Who built this? Surely not me. I avoid deadlines for a living."
+
+But the structure is clean, the direction is solid, and the flow is actually starting to behave like an app that knows what it's doing.
+
+Meanwhile I'm still here making terrible life choices like: "Let me finalize flow diagrams at 1:54 AM because my sleep schedule is in permanent beta version."
+
+**Summary of my 1:54 AM life choices:**
+- Should've been asleep
+- Didn't sleep
+- Drew diagrams instead
+- Roasted myself in the process
+- CommitT is becoming dangerously structured now
+- Future-me will cry but present-me is proud
+
+---
+
+## 9:13 AM — WSL Networking Reality
+
+**Question:** "Ok then when my phone scans the qr it sends the req to my windows wifi ip so will it actually ever reach this wsl or can it receive the data packets from it?"
+
+**Story:**
+
+At 9:13 AM, I finally asked the actual important question: "When the phone scans the QR, does the request really go to Windows? And from there... does it ever reach WSL?"
+
+And the answer became very clear once I looked at how WSL networking works.
+
+When the phone scans the QR, it tries to send the request to the IP inside the QR. But that IP belongs to Windows' WiFi network, not WSL.
+
+So the request hits Windows correctly.
+
+The problem is what happens next: Windows has no idea that this request needs to be forwarded into the WSL virtual network. WSL sits behind a NAT with its own internal IP, and Windows doesn't automatically route packets from WiFi to WSL.
+
+So yes — the phone can reach Windows, but Windows does not pass that request into WSL. WSL never receives the packet, Metro never sees it, and Expo Go stays stuck.
+
+**Result:** Tunnel mode is required because it bypasses the entire Windows to WSL routing issue.
+
+---
+
+## 9:30 AM — Understanding Expo Tunnel
+
+**Question:** "Hey wait, let me guess what expo tunnel is. It is the actual expo server, expo owns it. So when I do start expo tunnel, then what happens is, in the QR it instructs the go app to hit the expo server instead of wifi IP. So what ends up happening is the request would go to the expo server and then from expo server we load our app, am I right?"
+
+**Story:**
+
+At 9:30 AM, I tried to understand how Expo tunnel works.
+
+My understanding was: Expo tunnel uses Expo's own server. When we do `expo start --tunnel`, the QR code points to Expo's server instead of my local WiFi IP. The flow becomes: Phone → Expo Server → My App.
+
+The reality: Yes, that's exactly right.
+
+**How tunnel mode works:**
+- When you run `expo start --tunnel`, Expo creates a tunnel connection between your local Metro bundler and Expo's remote servers
+- The QR code contains a URL like `exp://edmojpw-anonymous-8081.exp.direct`
+- When the phone scans this, it connects to Expo's servers
+- Expo's servers forward the requests back to your local machine through the tunnel
+- This bypasses all local network routing issues
+
+**Performance:** The difference is negligible for most development work. There's a tiny bit of extra latency because requests go through Expo's servers, but it's barely noticeable.
+
+---
+
+## 9:45 AM — Tunnel Mode Attempt
+
+**Action:** "Ok daa Great, I got it. I built it using expo tunnel and then scanned, I got this here now."
+
+**Story:**
+
+At 9:45 AM, I switched to tunnel mode and tried again:
+
+```bash
+bun expo start --tunnel
+```
+
+What I saw:
+
+```
+› Switching to --go
+[QR code displayed]
+› Metro waiting on exp://edmojpw-anonymous-8081.exp.direct
+› Using Expo Go
+```
+
+**The problem:** Even though I built it from Expo Go mode, it still didn't work. The app showed nothing when I scanned the QR code.
+
+---
+
+## 10:00 AM — Dev Build Confusion
+
+**Observation:** "Hmm no, I did build from expo go"
+
+**Story:**
+
+At 10:00 AM, I realized there was confusion about what mode I was actually running in.
+
+What I thought: I thought I was running in Expo Go mode because I used tunnel.
+
+What was actually happening: Looking at the terminal output more carefully:
+
+```bash
+› Metro waiting on exp+mono://expo-development-client/?url=...
+› Using development build
+› Press s │ switch to Expo Go
+```
+
+**The key indicators:**
+- The URL scheme was `exp+mono://` instead of `exp://`
+- Metro was explicitly saying "Using development build"
+- The CLI was prompting me to "Press s │ switch to Expo Go"
+
+**What this means:**
+- Development build requires a custom-built APK that includes native code
+- Expo Go is a pre-built app that can only run JavaScript changes
+- I had `expo-dev-client` installed, which automatically switches to development build mode
+
+---
+
+## 10:15 AM — The expo-dev-client Problem
+
+**Question:** "Hey but in dev client mode, and in the mono apk dev build it's working. So maybe shall we continue from here itself or what?"
+
+**Story:**
+
+At 10:15 AM, I was confused because the app worked fine in development build mode with the custom APK I built.
+
+I thought: Maybe having `expo-dev-client` installed prevents Expo Go from working at all, and I need to either continue with development builds only or remove `expo-dev-client` to use Expo Go.
+
+The clarification: I misunderstood - I thought maybe there was some configuration or prebuild setup that was preventing Expo Go from working, when actually it was just the presence of `expo-dev-client` package.
+
+---
+
+## 10:30 AM — GitHub Issue Discovery
+
+**Discovery:** Found GitHub issue #24023: "Unable to open simple app using Expo Go after installing expo-dev-client"
+
+**Story:**
+
+At 10:30 AM, I found a GitHub issue that explained exactly what was happening.
+
+**The issue:** Multiple developers reported that simply installing `expo-dev-client` prevents the app from opening in Expo Go, even though it shows a QR code.
+
+**Common symptoms:**
+- QR code loads fine
+- Expo Go sees the local development server
+- But clicking it does nothing
+- Or it says "Something went wrong"
+
+**The root cause:** "That's because you're running on development build, press s to switch to expo go, as the CLI suggests."
+
+**What's happening:**
+- When `expo-dev-client` is installed, Expo CLI automatically defaults to development build mode
+- The QR code generated is for a development build, not Expo Go
+- You need to manually press `s` to switch to Expo Go mode
+
+**Why removing expo-dev-client works:**
+- Without the package, Expo CLI defaults to Expo Go mode
+- The QR code then generates the correct URL for Expo Go
+- No native code changes are needed, so Expo Go can handle it
+
+---
+
+## 10:45 AM — Understanding the Difference
+
+**Realization:** "Ok daa so this GitHub page basically resolves this, so it's maybe not our problem"
+
+**Story:**
+
+At 10:45 AM, I finally understood the complete picture.
+
+**The fundamental difference:**
+
+**Expo Go:**
+- Pre-built app available on Play Store/App Store
+- Contains all standard Expo SDK modules
+- Can only run JavaScript changes
+- Cannot handle custom native code
+- Uses URLs like `exp://...`
+
+**Development Build:**
+- Custom-built APK specific to your project
+- Includes your specific native dependencies
+- Can handle any native code changes
+- Required when using packages that need native modules
+- Uses URLs like `exp+[scheme]://...`
+
+**Why my app needed development build:** Looking at my project, I likely had custom native modules, Firebase with native code, or other packages requiring native configuration.
+
+**The solution:** This wasn't actually "our problem" in the sense that nothing was broken. My project needed development build because of native dependencies.
+
+---
+
+## 11:00 AM — Switching to Expo Go Failed
+
+**Reality Check:** "Hey wait, read this over here, we also tried switching to Expo Go mode, it still didn't work. So we now stay at build only and then we dev it in there itself."
+
+**Story:**
+
+At 11:00 AM, I had to correct my understanding because we actually did try switching to Expo Go mode.
+
+**What we tried:**
+- Pressed `s` in the CLI to switch to Expo Go mode
+- The CLI confirmed: "› Using Expo Go"
+- Generated a new QR code
+- Scanned it with Expo Go app
+
+**What happened:** It still didn't work. The app either showed nothing, or said "Something went wrong", or just stayed on loading screen.
+
+**Why switching didn't help:** Looking at the GitHub issue more carefully, many developers reported the same thing. Even after switching to Expo Go mode using `s`, the app wouldn't open. Some people's solution was to completely remove `expo-dev-client` from package.json. Just switching modes wasn't enough if native dependencies existed.
+
+**Our actual solution:** We decided to stop fighting it and just:
+- Stay in development build mode
+- Use the custom APK we built
+- Develop the app using the development build only
+- Forget about using Expo Go entirely
+
+**Why this makes sense:**
+- Our project clearly has native dependencies that need development build
+- Trying to force it to work with Expo Go is a waste of time
+- Development build is actually the recommended approach for production apps anyway
+- We were spending time debugging something that isn't meant to work
+
+**What we chose:** Development build mode. Done. No more debugging Expo Go issues.
+
+---
+
+## Time Picker Journey
+
+**The Real Story:**
+
+Honestly, this whole time-picker adventure exposed one truth: Ready-made libraries look nice, but they break the moment you want something slightly custom.
+
+### First Attempt: @react-native-community/datetimepicker
+
+We tried the default community time picker.
+
+**Problems:**
+- No AM/PM customization
+- Popup always controlled by OS
+- Cannot embed inside our own UI
+- 0% flexible for CommitT design
+- No FROM / TO combined flow possible
+
+It basically told us: "Bro, I show the time picker my way. Not your way."
+
+So we ditched it.
+
+### Second Attempt: react-native-paper-dates
+
+This one was promising.
+
+**Good parts:**
+- Beautiful UI
+- AM/PM support
+- Works cross-platform
+
+**But again:**
+- Can't put it inside your custom box
+- Modal always full screen
+- Cannot build "FROM → TO" inside the same popup
+- Hard to style deeply
+- Not battle tested for custom scenarios
+
+It was good... but not CommitT-level flexible.
+
+### The Truth: From-To UI is ALWAYS Custom
+
+Every real app that has from time, to time, inside a card, with AM/PM, with minute snapping, inside your own dark theme, with your own font, with your own transitions — NONE of them use third-party time-pickers.
+
+They all build custom wheels, custom scroll, custom tap selectors.
+
+Because this UI needs:
+- Full control
+- Full styling
+- Full logic
+- Full animations
+- From-to pairing
+- Validation (from < to)
+- Reusability
+
+No library will give that out of the box.
+
+### So We Built Our Own Custom Time Picker
+
+And this custom version:
+- Handles FROM and TO
+- Completely inside your UI card
+- Works in CommitT dark mode
+- Uses vertical scroll lists (hours, minutes)
+- AM/PM toggle
+- Clean preview top bar
+- Real device-tested
+- No dependency issues
+- No modal limitation
+- Looks like a premium app
+- Battle-ready for later features
+
+This is the same approach used by: iOS Clock app, Google Clock, Samsung Alarm, Notion, any meditation or sleep app, fitness apps.
+
+All of them use custom pickers — because control matters.
+
+### Final Summary
+
+- We tried native community → too limited
+- We tried react-native-paper → stylish but not flexible
+- FROM-TO requires custom building
+- Third-party libraries cannot fully support this
+- We built a clean custom picker that is stable, predictable, and CommitT-branded
+- This is production-level approach — not hacky
+
+This decision is what REAL dev teams do. Actually made a very senior call here.
+
+---
+
+## Summary
+
+**Key takeaways:**
+- Expo tunnel bypasses local network issues by routing through Expo's servers
+- Installing `expo-dev-client` switches project to development build mode
+- Development builds require custom APK, can't use pre-built Expo Go app
+- Just pressing `s` to switch modes doesn't magically make Expo Go work if you have native dependencies
+- We tried switching to Expo Go - it failed - so we decided to just use development build mode permanently
+- For projects with native code, development build is the only real option
+- Stop fighting against the tool's design - if it needs dev build, use dev build
+- Third-party UI libraries are great until you need something custom
+- Building your own components gives you full control and is often the better long-term choice
+
+Tomorrow: Actually writing features instead of fighting tools.
