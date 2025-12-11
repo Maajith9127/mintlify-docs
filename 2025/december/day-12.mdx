@@ -1,10 +1,227 @@
 ---
 title: "December 12th, 2025"
-description: "Daily update"
+description: "The day we finally got Convex working. Environment variables, deployment linking, and the component architecture revelation."
 ---
 
-## December 12th, 2025
+# December 12th, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day Convex Finally Said "Functions Ready"**
+
+Today was a marathon debugging session. We created our own Convex project, fought with environment variables, discovered the component architecture, and finally got that beautiful green checkmark.
+
+---
+
+## Creating Our Own Convex Project
+
+### Why We Needed a Fresh Start
+
+We were using Atheeq's old Convex deployment, which caused:
+- Mixed environment variables
+- Wrong deployment IDs
+- Inherited misconfigurations
+- Permission confusion
+
+So we created our own project from scratch.
+
+### The New Project Details
+
+Created a new Convex project called "CommitT" under our own team:
+
+```
+Deployment ID: dev:content-rooster-952
+Cloud URL: https://content-rooster-952.convex.cloud
+Site URL: https://content-rooster-952.convex.site
+```
+
+**What each URL does:**
+- `.cloud` URL → Used for calling backend functions (mutations, queries, database operations)
+- `.site` URL → Used ONLY for authentication (OAuth redirects, sessions, login callbacks)
+
+---
+
+## The Environment Variable Journey
+
+### Understanding the ENV Structure
+
+We learned that Convex has a specific ENV structure across different parts of the monorepo:
+
+**Backend (`packages/backend/.env.local`):**
+```
+CONVEX_DEPLOYMENT=dev:content-rooster-952
+CONVEX_URL=https://content-rooster-952.convex.cloud
+SITE_URL=https://content-rooster-952.convex.site
+```
+
+**Frontend Native (`apps/native/.env`):**
+```
+EXPO_PUBLIC_CONVEX_URL=https://content-rooster-952.convex.cloud
+EXPO_PUBLIC_CONVEX_SITE_URL=https://content-rooster-952.convex.site
+```
+
+**Frontend Web (`apps/web/.env`):**
+```
+VITE_CONVEX_URL=https://content-rooster-952.convex.cloud
+VITE_CONVEX_SITE_URL=https://content-rooster-952.convex.site
+```
+
+### The Big Discovery: Convex ENV Registration
+
+We discovered that Convex does NOT automatically load `.env` files. You must explicitly register environment variables using the CLI:
+
+```bash
+npx convex env set SITE_URL https://content-rooster-952.convex.site
+npx convex env set GOOGLE_CLIENT_ID your-client-id
+npx convex env set GOOGLE_CLIENT_SECRET your-client-secret
+```
+
+This was why we kept seeing `SITE_URL = undefined` in our logs.
+
+---
+
+## The HTTP Router Nightmare
+
+### The Error Chain
+
+We went through multiple errors trying to get the HTTP router working:
+
+1. `route requires handler` - auth.handlers was undefined
+2. `convex/http not found` - wrong import path
+3. `httpAction not exported` - wrong Convex version API
+4. `default export is not a Router` - mixing old and new APIs
+
+### The Root Cause
+
+We were mixing THREE incompatible generations of Convex HTTP APIs:
+- Legacy (≤1.29): default request handler
+- Intermediate (1.30): httpAction
+- New Router API (≥1.31): httpRouter
+
+Our local Convex version didn't match what the cloud expected.
+
+### The Real Fix: Component Architecture
+
+The breakthrough came when we found the correct documentation. Convex + BetterAuth uses a **component-based architecture**, not manual auth.ts + http.ts.
+
+---
+
+## The Correct Architecture
+
+### Required Files
+
+```
+convex/
+├── convex.config.ts     ← Registers BetterAuth component
+├── auth.config.ts       ← Configures auth providers
+├── auth.ts              ← Component-based auth instance
+├── http.ts              ← Router with registerRoutes
+└── _generated/
+```
+
+### convex.config.ts
+
+```typescript
+import { defineApp } from "convex/server";
+import betterAuth from "@convex-dev/better-auth/convex.config";
+
+const app = defineApp();
+app.use(betterAuth);
+
+export default app;
+```
+
+### auth.config.ts
+
+```typescript
+export default {
+  providers: [
+    {
+      domain: process.env.CONVEX_SITE_URL,
+      applicationID: "convex",
+    },
+  ],
+};
+```
+
+### http.ts (The Correct Version)
+
+```typescript
+import { httpRouter } from "convex/server";
+import { authComponent, createAuth } from "./auth";
+
+const http = httpRouter();
+authComponent.registerRoutes(http, createAuth);
+
+export default http;
+```
+
+**Key insight:** We use `authComponent.registerRoutes()` instead of manually mounting routes.
+
+---
+
+## The Victory Moment
+
+After hours of debugging, we finally saw:
+
+```
+✔ 22:51:07 Convex functions ready! (42.99s)
+```
+
+This meant:
+- Convex project is valid
+- BetterAuth component is mounted correctly
+- HTTP routes are registered
+- Cloud accepted our build
+
+---
+
+## The Final Error: Invalid Callback URL
+
+When we tested Google login, we got:
+
+```json
+{
+  "error": {
+    "code": "INVALID_CALLBACKURL",
+    "message": "Invalid callbackURL",
+    "status": 403
+  }
+}
+```
+
+This is actually progress - it means BetterAuth is working, Convex routes are working, the login request is reaching the server.
+
+The issue is that the callback URL from Expo isn't in the `trustedOrigins` list.
+
+---
+
+## What We Learned Today
+
+1. **Convex ENV registration is manual** - You must use `npx convex env set` to register variables
+2. **Component architecture is required** - Manual auth.ts + http.ts doesn't work with new Convex
+3. **convex.config.ts is mandatory** - Without it, BetterAuth component won't register
+4. **authComponent.registerRoutes()** - This is the correct way to mount auth routes
+5. **Version mismatches cause chaos** - Local vs cloud Convex versions must align
+6. **trustedOrigins must include Expo URLs** - For mobile OAuth to work
+
+---
+
+## What's Left for Tomorrow
+
+1. Set up Google OAuth callback URLs properly
+2. Add Expo URLs to trustedOrigins
+3. Configure Google Cloud Console redirect URIs
+4. Test the complete OAuth flow
+5. Actually understand the auth flow instead of vibe coding it
+
+---
+
+## Summary
+
+Today was brutal but educational. We went from:
+- Mixed deployments and 404 errors
+- To understanding the complete Convex + BetterAuth architecture
+- To finally seeing "Convex functions ready!"
+
+The sign-in part was mostly vibe-coded to make it work. Tomorrow we'll set up Google authentication properly from scratch, with actual understanding this time.
+
+Progress is progress. Even if it took 6+ hours of debugging.
