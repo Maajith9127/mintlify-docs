@@ -1,10 +1,235 @@
 ---
 title: "December 14th, 2025"
-description: "Daily update"
+description: "The day we designed commitment storage architecture. Convex vs Local DB, cron jobs vs scheduled jobs, and Zustand state management."
 ---
 
-## December 14th, 2025
+# December 14th, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day We Designed the Commitment Flow**
+
+Today was about architecture decisions. We figured out how auth flows through the app, debated Convex vs Local storage, learned why scheduled jobs beat cron polling, and set up Zustand for state management.
+
+---
+
+## Understanding the Auth Flow
+
+**Q: How does authentication flow through our app?**
+
+```
+Frontend
+└─ Convex client sends request
+   └─ Better Auth intercepts request
+      └─ Reads session from secure storage
+      └─ Attaches session reference
+         └─ Convex receives request
+            └─ Better Auth server validates session
+               └─ ctx.auth.userId is set
+```
+
+This is the complete flow from frontend request to authenticated backend call.
+
+---
+
+## The Commitment Storage Problem
+
+**Q: What were we trying to build?**
+
+User flow:
+1. User creates a commitment
+2. Adds time, location, commitment name, and other details
+3. Saves it
+4. Data goes to Convex backend
+5. Also needs to be in local DB
+
+**Q: Why do we need local storage too?**
+
+For app blocking! 
+
+Example: User opens blocked app XYZ, but internet is off. How will our app know whether to block it or not?
+
+**Answer:** Local storage is required for offline functionality like app blocking.
+
+---
+
+## The Two Types of Commitments
+
+**Q: What scenarios do we need to handle?**
+
+### Scenario 1: Time-based Commitment
+- User says: "Every day from 5 PM to 6 PM I'll be in the gym"
+- Storing in Convex makes sense
+- At 5 PM, Convex checks what's happening
+
+### Scenario 2: Commitment + App Blocking
+- Same commitment as above
+- BUT app XYZ also needs to be blocked during that time
+- This requires local storage for offline blocking
+
+---
+
+## Cron Jobs vs Scheduled Jobs
+
+**Q: Aren't cron jobs expensive since they run 24/7 with heartbeat pings?**
+
+This was a big misconception we cleared up.
+
+**The Wrong Way (Polling):**
+```
+"Check every minute if the time window passed"
+```
+This is expensive and wasteful.
+
+**The Right Way (Scheduled Jobs):**
+
+When the task is created:
+- You know `due_at = 6 PM`
+- You know `grace = 5 mins`
+- 👉 Schedule a job for 6:05 PM
+
+Then:
+- That job runs ONCE
+- Checks status
+- Applies penalty if needed
+
+**No polling. No heartbeat. No cron loop.**
+
+---
+
+## How Does Scheduled Jobs Know When It's Time?
+
+**Q: If you say at 6 PM we need to check this, how will the code know when it's 6 PM?**
+
+**A:** The system internal clock! Instead of multiple cron jobs, we have one standard main scheduler that triggers jobs at their scheduled times.
+
+---
+
+## Redis + BullMQ vs Convex
+
+**Q: In Redis + BullMQ, the worker kept polling the queue to check if time arrived. Is that a drawback?**
+
+**A:** Yes, that's the polling pattern we want to avoid.
+
+**Realization:** For our use case, Convex's scheduled functions are better than Redis + BullMQ polling.
+
+Mistakes happen. Learning happens.
+
+---
+
+## Local Storage Options
+
+**Q: For local things like app blocking state, what do we use?**
+
+Options for React Native:
+- AsyncStorage (simple key-value)
+- MMKV (fast key-value)
+- WatermelonDB (full local DB)
+- SQLite (relational)
+
+For our case: MMKV or WatermelonDB depending on complexity.
+
+---
+
+## State Management Options
+
+**Q: What options do we have for state management in React Native?**
+
+- Redux
+- Zustand
+- Jotai
+- MobX
+- React Context
+
+**Q: Which one did we choose?**
+
+**Zustand** — because:
+- We already know Redux and Zustand
+- Starting with new state management means setup + learning curve
+- For MVP level, spending time on this isn't the best use of time
+- Zustand is simpler than Redux anyway
+
+---
+
+## What State Do We Need?
+
+**Q: What state do we need even at MVP level?**
+
+For derived + UI-level auth state:
+
+```typescript
+user              // cached user object for UI
+isAuthenticated   // boolean derived from Better Auth
+isAuthLoading
+hasCompletedOnboarding
+hasAcceptedPermissions
+lastLoginMethod   // Google / email
+logoutInProgress  // UX state
+```
+
+These are NOT session primitives. They're UI state derived from auth.
+
+---
+
+## The Zustand Store Pattern
+
+**Q: Can we put this in Zustand, fill it centrally, and pull from there?**
+
+**A:** Yes! This keeps the main code clean — we don't mix API call responsibilities with state management.
+
+**The pattern:**
+
+1. Create store at: `apps/native/stores/useCommitStore.ts`
+2. Use it in the Commits screen
+3. Clean separation of concerns
+
+```typescript
+// stores/useCommitStore.ts
+import { create } from 'zustand'
+
+interface CommitState {
+  user: User | null
+  isAuthenticated: boolean
+  isAuthLoading: boolean
+  hasCompletedOnboarding: boolean
+  // ... other state
+  
+  // Actions
+  setUser: (user: User) => void
+  setAuthLoading: (loading: boolean) => void
+}
+
+export const useCommitStore = create<CommitState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isAuthLoading: true,
+  hasCompletedOnboarding: false,
+  
+  setUser: (user) => set({ user, isAuthenticated: !!user }),
+  setAuthLoading: (loading) => set({ isAuthLoading: loading }),
+}))
+```
+
+Then in components:
+```typescript
+const { user, isAuthenticated } = useCommitStore()
+```
+
+---
+
+## Key Decisions Made Today
+
+1. **Convex for server-side commitment storage** — time-based checks, verification
+2. **Local DB for offline functionality** — app blocking when internet is off
+3. **Scheduled jobs over cron polling** — one-time execution at scheduled time
+4. **Zustand for state management** — simple, familiar, clean separation
+
+---
+
+## Summary
+
+Today was architecture day. We mapped out:
+- How auth flows through the entire stack
+- Why we need both Convex AND local storage
+- Why scheduled jobs are better than polling crons
+- How to structure state management with Zustand
+
+Tomorrow: Actually implement the Create Commitment → Convex save flow.
