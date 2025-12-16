@@ -1,10 +1,318 @@
 ---
 title: "December 16th, 2025"
-description: "Daily update"
+description: "The day we redesigned the backend schema. From naive attribute-based conditions to a scalable metric-based architecture."
 ---
 
-## December 16th, 2025
+# December 16th, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day We Redesigned the Schema**
+
+Today was a case study in schema design. We started with a naive approach, hit real problems, and arrived at a metric-based architecture that actually scales. This is the complete journey.
+
+---
+
+## The Problem Context
+
+**Q: What were we trying to build?**
+
+A task/commitment system where users can create tasks with different verification conditions:
+- Time (within / outside a time window)
+- Location (within a radius)
+- App usage restrictions
+- AI-based activity verification
+- Photo / video proof
+- Accountability partner approval
+
+Each task can have multiple conditions, and these conditions will keep growing as new features are added.
+
+**The main challenge:**
+How do we design a backend schema that supports unlimited condition types without constantly changing schema or backend logic?
+
+---
+
+## The Initial (Naive) Schema
+
+**Q: What was our first approach?**
+
+Store conditions as attributes directly:
+
+```json
+{
+  "taskId": "string",
+  "conditions": {
+    "time": {
+      "from": "timestamp",
+      "to": "timestamp"
+    },
+    "appsBlocked": ["instagram", "youtube"],
+    "websitesBlocked": ["reddit.com"],
+    "aiDescription": ["Studying DSA"],
+    "location": {
+      "lat": 12.97,
+      "lng": 77.59
+    },
+    "photo": [
+      "https://cdn.example.com/photo1.jpg"
+    ]
+  }
+}
+```
+
+**Why this looked good initially:**
+- Very readable
+- Easy to understand
+- Direct mapping from UI to backend
+- Felt "clean" and straightforward
+
+---
+
+## Problems with the Initial Design
+
+### Problem 1 — Schema Locks Feature Growth
+
+Every new condition requires:
+- Adding a new key in conditions
+- Updating backend logic
+- Updating validation
+- Handling old tasks without the new field
+
+Example: Adding video verification forces schema change:
+
+```json
+"video": {
+  "minDuration": 30
+}
+```
+
+**This is a schema migration for every new feature.**
+
+### Problem 2 — Backend Must Guess the Rule
+
+Example:
+```json
+"appsBlocked": ["instagram", "youtube"]
+```
+
+Backend has to guess:
+- Is this "never open"?
+- Is it "open less than X times"?
+- Is it "only blocked during task time"?
+
+**The rule is implicit, not explicit.**
+
+Implicit rules = hidden logic = bugs later.
+
+### Problem 3 — Backend Logic Grows Uncontrollably
+
+Backend ends up with logic like:
+
+```javascript
+if (conditions.time) checkTime();
+if (conditions.location) checkLocation();
+if (conditions.appsBlocked) checkApps();
+if (conditions.photo) checkPhoto();
+// keeps growing forever
+```
+
+Each new condition:
+- Adds a new if
+- Increases coupling
+- Makes backend harder to maintain
+
+**This is hard-coded logic tied to schema shape.**
+
+---
+
+## The Key Insight (Turning Point)
+
+**Q: What was the core realization?**
+
+We were storing only values and attributes, and expecting the backend to decide the rule.
+
+**A good schema must also encode the rule intent.**
+
+Backend should execute declared rules, not infer rules.
+
+---
+
+## The Metric-Based Schema Design
+
+**Q: What's the new approach?**
+
+We redesigned conditions into a generic rule structure:
+
+```json
+"conditions": [
+  {
+    "metric": "string",
+    "relation": "enum(eq|gt|lt|within|outside|exists|matches)",
+    "target": {
+      "type": "enum(number|string|boolean|array|range)",
+      "value": "any"
+    }
+  }
+]
+```
+
+This structure is:
+- Fixed
+- Generic
+- Data-driven
+- Future-proof
+
+---
+
+## Why a Separate Metrics Definition Exists
+
+**Q: What is the metrics registry for?**
+
+To support and validate conditions, we added a global metric registry:
+
+```json
+"metrics": {
+  "key": "string",
+  "description": "string",
+  "unit": "string",
+  "allowed_relations": [...],
+  "allowed_target_types": [...],
+  "permissions_required": [...]
+}
+```
+
+**Purpose of metrics:**
+- Defines what a metric is
+- Restricts allowed relations
+- Restricts target types
+- Declares permissions required
+
+Think of it as:
+- `metrics` → what is possible
+- `conditions` → what is required
+
+---
+
+## Concrete Example — Location Condition
+
+**Stored condition:**
+
+```json
+{
+  "metric": "location",
+  "relation": "within",
+  "target": {
+    "type": "range",
+    "value": {
+      "lat": 12.97,
+      "lng": 77.59,
+      "radius": 100
+    }
+  }
+}
+```
+
+**Metric definition:**
+
+```json
+{
+  "key": "location",
+  "allowed_relations": ["within", "outside"],
+  "allowed_target_types": ["range"],
+  "permissions_required": ["location"]
+}
+```
+
+---
+
+## How Backend Evaluates This
+
+**Step 1 — Fetch current user location**
+
+```javascript
+const userLocation = { lat: 12.9716, lng: 77.5946 };
+```
+
+**Step 2 — Calculate distance**
+
+```javascript
+function getDistanceInMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) ** 2;
+
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+```
+
+**Step 3 — Evaluate relation**
+
+```javascript
+const distance = getDistanceInMeters(
+  userLocation.lat,
+  userLocation.lng,
+  target.lat,
+  target.lng
+);
+
+if (relation === "within") {
+  return distance <= target.radius;
+}
+```
+
+---
+
+## Why This Is Scalable
+
+**Q: Does this actually remove if/else?**
+
+No — but here's the important realization:
+
+Yes, if/else still exists — but:
+- The number of if/else blocks is fixed per metric
+- It does not grow per task
+- It does not grow per condition
+
+**Comparison:**
+
+| Old Approach | Metric-Based Approach |
+|--------------|----------------------|
+| Schema grows → backend grows | Schema fixed |
+| New feature → new if | Backend logic fixed |
+| Logic tightly coupled to schema | New condition = new data |
+| | New metric = one new evaluator |
+
+---
+
+## The Final Learning
+
+**Q: What are the key lessons learned?**
+
+1. Schemas should encode rule intent, not just data
+2. Backend should execute rules, not infer them
+3. Hard-coding happens when logic depends on schema shape
+4. Good abstractions freeze where complexity lives
+5. Scalability comes from bounded logic, not fewer lines
+
+---
+
+## One-Line Takeaway
+
+**We don't remove if/else. We control where they live — and keep them from spreading.**
+
+---
+
+## Summary
+
+Today was about schema architecture. We went from:
+- Naive attribute-based conditions
+- To understanding why that doesn't scale
+- To a metric-based architecture with explicit rules
+
+The key insight: **Backend should execute declared rules, not infer rules from data shape.**
