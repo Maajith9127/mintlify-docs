@@ -1,10 +1,254 @@
 ---
 title: "December 15th, 2025"
-description: "Daily update"
+description: "The day we mapped out the commit creation flow. Auth session chain, frontend vs backend responsibilities, and fixing the session bug."
 ---
 
-## December 15th, 2025
+# December 15th, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day We Mapped the Commit Creation Flow**
+
+Today was about clarity. We traced the entire task creation flow, understood who sets what (frontend vs backend), fixed the auth session bug, and figured out how Zustand fits into the draft state.
+
+---
+
+## Where Are We in the App?
+
+**Q: Where are we right now?**
+
+We are at the Commits screen, where the user lands after login. This page shows:
+- Quick header + verification card
+- List of existing commits (from Zustand)
+- An Add (+) button
+
+When the user clicks Add, we route them to:
+```
+/(commit-create)/conditions
+```
+
+---
+
+## The Add Button Flow
+
+**Q: What happens when the user clicks the Add button?**
+
+When the user clicks Add:
+- A new task (commit) creation flow starts
+- At this stage, `assigner_id` and `assignee_id` are the same, because the user is creating a commitment for themselves
+- We do NOT set `assigner_id` / `assignee_id` on the frontend
+- These will be filled by the backend using the logged-in user's session
+
+So for now:
+- `assigner_id` & `assignee_id` → backend responsibility
+
+---
+
+## Where Does User ID Come From?
+
+**Q: Where do we get the user ID from?**
+
+The user must already be signed in.
+- better-auth creates a session on login
+- Convex backend can read the session
+- From the session → backend knows exact userId
+
+So backend can safely set:
+- `assigner_id`
+- `assignee_id`
+
+Frontend doesn't need to worry about this.
+
+---
+
+## The Conditions Screen
+
+**Q: What is the Conditions screen used for?**
+
+The Conditions screen is where the user chooses how the task will be verified.
+
+Options include:
+- Time
+- Location
+- Accountability Partner
+- Picture Proof
+- Video Proof
+
+Each option routes to its own setup screen.
+
+**This screen does not save anything yet — it only routes.**
+
+---
+
+## The Time Condition Flow
+
+**Q: What happens when the user clicks the Time condition?**
+
+User is taken to the TimeSet screen, where:
+- Days are selected
+- Multiple time slots can be added
+- Time is mandatory for every commit
+
+All the time slots the user adds must be collected and stored as:
+```
+time_window
+```
+
+Time is compulsory, so:
+- We keep `time_window` as a separate top-level attribute
+- Not buried deeply inside conditions
+
+---
+
+## Draft State Storage
+
+**Q: Where should time data be stored while the user is creating the commit?**
+
+**Zustand** is the correct place.
+
+Reason:
+- User jumps between multiple screens
+- Time, location, proofs, etc. are added step-by-step
+- We need a temporary draft state before final save
+
+So:
+- Time window → stored in Zustand
+- Location → added later into conditions
+- Other proofs → also added later
+
+---
+
+## Understanding useAppGate
+
+**Q: What is the job of useAppGate?**
+
+`useAppGate` is used to:
+- Check if the user is logged in
+- Decide where the app should route:
+  - `(main)` if authenticated
+  - `(auth)` if not authenticated
+
+It only does auth checking, nothing else.
+
+---
+
+## The Session Bug
+
+**Q: Why was `checking: true` showing for a long time?**
+
+Because the wrong API was used earlier.
+
+**Wrong:**
+```typescript
+authClient.auth.getSession()
+```
+
+**Correct:**
+```typescript
+authClient.getSession()
+```
+
+Because:
+- Session lives on the client
+- Not under `authClient.auth`
+
+Once this was fixed:
+- `checking` becomes `false`
+- `isAuthenticated` becomes `true` if session exists
+
+---
+
+## Better Auth Session Storage
+
+**Q: Does better-auth automatically store session details?**
+
+Yes.
+
+When this runs:
+```typescript
+authClient.signIn.social(...)
+```
+
+better-auth:
+1. Verifies the ID token
+2. Creates or fetches the user
+3. Creates a session
+4. Stores session securely on the client
+
+**We do NOT need to manually store anything.**
+
+---
+
+## Convex Backend During Sign-In
+
+**Q: What exactly does the Convex backend do during sign-in?**
+
+Convex backend:
+1. Receives verified identity from better-auth
+2. Creates user if first-time login
+3. Links email / provider
+4. Creates a session token
+5. Maps session → userId
+
+From then on:
+- Every request knows who the user is
+
+---
+
+## Who Sets assigner_id and assignee_id?
+
+**Q: So assigner_id and assignee_id — who sets them?**
+
+**Backend only.**
+
+Reason:
+- Backend has access to `ctx.auth.userId`
+- Session guarantees identity
+- Frontend should never spoof IDs
+
+So for now:
+- We leave `assigner_id` & `assignee_id` empty on frontend
+
+---
+
+## What Can Frontend Fill?
+
+**Q: Other than assigner_id and assignee_id, what can we fill now?**
+
+On the frontend, we can fill:
+- `title`
+- `description`
+- `visibility`
+- `time_window`
+- `conditions` (time, location, proof types)
+- `status` (default: pending)
+
+These will be built gradually using Zustand during the flow.
+
+---
+
+## Time Window in Zustand
+
+**Q: About time_window — should it be in Zustand?**
+
+Yes.
+
+Reason:
+- Time is mandatory
+- User edits time multiple times
+- Other conditions depend on it
+- Final save needs it cleanly
+
+So:
+- `time_window` should live in Zustand as part of the draft task
+
+---
+
+## Summary
+
+Today we clarified:
+- Task creation flow
+- Auth → session → userId chain
+- Frontend vs backend responsibilities
+- Why assigner/assignee belong to backend
+- Why Zustand is needed for task drafts
+- How time_window fits into the schema
+- Fixed the auth session bug properly
