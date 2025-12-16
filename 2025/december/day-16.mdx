@@ -127,11 +127,17 @@ Each new condition:
 
 **Q: What was the core realization?**
 
-We were storing only values and attributes, and expecting the backend to decide the rule.
+This is where my friend Atheeq stepped in.
+
+My first approach was bad and naive. I was storing only values and attributes, and expecting the backend to decide the rule. Atheeq suggested the metric-based approach, and at first I didn't fully get why it was better.
+
+But after working through the problems above, I now clearly understand why his approach was better:
 
 **A good schema must also encode the rule intent.**
 
 Backend should execute declared rules, not infer rules.
+
+Thanks Atheeq 👊
 
 ---
 
@@ -311,8 +317,10 @@ Yes, if/else still exists — but:
 ## Summary
 
 Today was about schema architecture. We went from:
-- Naive attribute-based conditions
+- My naive attribute-based conditions
 - To understanding why that doesn't scale
-- To a metric-based architecture with explicit rules
+- To Atheeq's metric-based architecture with explicit rules
 
 The key insight: **Backend should execute declared rules, not infer rules from data shape.**
+
+Honest reflection: My first approach felt clean but was actually a trap. Atheeq saw the scaling problem before I did. Now I understand why — and that's the real learning.
