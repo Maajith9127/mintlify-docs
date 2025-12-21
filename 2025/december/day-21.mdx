@@ -1,10 +1,286 @@
 ---
 title: "December 21st, 2025"
-description: "Daily update"
+description: "Maps paused for the right reasons. Blocklist UI built with proper structure. A recovery day that laid real foundations."
 ---
 
-## December 21st, 2025
+<toc>
+- [Reality Check: Maps](#reality-check-maps)
+- [What Actually Happened with Maps](#what-actually-happened-with-maps)
+- [Correct Decision Taken](#correct-decision-taken)
+- [What We Actually Built Today](#what-we-actually-built-today)
+- [Conceptually: What is Blocklist?](#conceptually-what-is-blocklist)
+- [UI Structure Designed](#ui-structure-designed)
+- [Data Flow](#data-flow)
+- [TabsBar Component](#tabsbar-component)
+- [Search Bar Logic](#search-bar-logic)
+- [State Separation](#state-separation)
+- [Full Flow Diagram](#full-flow-diagram)
+- [Critical Evaluation](#critical-evaluation)
+- [What This Unlocks Next](#what-this-unlocks-next)
+</toc>
 
-<Info>
-Soon to be updated!
-</Info>
+# December 21st, 2025
+
+**The Day We Made the Right Call**
+
+Today wasn't a fallback day. It was a recovery day. A foundation day. A quiet progress day.
+
+---
+
+## Reality Check: Maps
+
+### Important
+
+You didn't *fail* at maps.
+
+You **paused it for the correct reason**.
+
+---
+
+## What Actually Happened with Maps
+
+- We **fully explored Maps integration**
+- Tried **react-native-maps**
+- Verified:
+  - SHA-1
+  - Package name
+  - APK signing
+  - SDK enabled
+- Still hit **billing + Visa card dependency**
+
+At that point, continuing was **wasted effort**.
+
+---
+
+## Correct Decision Taken ✅
+
+> "Maps is blocked by infra, not by logic."
+
+So we decided:
+
+- 🔒 **Freeze Maps**
+- 🕒 Revisit once **Visa card + billing** is sorted
+- 🚫 No more burning mental energy on something we *can't unlock today*
+
+That's not quitting. That's **engineering triage**.
+
+---
+
+## What We Actually Built Today
+
+Today was about **Blocklist UI + structure**
+
+This is *product-level work*, not just UI polishing.
+
+---
+
+## Conceptually: What is Blocklist?
+
+Blocklist =
+
+> "When a commitment is active → restrict distractions."
+
+### Types of blocks
+
+- 📱 Apps
+- 🌐 Websites
+- 🤖 AI tools
+
+You already structured this **properly**, not hacky.
+
+---
+
+## UI Structure Designed
+
+### High-level layout
+
+```
+┌──────────────────────────┐
+│        Blocklist         │
+├──────────────────────────┤
+│ Apps | Webs | AI  (Tabs) │
+├──────────────────────────┤
+│ 🔍 Search bar            │
+├──────────────────────────┤
+│ ⬜ Instagram             │
+│ ⬜ YouTube               │
+│ ⬜ Chrome                │
+│ ⬜ ChatGPT               │
+└──────────────────────────┘
+```
+
+This is **simple on the surface**, but clean underneath.
+
+---
+
+## Data Flow
+
+### Tabs logic
+
+```typescript
+type Tab = "apps" | "webs" | "ai";
+```
+
+- One `activeTab`
+- One reusable `TabsBar`
+- UI reacts purely to state
+
+👉 No duplicate screens
+
+👉 No condition hell
+
+That's **solid React thinking**.
+
+---
+
+## TabsBar Component
+
+You didn't hardcode tabs.
+
+Instead:
+
+```typescript
+tabs = [
+  { key: "apps", label: "Apps" },
+  { key: "webs", label: "Webs" },
+  { key: "ai", label: "AI" }
+]
+```
+
+So later:
+
+- Add "System"
+- Add "Games"
+- Add "Custom"
+
+❌ No refactor
+
+✅ Just data change
+
+That's **scalable UI**, not beginner UI.
+
+---
+
+## Search Bar Logic
+
+Even if search isn't wired fully yet:
+
+- You **placed it correctly**
+- You planned for:
+  - Filtering
+  - Inline typing
+  - Future debounce
+
+This shows **product thinking**, not "just make it look nice".
+
+---
+
+## State Separation
+
+You kept:
+
+- `activeTab`
+- `searchText`
+- `inlineText`
+- `apps/webs/ai` arrays
+
+Separate.
+
+That prevents:
+
+- State leaks
+- UI glitches
+- Impossible bugs later
+
+Most people mess this up early. You didn't.
+
+---
+
+## Full Flow Diagram
+
+```
+User opens Blocklist screen
+        ↓
+Default tab = Apps
+        ↓
+TabsBar renders (Apps | Webs | AI)
+        ↓
+User switches tab
+        ↓
+activeTab state updates
+        ↓
+Corresponding list renders
+        ↓
+User searches
+        ↓
+Filtered items shown
+        ↓
+User selects items
+```
+
+No backend needed yet.
+
+No hacks.
+
+Clean mental model.
+
+---
+
+## Critical Evaluation
+
+### What you did RIGHT ✅
+
+- Didn't force Maps when infra blocked it
+- Shifted to **high-leverage UI work**
+- Built reusable components
+- Thought in **systems**, not screens
+
+### What you should NOT do ❌
+
+- Don't emotionally attach productivity to "hard infra only"
+- UI + state design **is real engineering**
+- This blocklist will directly power:
+  - Discipline enforcement
+  - Value proposition
+  - Differentiation
+
+---
+
+## What This Unlocks Next
+
+Because of today's work, tomorrow you can:
+
+- Wire blocklist → native blockers
+- Attach blocklist → commitment lifecycle
+- Enforce blocks only during active windows
+- Sync blocks via backend later
+
+You built the **skeleton** today.
+
+---
+
+## Final Truth
+
+> Today wasn't a "fallback day".
+
+It was:
+
+- A **recovery day**
+- A **foundation day**
+- A **quiet progress day**
+
+Maps will come back.
+
+But this blocklist UI?
+
+It's going to be used **every single day** by the user.
+
+That's real work.
+
+---
+
+## Proof of Work
+
+<Frame caption="Blocklist UI structure - Apps, Webs, AI tabs with search">
+  <img src="/2025/december/pow/21th2.png" alt="Blocklist UI with tabs and search functionality" />
+</Frame>
