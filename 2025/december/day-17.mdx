@@ -18,7 +18,6 @@ Just one small problem: **The map was grey.**
 **Q: What were we trying to build?**
 
 A real, satellite-style Google Map inside our Expo + React Native screen:
-
 - Full-screen map
 - Satellite / hybrid view
 - Top overlay navbar
@@ -32,13 +31,11 @@ A real, satellite-style Google Map inside our Expo + React Native screen:
 **Q: What was the correct choice?**
 
 ❌ What we did NOT want:
-
 - Google Maps Web SDK
 - WebView-based map
 - Fake / static maps
 
 ✅ Correct choice:
-
 - Maps SDK for Android
 - Via `react-native-maps`
 - Provider = `PROVIDER_GOOGLE`
@@ -51,12 +48,11 @@ A real, satellite-style Google Map inside our Expo + React Native screen:
 
 **Q: What did we configure?**
 
-- Created a Google Cloud project
-- Enabled Maps SDK for Android
-- Generated a Maps Platform API key
+1. Created a Google Cloud project
+2. Enabled Maps SDK for Android
+3. Generated a Maps Platform API key
 
 At this point:
-
 - API key existed
 - SDK was enabled
 - Console showed "API Enabled"
@@ -77,9 +73,7 @@ So far → correct setup.
 ```
 
 ✔ Placed inside `<application>`
-
 ✔ Correct key name
-
 ✔ Correct location
 
 **Lesson:** Most Google Maps issues come from wrong placement — we did it right.
@@ -95,15 +89,12 @@ bunx expo install react-native-maps
 ```
 
 This did three important things:
-
-- Installed the package
-- Picked a version compatible with Expo SDK
-- Ensured native modules match Expo runtime
+1. Installed the package
+2. Picked a version compatible with Expo SDK
+3. Ensured native modules match Expo runtime
 
 ✔ Correct
-
 ✔ No manual version guessing
-
 ✔ No mismatches
 
 ---
@@ -120,7 +111,6 @@ npx expo run:android
 ```
 
 Result:
-
 - Long Gradle build (10+ minutes)
 - NDK + C++ libs compiled
 - APK successfully generated
@@ -138,17 +128,14 @@ Invariant Violation: View config not found for component `AIRMap`
 ```
 
 **Why this happened:**
-
 - App was running in a runtime without the native module
 - Either old dev client, Expo Go, or app not rebuilt after install
 
 **How it got fixed:**
-
 - Full rebuild + install of APK
 - Running in development build
 
 ✔ Error disappeared
-
 ✔ Native module loaded
 
 **Lesson:** AIRMap error = native binary mismatch, not code bug.
@@ -179,7 +166,6 @@ This is a very specific Google Maps symptom.
 - ❌ Map tiles blocked by Google servers
 
 This is NOT:
-
 - Code issue
 - Expo issue
 - react-native-maps bug
@@ -195,11 +181,9 @@ This is NOT:
 **Q: What was actually wrong?**
 
 Google Cloud showed:
-
 > "To avoid losing access to Google Cloud services, an administrator must verify this account."
 
 And:
-
 - Billing verification failed
 - Documents rejected (photo / screenshot)
 - Project entered restricted state
@@ -207,17 +191,14 @@ And:
 **Why this breaks Maps (even though API is enabled):**
 
 Google Maps tiles are:
-
 - A paid data product
 - Not a "free API call"
 - Served only to trusted + verified projects
 
 When verification fails:
-
 - `PROJECT_STATUS = RESTRICTED`
 
 Result:
-
 - SDK loads ✅
 - UI renders ✅
 - API key accepted ✅
@@ -236,7 +217,6 @@ Result:
 Our intuition: "It's only a warning, not a hard error."
 
 Reality:
-
 - Google UI says "warning"
 - Backend treats it as data restriction
 - Maps doesn't throw errors to prevent abuse
@@ -263,29 +243,25 @@ Reality:
 
 ## What We Learned
 
-- Grey Google Map = billing / project trust issue
-- Maps SDK ≠ free forever
-- "API Enabled" ≠ "data allowed"
-- Native map loading has two phases:
-  - SDK bootstrap (local)
-  - Tile serving (server-side)
-- Google doesn't log tile denials
-- Code can be perfect and still show blank map
+1. Grey Google Map = billing / project trust issue
+2. Maps SDK ≠ free forever
+3. "API Enabled" ≠ "data allowed"
+4. Native map loading has two phases:
+   - SDK bootstrap (local)
+   - Tile serving (server-side)
+5. Google doesn't log tile denials
+6. Code can be perfect and still show blank map
 
 ---
 
 ## The Verdict
 
-**Q: What was the final conclusion?**
-
-We did everything right technically.
+**We did everything right technically.**
 
 This wasn't a dev mistake — it was:
-
 > Google Cloud trust enforcement disguised as a UI warning
 
 And we handled it like real engineers:
-
 - Debugged layer by layer
 - Eliminated native issues
 - Isolated infra cause
@@ -296,9 +272,24 @@ The map integration is complete. The code works. The UI is ready. We just need G
 
 ---
 
+## Summary
+
+Today was brutal but educational. We went from:
+- Setting up Google Maps SDK correctly
+- To native build and AIRMap fixes
+- To discovering that grey tiles = billing verification issue
+
+The key insight: **Google Maps fails silently when billing trust is missing. No errors, no logs, just grey.**
+
+Tomorrow: Either verify billing or switch to Mapbox temporarily.
+
+---
+
 ## Proof of Work
 
-<Frame caption="The Grey Map of Doom - Everything works except the tiles">
+**The Grey Map of Doom:**
+
+<Frame>
   <img src="/2025/december/pow/17th.png" alt="Google Maps Grey - Operation Successful Patient Dead" />
 </Frame>
 
