@@ -1,10 +1,107 @@
 ---
 title: "December 27th, 2025"
-description: "Daily update"
+description: "From a task app to a discipline engine. How we solved the architecture puzzle."
 ---
 
-## December 27th, 2025
+# December 27th, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day CommitT Found Its Brain**
+
+So, we came back very late from the trip today, but the wheels were still turning. We spent the evening brushing up on what needs to be done tomorrow, but more importantly, we finally nailed down *why* we’re building the backend the way we are.
+
+---
+
+## How we figured it out
+
+When we started CommitT, we thought it was just a **task app**. User comes in, creates a task, adds some conditions, adds a penalty, done. Easy… or so it looked.
+
+At first, the backend idea was very straightforward. For a task, we said: okay, store things like **time**, **location**, **apps blocked**, and **photo proof** directly as fields. Something like:
+
+* `time: { from, to }`
+* `location: { lat, lng }`
+* `appsBlocked: [...]`
+
+Honestly, it felt *clean*. The UI mapped nicely. The JSON looked readable. Everything felt under control.
+
+### But then reality kicked in.
+
+The moment we asked:
+> “What if we add video verification?”
+> “What if apps are blocked only during certain hours?”
+> “What if location is ‘outside’ instead of ‘inside’?”
+
+The whole thing started cracking. Every new condition meant a schema change, a backend change, a validation change, and ugly `if (condition.x)` checks everywhere.
+
+That’s when we realized: **the backend was guessing the rule, instead of executing a declared rule.**
+
+### The Turning Point: Storing Intent
+
+Instead of storing *attributes*, we shifted to storing **intent**. We redesigned conditions completely. Now, instead of saying “there is a time condition,” we say:
+
+> **“This metric must satisfy this relation with this target.”**
+
+That’s how we landed on the **metric-based condition model**:
+* **Metric**: What are we measuring (time, location, app usage, captcha solved, etc.)
+* **Relation**: How it should behave (within, outside, equals, greater than, matches)
+* **Target**: The expected value or range
+
+Once we did that, something magical happened. The schema stopped changing. Adding a new condition no longer meant touching schema or backend logic. You just add **more data**, not more code. Backend logic became: *“For metric X, here’s how it’s evaluated,”* and that logic stays bounded forever.
+
+We didn’t remove `if/else`. We **contained** them.
+
+---
+
+## Applying the Logic to Penalties
+
+At first, penalties looked simple: Money, Embarrassing photo, Cringe message. The naive approach was:
+```ts
+if (penalty_type === "money") ...
+if (penalty_type === "photo") ...
+```
+
+But then we caught it. We realized: *“Wait… isn’t this the same mistake we made with conditions?”*
+
+Penalties were becoming another switch-case hell on the failure side. So we applied the same philosophy. We asked: *What is a penalty really?*
+
+**A penalty is just an action that executes when conditions fail.**
+
+Just **actions with declared intent**. So penalties became **rule-based actions**, just like conditions are rule-based checks.
+
+Now instead of `penalty_type: money`, we say:
+* `action: transfer_funds`
+* `action: send_media`
+* `action: send_message`
+
+Same pattern. Same mental model. Target says *what*, Meta/Params say *how*. Sending money or sending an embarrassing photo both become **data**, not backend branches.
+
+---
+
+## Waivers: The Natural Extension
+
+Then waivers fell into place naturally. A waiver isn’t some special exception. It’s just:
+> “If you fail, here’s another set of conditions you can satisfy to cancel the penalty.”
+
+So waivers also reuse the **same metric-based condition system**:
+* Solve 100 captchas
+* Run 5km
+* Write a long paragraph
+* Redo task with higher intensity
+
+No special casing. No hacks. Just rules.
+
+---
+
+## The Big Lesson
+
+Where we landed is actually very clean:
+* **Conditions** → metric-based rules for success
+* **Penalties** → action-based rules for failure
+* **Waivers** → metric-based rules to escape penalties
+
+Backend doesn’t *decide*. Backend **executes what’s declared**.
+
+> **We didn’t remove complexity. We froze where complexity lives.**
+
+No schema churn. No logic explosion. Just a scalable, data-driven system. That’s how CommitT stopped being “just a task app” and quietly turned into a **rules engine for discipline**.
+
+We’re ready to hit it hard tomorrow.
