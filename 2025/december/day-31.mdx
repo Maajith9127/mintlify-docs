@@ -1,10 +1,109 @@
 ---
 title: "December 31st, 2025"
-description: "Daily update"
+description: "Infrastructure Forensics: From SHA-1 Certificate Extraction to Monorepo Dependency Resolution."
 ---
 
-## December 31st, 2025
+# December 31st, 2025
 
-<Info>
-Soon to be updated!
-</Info>
+**The Day We Locked the Concept**
+
+The final day of 2025 wasn't about building features; it was about **Infrastructure Forensics**. We spent the day hunting down "ghost bugs" that had been sabotaging our progress—specifically the Google Maps `INVALID_ARGUMENT` rejection and the monorepo "Invalid Hook Call" that broke our slider.
+
+---
+
+## Part 1: The SHA-1 Forensic Chain
+
+**Q: Why does Google Maps SDK keep throwing `INVALID_ARGUMENT` even when my API key is brand new and the package name is correct?**
+
+Because Google Maps on Android is built on a **Chain of Trust**. It doesn't care about your code; it only cares about the **cryptographic certificate** that signed the APK currently installed on the phone. This is where most developers fail—they register a "logic" key in the console, but the phone is running an "artifact" with a different signature.
+
+**Q: Where exactly do people (and where did we) go wrong with SHA-1?**
+
+We identified four "Theory traps":
+1.  **The Android Studio Trap**: People run `keytool` on their local `debug.keystore`. But Expo Dev Builds use **Expo’s own debug key**, not your local one.
+2.  **The Play Console Trap**: Copying the SHA-1 from the Play Store only works for Production builds. It’s useless for local debugging.
+3.  **The Dumpsys Trap**: We tried `adb shell dumpsys package | grep sha1`. It printed nothing because modern Android (Signature Scheme v2/v3) hides certificate info from simple shell queries.
+4.  **The Keytool Obsolescence**: Running `keytool -printcert -jarfile` returns "Not a signed jar file." This is because modern APKs aren't JARs; they use a specialized signing block that `keytool` cannot read.
+
+**Q: What was our "Forensic Method" to solve this?**
+
+We realized: **The installed APK is the only source of truth.** We followed the forensic chain:
+
+1.  **Confirm the Identity**:
+    ```bash
+    adb shell pm list packages | grep mono
+    # Verified: com.mono.commit
+    ```
+2.  **Locate the Artifact**:
+    ```bash
+    adb shell pm path com.mono.commit
+    # Output: package:/data/app/~~.../com.mono.commit-.../base.apk
+    ```
+3.  **Seize the Evidence**:
+    ```bash
+    adb pull /data/app/~~.../com.mono.commit-.../base.apk
+    ```
+4.  **Analyze the Signature**: We used `apksigner`, the only tool that understands modern v2/v3 signing:
+    ```bash
+    apksigner verify --print-certs base.apk
+    ```
+
+**The Revelation:**
+`Signer #1 certificate SHA-1 digest: 5e8f16062ea3cd2c4a0d547876baa6f38cabf625`
+This was the "secret" key Expo used to sign our dev build. Once we registered this in the Google Cloud Console, the map loaded instantly. No code change needed.
+
+---
+
+## Part 2: The Monorepo "Invalid Hook Call" 
+
+**Q: Why was the Slider library crashing the app with an "Invalid Hook Call"?**
+
+In a monorepo, "Invalid Hook Call" is almost always a code for: **"You have two versions of React in memory."** If the Slider library and the App are using two different React instances, they can't share state, and the dispatcher breaks.
+
+**Q: How did we hunt down the "Double React" ghost?**
+
+We looked at the root `node_modules` vs the workspace `node_modules` using a global search:
+```bash
+find . -path "*/node_modules/react" -type d
+```
+
+**The Diagnostic Output:**
+```text
+./node_modules/.bun/@expo+cli@.../node_modules/react
+./node_modules/.bun/react@19.2.3/node_modules/react  <-- The Rogue Version
+./node_modules/.bun/react@19.1.0/node_modules/react  <-- The App Version
+```
+
+**Q: Why didn't Bun just "hoist" everything to the top like it's supposed to?**
+
+Bun is smart, but safe. Because one part of our project (the web app or a tool) was asking for **React 19.2.3** and the Native app was asking for **19.1.0**, Bun couldn't merge them. It kept them separate in hidden caches. When the Slider ran from the root, it grabbed the "global" version, while the App used the "local" one.
+
+**Q: How do we fix this without breaking my teammates' setups?**
+
+We implemented the **"One Version" Rule**:
+1.  **Catalog Alignment**: We checked `bun pm ls -all react` to find who was asking for the wrong version and aligned them all to `19.1.0`.
+2.  **Metro Resolution**: We updated `metro.config.js` to force the bundler to resolve all React imports to the workspace root:
+    ```javascript
+    extraNodeModules: {
+      'react': path.resolve(workspaceRoot, 'node_modules/react'),
+    }
+    ```
+
+---
+
+## Part 3: The Year-End Sync
+
+**Q: What happened when we finally combined our work with the main branch?**
+
+The final hours were spent merging Atheeq's latest commits into our local branch. This was the true test of our infrastructure fixes. We had to:
+- Resolve merge conflicts in `apps/native/package.json`.
+- Ensure the new Google Maps SHA-1 worked for both of us.
+- Validate that the Slider issue stayed fixed even after a fresh `bun install`.
+
+**Q: What is the final takeaway for 2025?**
+
+If Google Maps gives `INVALID_ARGUMENT` or React gives "Invalid Hook Call," **the fix is never in your code logic.** It is in your **Environment Registry** (SHA-1) or your **Dependency Hoisting** (Monorepo). 
+
+We are ending the year with a crystalline understanding of our stack. 2026 is for building. 2025 was for mastering the tools.
+
+**Status: All Systems Green. Ready for 2026.**
