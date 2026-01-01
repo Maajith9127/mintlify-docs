@@ -1,0 +1,787 @@
+---
+title: "January 1st, 2026"
+description: "The Day We Settled the Commit Monorepo: Deep diving into monorepo structure, TypeScript rules, and Metro-Uniwind integration."
+---
+
+# January 1st, 2026
+
+> The day we finally understood our monorepo instead of just working inside it blindly.
+> 
+
+# January 1st, 2026
+
+**The Day We Settled the Commit Monorepo**
+
+Today wasn't about adding features.
+
+It was about stopping and asking uncomfortable questions about the structure we’ve already built.
+
+The repo looked clean from the outside.
+
+Inside, it felt massive, confusing, and slightly scary.
+
+This document captures the **exact thought process** — confusion first, clarity later.
+
+---
+
+## The First Question I Asked Myself
+
+**Q: What is a monorepo, really?**
+
+My first explanation sounded like this:
+
+> A monorepo is one giant folder where all apps and servers live together.
+> 
+
+That answer is **not fully correct**.
+
+---
+
+## Correcting the Definition (Properly)
+
+**Q: So what *is* a monorepo?**
+
+A monorepo is:
+
+- One Git repository
+- Containing **multiple independent projects**
+- Managed under a **shared workspace**
+- With **explicit sharing**, not accidental coupling
+
+Important correction:
+
+> A monorepo is not one project split into folders.
+> 
+> 
+> It is many projects that agree on rules.
+> 
+
+---
+
+## The First Dangerous Misunderstanding
+
+**Q: Does monorepo mean everything can import everything?**
+
+At first, I thought yes.
+
+That idea sounds powerful.
+
+It’s also how monorepos collapse.
+
+---
+
+## What “Sharing Everything Freely” Actually Means (and Why It’s Bad)
+
+If sharing was unrestricted, this would be possible:
+
+```tsx
+// apps/native/randomFile.ts
+import { internalDbLogic } from "../../packages/backend/internal/db";
+
+```
+
+This looks convenient.
+
+It is poison.
+
+Why?
+
+- Backend internals leak into frontend
+- Refactors become impossible
+- Build order becomes fragile
+- No ownership boundaries
+
+**Healthy monorepos never allow this.**
+
+---
+
+## The Correct Sharing Model
+
+**Q: Then how does sharing work safely?**
+
+By using **explicit packages**.
+
+Example structure:
+
+```
+apps/
+  native/
+  web/
+
+packages/
+  config/
+  backend/
+  monitoring-extension/
+
+```
+
+Only things inside `packages/` are meant to be reused — and only through **public APIs**.
+
+---
+
+## Workspace Packages in Action
+
+**Q: How does one package get used by another?**
+
+Example:
+
+`packages/config/package.json`
+
+```json
+{
+  "name": "@commit/config",
+  "version": "0.0.0",
+  "private": true
+}
+
+```
+
+Now in `apps/native/package.json`:
+
+```json
+{
+  "devDependencies": {
+    "@commit/config": "workspace:*"
+  }
+}
+
+```
+
+### What `workspace:*` actually means
+
+> “Use the version of this package that exists inside this monorepo, not from npm.”
+> 
+
+So:
+
+- No publishing
+- No version mismatch
+- Always local
+
+This is **safe sharing**, not free-for-all sharing.
+
+---
+
+## The TypeScript Confusion
+
+**Q: What is `packages/config/tsconfig.base.json` even doing?**
+
+Here’s the file:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUncheckedIndexedAccess": true
+  }
+}
+
+```
+
+This file does **nothing by itself**.
+
+It becomes active only when another project **extends it**.
+
+Example in `apps/native/tsconfig.json`:
+
+```json
+{
+  "extends": "@commit/config/tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-native"
+  }
+}
+
+```
+
+Now the rules apply.
+
+---
+
+## Learning TypeScript Rules Through Code (Not Docs)
+
+Let’s use the **exact example we discussed**.
+
+### Base Code
+
+```tsx
+const greet = (name: string) => {
+  return `Hello ${name}`;
+};
+
+```
+
+This works perfectly in modern TypeScript.
+
+---
+
+## What If This Were ES5?
+
+If `target` was `ES5`, TypeScript would **compile this down**:
+
+```jsx
+var greet = function (name) {
+  return "Hello " + name;
+};
+
+```
+
+Arrow functions, template literals — all gone.
+
+So:
+
+> TypeScript doesn’t run in production.
+> 
+> 
+> It *enforces rules* and then disappears.
+> 
+
+---
+
+## Strict Mode Screaming at You (Red Lines)
+
+**Q: What happens if I write bad code?**
+
+Example:
+
+```tsx
+const greet = (name: string) => {
+  console.log(name);
+};
+
+```
+
+With `noUnusedLocals: true` and `strict: true`:
+
+- Red underline
+- Editor warning
+- CI failure (if enforced)
+
+Why?
+
+Because:
+
+- Function returns nothing
+- Might be unintended
+- Easy bug
+
+TypeScript is not being annoying.
+
+It is preventing silent mistakes.
+
+---
+
+## Another Example: `noUncheckedIndexedAccess`
+
+```tsx
+const users = ["a", "b", "c"];
+const user = users[5].toUpperCase();
+
+```
+
+TypeScript error:
+
+> Object is possibly undefined.
+> 
+
+Without this rule:
+
+- Runtime crash
+- Production bug
+
+With this rule:
+
+- Forced to handle edge cases
+
+---
+
+## Do Engineers Memorize All These Rules?
+
+**Q: Do real engineers remember every TS compiler option?**
+
+No.
+
+Here’s the real workflow:
+
+1. Senior engineers define the baseline
+2. Rules are enforced automatically
+3. Developers learn by **writing code**
+4. Red lines appear
+5. Code gets fixed
+6. Standards slowly become instinct
+
+You don’t learn TypeScript rules first.
+
+You **learn by being corrected**.
+
+---
+
+## So Is This Config “A Lot”?
+
+**Q: Is this too much for a project?**
+
+No.
+
+This is:
+
+- one-time setup
+- years of safety
+- zero runtime cost
+
+TypeScript rules scale *with* the team.
+
+---
+
+## Understanding Bun’s Role
+
+**Q: Why are we using Bun?**
+
+Because Bun provides:
+
+- Fast installs (parallel)
+- Built-in runtime
+- Native workspace support
+- `catalog:` dependency pinning
+
+Example from root `package.json`:
+
+```json
+"catalog": {
+  "react": "19.2.3",
+  "typescript": "^5.9.3"
+}
+
+```
+
+Every app now uses:
+
+- same React
+- same TypeScript
+- no version drift
+
+---
+
+## TurboRepo — The Missing Mental Model
+
+**Q: Is Turbo just about running things in order?**
+
+Partially.
+
+Turbo’s real job is **task graph orchestration**.
+
+Example `turbo.json`:
+
+```json
+{
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"]
+    }
+  }
+}
+
+```
+
+This means:
+
+> “Before building this project, build all its dependencies first.”
+> 
+
+Turbo:
+
+- understands dependency graphs
+- caches intelligently
+- avoids unnecessary work
+
+This is **build intelligence**, not just scripts.
+
+---
+
+## The Kotlin Reality Check
+
+**Q: Can I write Kotlin in `packages/` and import it into Android?**
+
+No.
+
+Android builds only care about:
+
+```
+apps/native/android/app/src/main/java
+
+```
+
+Kotlin must live there to be compiled by Gradle.
+
+Monorepo structure does not override platform rules.
+
+---
+
+## So What Are All Those Other Packages For?
+
+Examples:
+
+- `packages/backend` → Convex backend (Node runtime)
+- `packages/config` → shared rules
+- `packages/monitoring-extension` → JS tooling / extensions
+- `packages/docs` / `fumadocs` → documentation systems
+
+They are **not native Android modules**.
+
+---
+
+## Final Mental Model (The One That Actually Works)
+
+```
+Monorepo
+│
+├─ apps/        → runnable products
+│   ├─ native   → React Native + Android
+│   └─ web
+│
+├─ packages/    → reusable, explicit units
+│   ├─ config   → rules
+│   ├─ backend  → services
+│   └─ tooling
+│
+├─ bun          → installs + runtime
+├─ turbo        → orchestration
+└─ typescript   → discipline
+
+```
+
+---
+
+## One-Line Takeaway
+
+**A monorepo doesn’t remove boundaries. It forces you to define them clearly.**
+
+---
+
+## Honest Reflection
+
+I wasn’t wrong to feel confused.
+
+The structure *is* complex.
+
+But now the complexity is **named**, **bounded**, and **intentional**.
+
+That’s the difference between chaos and architecture.
+
+---
+
+# 📘 Metro + Uniwind (Expo) — Q&A Deep Understanding Doc
+
+---
+
+## ❓ Q1: What is Metro?
+
+**Answer:**
+
+Metro is a **development-time software** that:
+
+1. Reads your React Native / Expo code
+2. Bundles it into one executable JS file
+3. Sends that bundle to the running app (Expo Go / dev build)
+
+👉 Expo Go **cannot read your project files directly**.
+
+👉 Metro is the middleman.
+
+---
+
+## ❓ Q2: What does “bundling” mean exactly?
+
+**Answer:**
+
+Bundling means:
+
+> Taking many JS/TS files and merging them into ONE ordered JS file
+> 
+
+Example:
+
+Before:
+
+```
+App.tsx
+Home.tsx
+Button.tsx
+auth.ts
+
+```
+
+After (by Metro):
+
+```
+index.bundle.js
+
+```
+
+Why?
+
+- Android / iOS want **one entry JS program**
+- They cannot follow imports like Node.js
+
+Bundling is:
+
+- ✅ merging
+- ✅ ordering
+- ❌ not compression
+- ❌ not minification (that’s production)
+
+---
+
+## ❓ Q3: Why does `metro.config.js` exist?
+
+**Answer:**
+
+Metro by default understands only **basic JS/TS**.
+
+It does NOT understand:
+
+- CSS files
+- Tailwind / Uniwind classes
+- custom asset behavior
+
+So `metro.config.js` exists to:
+
+> Teach Metro how to understand extra things
+> 
+
+---
+
+## ❓ Q4: Does Expo require `metro.config.js`?
+
+**Answer:**
+
+❌ No — only if you use advanced tools.
+
+If you use:
+
+- plain Expo
+- no CSS
+- no Uniwind
+
+You can delete it and the app still runs.
+
+You added it because:
+
+- you use **Uniwind**
+- you use **global.css**
+
+---
+
+## ❓ Q5: What is `getDefaultConfig(__dirname)`?
+
+```jsx
+const { getDefaultConfig } = require("expo/metro-config");
+const config = getDefaultConfig(__dirname);
+
+```
+
+**Answer:**
+
+This means:
+
+> “Expo, give me your already-working Metro configuration.”
+> 
+
+Why this matters:
+
+- Metro config is huge and complex
+- Writing from scratch = easy to break everything
+- Expo’s default config already handles:
+    - platforms (android / ios / web)
+    - assets
+    - transformers
+    - caching
+
+So you are:
+
+- ❌ not replacing Metro
+- ✅ extending a safe base
+
+---
+
+## ❓ Q6: Does the variable name `config` matter?
+
+**Answer:**
+
+❌ No. Metro does NOT care about variable names.
+
+Metro only cares about:
+
+```jsx
+module.exports = <object>;
+
+```
+
+All of these are valid:
+
+```jsx
+const banana = getDefaultConfig(__dirname);
+module.exports = banana;
+
+```
+
+```jsx
+module.exports = withUniwindConfig(
+  getDefaultConfig(__dirname)
+);
+
+```
+
+Variable names are for **humans**, not Metro.
+
+---
+
+## ❓ Q7: What is `withUniwindConfig(...)`?
+
+```jsx
+const uniwindConfig = withUniwindConfig(config, {
+  cssEntryFile: "./global.css",
+  dtsFile: "./uniwind-types.d.ts",
+});
+
+```
+
+**Answer:**
+
+This line means:
+
+> “Take Expo’s default Metro config, and ADD Uniwind support to it.”
+> 
+
+It does **not replace** the config.
+
+It **wraps** it.
+
+---
+
+## ❓ Q8: What problem does Uniwind solve?
+
+Without Uniwind, Metro sees this and gets confused:
+
+```tsx
+<View className="bg-black p-4 rounded-xl" />
+
+```
+
+Metro asks:
+
+> “What is bg-black? What is p-4?”
+> 
+
+Uniwind solves this by:
+
+- reading Tailwind-like classes
+- converting them into **React Native style objects**
+
+---
+
+## ❓ Q9: What does Uniwind ACTUALLY do under the hood?
+
+Conceptually:
+
+You write:
+
+```tsx
+<Text className="text-white text-lg font-bold" />
+
+```
+
+Uniwind converts it into:
+
+```jsx
+{
+  color: "#ffffff",
+  fontSize: 18,
+  fontWeight: "700"
+}
+
+```
+
+Important:
+
+- These are **native styles**
+- No runtime CSS
+- No DOM
+- High performance
+
+Metro then bundles:
+
+- JS logic
+- converted styles
+    
+    together into the final bundle
+    
+
+---
+
+## ❓ Q10: What is `cssEntryFile`?
+
+```jsx
+cssEntryFile: "./global.css"
+
+```
+
+**Answer:**
+
+This tells Uniwind:
+
+> “This is the root CSS file where Tailwind utilities are defined.”
+> 
+
+It includes:
+
+- Tailwind base
+- components
+- utilities
+- custom styles (if any)
+
+Without this:
+
+- Uniwind doesn’t know what classes exist
+
+---
+
+## ❓ Q11: What is `dtsFile`?
+
+```jsx
+dtsFile: "./uniwind-types.d.ts"
+
+```
+
+**Answer:**
+
+This is for **TypeScript only**.
+
+It:
+
+- generates typings for `className`
+- helps autocomplete
+- prevents TS errors
+
+It has **no effect on runtime or performance**.
+
+---
+
+## ❓ Q12: Final mental model (MOST IMPORTANT)
+
+### One sentence to remember forever:
+
+> Metro bundles your app, and Uniwind teaches Metro how to understand Tailwind-style classes and CSS so they become native styles.
+
+---
+
+If you want, next we can:
+
+*   **next** → how this differs from web Tailwind
+*   **next** → what happens in production builds
+*   **next** → how Metro plugins work in general
+
+This was a **good line of questioning** — you’re thinking like a systems dev, not just UI.
+> 
