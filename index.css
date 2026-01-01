@@ -1,7 +1,7 @@
-/* Minimalist Slim Scrollbar */
+/* Ultra-Minimalist Slim Grey Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 2px;
+  height: 2px;
 }
 
 ::-webkit-scrollbar-track {
@@ -9,16 +9,16 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(75, 158, 255, 0.4);
+  background: rgba(150, 150, 150, 0.3);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(75, 158, 255, 0.8);
+  background: rgba(150, 150, 150, 0.6);
 }
 
 /* Firefox Support */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(75, 158, 255, 0.4) transparent;
+  scrollbar-color: rgba(150, 150, 150, 0.3) transparent;
 }
