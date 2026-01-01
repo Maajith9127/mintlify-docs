@@ -8,8 +8,6 @@ description: "The Day We Settled the Commit Monorepo: Deep diving into monorepo 
 > The day we finally understood our monorepo instead of just working inside it blindly.
 > 
 
-# January 1st, 2026
-
 **The Day We Settled the Commit Monorepo**
 
 Today wasn't about adding features.
@@ -472,11 +470,11 @@ That’s the difference between chaos and architecture.
 
 ---
 
-# 📘 Metro + Uniwind (Expo) — Q&A Deep Understanding Doc
+# Metro + Uniwind (Expo) — Q&A Deep Understanding Doc
 
 ---
 
-## ❓ Q1: What is Metro?
+## Q1: What is Metro?
 
 **Answer:**
 
@@ -486,13 +484,13 @@ Metro is a **development-time software** that:
 2. Bundles it into one executable JS file
 3. Sends that bundle to the running app (Expo Go / dev build)
 
-👉 Expo Go **cannot read your project files directly**.
+Expo Go **cannot read your project files directly**.
 
-👉 Metro is the middleman.
+Metro is the middleman.
 
 ---
 
-## ❓ Q2: What does “bundling” mean exactly?
+## Q2: What does “bundling” mean exactly?
 
 **Answer:**
 
@@ -527,14 +525,14 @@ Why?
 
 Bundling is:
 
-- ✅ merging
-- ✅ ordering
-- ❌ not compression
-- ❌ not minification (that’s production)
+- Merging
+- Ordering
+- Not compression
+- Not minification (that’s production)
 
 ---
 
-## ❓ Q3: Why does `metro.config.js` exist?
+## Q3: Why does `metro.config.js` exist?
 
 **Answer:**
 
@@ -553,11 +551,11 @@ So `metro.config.js` exists to:
 
 ---
 
-## ❓ Q4: Does Expo require `metro.config.js`?
+## Q4: Does Expo require `metro.config.js`?
 
 **Answer:**
 
-❌ No — only if you use advanced tools.
+**No** — only if you use advanced tools.
 
 If you use:
 
@@ -574,7 +572,7 @@ You added it because:
 
 ---
 
-## ❓ Q5: What is `getDefaultConfig(__dirname)`?
+## Q5: What is `getDefaultConfig(__dirname)`?
 
 ```jsx
 const { getDefaultConfig } = require("expo/metro-config");
@@ -601,16 +599,16 @@ Why this matters:
 
 So you are:
 
-- ❌ not replacing Metro
-- ✅ extending a safe base
+- Not replacing Metro
+- Extending a safe base
 
 ---
 
-## ❓ Q6: Does the variable name `config` matter?
+## Q6: Does the variable name `config` matter?
 
 **Answer:**
 
-❌ No. Metro does NOT care about variable names.
+**No.** Metro does NOT care about variable names.
 
 Metro only cares about:
 
@@ -638,7 +636,7 @@ Variable names are for **humans**, not Metro.
 
 ---
 
-## ❓ Q7: What is `withUniwindConfig(...)`?
+## Q7: What is `withUniwindConfig(...)`?
 
 ```jsx
 const uniwindConfig = withUniwindConfig(config, {
@@ -661,7 +659,7 @@ It **wraps** it.
 
 ---
 
-## ❓ Q8: What problem does Uniwind solve?
+## Q8: What problem does Uniwind solve?
 
 Without Uniwind, Metro sees this and gets confused:
 
@@ -682,7 +680,7 @@ Uniwind solves this by:
 
 ---
 
-## ❓ Q9: What does Uniwind ACTUALLY do under the hood?
+## Q9: What does Uniwind ACTUALLY do under the hood?
 
 Conceptually:
 
@@ -721,7 +719,7 @@ Metro then bundles:
 
 ---
 
-## ❓ Q10: What is `cssEntryFile`?
+## Q10: What is `cssEntryFile`?
 
 ```jsx
 cssEntryFile: "./global.css"
@@ -748,7 +746,7 @@ Without this:
 
 ---
 
-## ❓ Q11: What is `dtsFile`?
+## Q11: What is `dtsFile`?
 
 ```jsx
 dtsFile: "./uniwind-types.d.ts"
@@ -769,7 +767,7 @@ It has **no effect on runtime or performance**.
 
 ---
 
-## ❓ Q12: Final mental model (MOST IMPORTANT)
+## Q12: Final mental model (MOST IMPORTANT)
 
 ### One sentence to remember forever:
 
@@ -779,9 +777,8 @@ It has **no effect on runtime or performance**.
 
 If you want, next we can:
 
-*   **next** → how this differs from web Tailwind
-*   **next** → what happens in production builds
-*   **next** → how Metro plugins work in general
+- **next** → how this differs from web Tailwind
+- **next** → what happens in production builds
+- **next** → how Metro plugins work in general
 
 This was a **good line of questioning** — you’re thinking like a systems dev, not just UI.
-> 
