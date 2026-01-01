@@ -1,24 +1,16 @@
-/* Ultra-Minimalist Slim Grey Scrollbar */
+/* Invisible Scrollbar - Still Scrollable */
+
+/* Chrome, Safari and newer Edge */
 ::-webkit-scrollbar {
-  width: 2px;
-  height: 2px;
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(150, 150, 150, 0.3);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(150, 150, 150, 0.6);
-}
-
-/* Firefox Support */
+/* Firefox */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(150, 150, 150, 0.3) transparent;
+  scrollbar-width: none;
+}
+
+/* Internet Explorer and Old Edge */
+* {
+  -ms-overflow-style: none;
 }
