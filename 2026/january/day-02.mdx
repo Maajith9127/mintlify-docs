@@ -1,0 +1,165 @@
+---
+title: "January 2nd, 2026"
+description: "What actually happened between me and Atheeq: A deep dive into the clash of mental models and the big misunderstanding."
+---
+
+# January 2nd, 2026
+
+> Collaboration isn’t about writing code together. It’s about aligning mental models early.
+
+**What actually happened between me and Atheeq (and why it got so confusing so fast)**
+
+When we started CommitT, I genuinely thought we were arguing about UI flow.
+
+Like:
+- Should the user see conditions first?
+- Should they land on a summary page?
+- Is V1 simpler or V2 cleaner?
+- Are there too many pages or too many buttons?
+
+That’s what it looked like.
+
+But looking back now, that wasn’t the real problem at all.
+
+The real problem was this:
+**We were both building the same product, but from two completely different mental starting points — and neither of us said that out loud early enough.**
+
+---
+
+## The "V1 vs V2" Debate
+
+On the surface, our arguments kept circling around very specific things:
+
+### Atheeq’s Version (V1)
+In Atheeq’s version, the user:
+1. Clicks add
+2. Goes into a conditions page
+3. Adds time
+4. Adds location
+5. Saves
+6. Moves forward step by step
+
+<video controls src="../pow/atheeqsversion(V1).mp4" width="100%"></video>
+
+### My Version (V2)
+In my version, the user:
+1. Clicks add
+2. Lands directly on a summary page
+3. Sees everything in one place
+4. Clicks Time → edits → Save → comes back
+5. Clicks Location → edits → Save → comes back
+6. Same for penalty, digital block, proofs
+
+<video controls src="../pow/maajithversion(V2).mp4" width="100%"></video>
+
+People kept saying things like:
+- “This one feels simpler”
+- “That one feels cleaner”
+- “Yours looks better”
+- “His feels more understandable”
+
+And honestly, the more people we asked, the worse it got. Every new opinion just pushed us in a different direction.
+
+---
+
+## What Atheeq was actually assuming
+
+Atheeq was thinking like a **system designer** first. Even when he talked about UI, what he really cared about was order and logic.
+
+His mental model was:
+> “We are building a system. A system must have a clear start, middle, and end.”
+
+So in his head:
+- A task starts somewhere
+- Conditions are added one by one
+- Each page has one responsibility
+- When you save Time, you are done with Time
+- Time and location are conditions
+- Proofs, camera, accountability partner are verification mechanisms, not conditions
+
+From his side, my flow felt **unordered**. It looked like jumping around instead of progressing.
+
+---
+
+## What I was assuming
+
+I was thinking almost entirely from a **user-experience-first** angle.
+
+My internal logic was:
+> “Users don’t think in schemas or steps. They think in control and outcomes.”
+
+So in my head:
+- The summary page is the real source of truth
+- Every other page is just an editor
+- Navigation should be a loop, not a straight line
+- Edit → Save → Back feels safe and reversible
+- Seeing everything together reduces anxiety
+
+This is exactly how apps like AppBlock (10M+ users) work. To me, jumping back to summary after saving time felt natural. State management felt non-negotiable.
+
+---
+
+## Why this slowly turned into frustration
+
+Neither of us was wrong. Neither of us explained our assumptions early. We were judging each other using our own internal logic.
+
+- He felt my flow had no structure.
+- I felt his flow was too rigid.
+- Both of us felt the other was “missing something obvious”.
+
+Asking more users didn’t resolve anything; feedback became contradictory, and discussions felt endless.
+
+---
+
+## The Big Misunderstanding: “Condition vs Proof”
+
+This was the moment where things almost snapped — but also where clarity started.
+
+Atheeq said:
+> “Accountability partner / proof ≠ condition”
+
+From a backend, textbook perspective — he’s right. But what I meant by “condition” was different.
+
+In my head:
+A condition is what success should look like. When a user uploads a photo of their gym, they are saying: *“At this time, at this location — this is what counts as success.”*
+
+Later, when AI asks to *“Match this environment”*, that uploaded photo isn’t just proof. It’s a **reference constraint**.
+
+Once that clicked, a lot of tension dropped. It wasn't logic; it was **naming and framing**.
+
+---
+
+## The State Management Fight
+
+Atheeq initially felt we didn’t need state management. Backend schema already defines truth, and frontend just sends data.
+
+I pushed back hard because:
+- Frontend and backend must evolve independently
+- A task draft must exist before final validation
+- Pages should never own truth — the draft should
+
+That’s why I built the **Zustand store**: One draft, all pages mutate it, validation only happens at “Commit”. This was about long-term sanity.
+
+---
+
+## What we actually converged on
+
+We didn’t sit down and say “okay, this is the final philosophy”, but we naturally landed on a fusion:
+
+1. **Linear logic from Atheeq**: Clear start/end, clean backend.
+2. **Summary-loop UX from me**: Summary page as the hub, no forced order unless required.
+3. **Clearer conceptual separation**: Conditions = success constraints, Verification = how we check them.
+
+---
+
+## The Biggest Lesson
+
+Collaboration is about **aligning mental models early**. 
+
+Most startups die because assumptions stay unspoken, people feel misunderstood, and discussions turn into power struggles.
+
+This happened just one month into development, which is a good thing. Now I understand how Atheeq thinks, he understands how I think, and we know where our communication failed.
+
+> “We weren’t arguing about UI or backend. We were arguing because we started from two different mental models and assumed the other person saw the world the same way.”
+
+Once we realized that, the solution wasn’t choosing V1 or V2. It was **combining structure with flexibility**.
