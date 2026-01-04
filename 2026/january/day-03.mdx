@@ -135,29 +135,89 @@ We also separated the **Planner** from the **Enforcer**.
 
 ---
 
-## 7. The Final Flow
+## 7. The Execution Flow: Planner, Verifier, and Penalty
 
-We converged on this clean architecture:
+This is the exact flow that makes the system consistent, scalable, and secure.
 
-**Pre-Day (Planner)**
-1. Check usage rules.
-2. Check day/slots.
-3. Convert slots → Absolute Timestamps.
-4. Create tasks.
-5. Schedule wakeups (at slot end).
+### 🔁 Daily Lifecycle (Per User)
 
-**During Day (Runtime)**
-1. App opens.
-2. Query active tasks (`start <= now <= end`).
-3. Enforce blocking.
+#### 1️⃣ Start of Day (The Planner)
+At the beginning of each day (or via a rolling window), Convex runs a **Daily Planner** for the user.
+- Determines: *Today is Monday*.
+- Checks: *Which recurring rules apply today?*
+- Finds: *Which time slots exist today?* (e.g., 2 PM - 10 PM)
 
-**Post-Slot (Verifier)**
-1. Convex wakes up.
-2. Verifies proofs.
-3. Success? Mark complete.
-4. Fail? Trigger penalty.
+From this, the backend decides:
+> "For User 123, today I must care about these specific time windows."
+
+#### 2️⃣ Schedule Wakeups
+For each time slot, the system:
+1. Converts the slot into absolute timestamps (`start_at`, `due_at`).
+2. Registers a **wakeup** at the end of the slot.
+```typescript
+scheduler.runAt(slot.due_at, verifyTask, { taskId });
+```
+
+#### 3️⃣ During the Day (Event-Driven Blocking)
+- **User opens app.**
+- App sends "Can I open?" request.
+- Backend checks: *Is there any task where `start_at <= now <= due_at`?*
+- **Result:** Block or Allow.
+- **Key Note:** No schedulers or cron jobs are running here. It is purely query-based.
+
+#### 4️⃣ At Slot End (The Verifier)
+At `due_at`, Convex wakes up and runs `verifyTask(taskId)`.
+- It fetches all proofs submitted by the client **during the slot**.
+- It evaluates the confidence score of those proofs.
+- It decides: **Success** ✅ or **Failure** ❌.
 
 ---
+
+### 🔍 Proof Verification & Penalty Logic
+
+This part is critical. We don't just "fail" a user. We follow a strict accountability ladder.
+
+**The Flow:**
+1.  **Collect Proofs:** During the slot, the user uploads proofs (e.g., gym selfies, screen time screenshots). These are stored but not fully judged yet.
+2.  **Validate:** At the end of the slot, the backend aggregates these proofs.
+3.  **Decide:**
+    *   **High Confidence Score:** Task marked **Complete**. ✅
+    *   **Low/No Confidence:** Task marked **Failed**. ❌
+4.  **Mercy (Penalty Waiver):** If failed, check if a "Penalty Waiver" is available.
+    *   *If Yes:* Give a lifeline (e.g., "Submit explanation within 1 hour").
+    *   *If No:* **BOOM. Apply Penalty.** 💥
+
+```mermaid
+graph TD
+    A[Start of Day] -->|Planner| B[Create Tasks & Schedule Wakeups]
+    B --> C{During Slot}
+    C -->|User Interaction| D[Client Uploads Proofs]
+    D --> E[Store Proofs Temporary]
+    C -->|Time Expires| F[Convex Wakeup: verifyTask]
+    F --> G{Validate Proof Confidence}
+    G -->|Score > Threshold| H[Task Complete ✅]
+    G -->|Score < Threshold| I[Task Failed ❌]
+    I --> J{Penalty Waiver Available?}
+    J -->|Yes| K[Trigger Waiver / Lifeline Flow]
+    K -->|Lifeline Used| H
+    K -->|Lifeline Expired| L
+    J -->|No| L[Apply Penalty 💥]
+    L --> M[Charge User / Lock App]
+```
+
+### 🔧 Important Refinements
+1.  **Refinement 1:** We use a **rolling planner** (Today + Tomorrow) rather than just "Midnight" to handle server restarts or timezone shifts safely.
+2.  **Refinement 2:** We schedule **verification**, not "failure". The penalty is a *result* of the verification logic, not a scheduled event.
+
+### 🔒 Final Verdict
+Your flow is:
+✅ **Correct**
+✅ **Scalable**
+✅ **Secure**
+✅ **Convex-appropriate**
+
+> **One Line Summary:**
+> Convex plans the day, wakes up at the right moments, evaluates proofs collected from the client, offers mercy once, then enforces consequences.
 
 ## Refined System in Action
 
