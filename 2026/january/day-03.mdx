@@ -1,0 +1,189 @@
+---
+title: "January 3rd, 2026"
+description: "Unlocking the mental model: Why tasks must be atomic, how frontend and backend optimize for different realities, and the final logic flow."
+---
+
+# January 3rd, 2026
+
+Today wasn’t about writing UI or backend code.
+It was about finally locking the mental model of how CommitT should actually enforce things in the real world.
+
+We started from a simple question:
+**“How do we integrate this task schema with the frontend without breaking enforcement?”**
+
+And from there, everything unfolded.
+
+---
+
+## 1. The Starting Point: The Task Schema
+
+At the center of everything was this realization:
+
+A task is not an idea, not a habit, not a rule.
+
+**A task is:**
+> “During this exact time window, these exact conditions must hold.”
+
+That’s it.
+- **Time** is stored as absolute timestamps (`start_at`, `due_at`).
+- **Conditions** are metrics like location, steps, proofs, etc.
+
+Once that clicked, a lot of confusion disappeared.
+
+---
+
+## 2. The Big Confusion: Time Slots vs. Tasks
+
+At first, it felt natural to say:
+*“Why not store multiple time slots inside one task?”*
+
+But the backend reality killed that idea quickly. If a task has multiple days and multiple time slots, then at runtime, the backend has to:
+1.  Loop days
+2.  Loop slots
+3.  Compare weekdays
+4.  Check overlaps
+5.  Scan logs
+
+That’s slow, messy, and impossible to index cleanly.
+
+### The Unlock
+The moment we reframed it as:
+**One time slot = One task**
+
+Everything snapped into place. Now the backend can simply ask:
+*What tasks exist right now?*
+
+And answer it with one query:
+```typescript
+q.and(
+  q.gte(q.field("start_at"), now),
+  q.lte(q.field("due_at"), now)
+)
+```
+
+No loops. No logic reconstruction. Just truth.
+
+---
+
+## 3. Frontend vs. Backend Optimization (The "Ah-Ha" Moment)
+
+This led to a deeper understanding:
+**Backend logic should never be exactly replicated in the frontend, and frontend presentation should never dictate backend storage.**
+
+Why? Because they optimize for different things:
+- **Frontend** optimizes for human abstraction and usability.
+- **Backend** optimizes for indexing, querying, and absolute truth.
+
+### The Example: Time Slots
+In our app, we allow the user to add multiple time slots for a given task because that makes sense to a human ("I do usage blocking in the morning and evening").
+
+<img src="../pow/example.png" alt="Multiple Time Slots Example" />
+
+But if we stored those multiple slots under one condition in the backend, looping would become a nightmare. by keeping single time slots in the backend (Atomic Tasks), we simplify enforcement.
+
+**The Solution:**
+We introduce a state management layer (Zustand) to bridge the gap.
+- **Frontend** sees "One Rule with Many Slots".
+- **Zustand** translates that intent.
+- **Backend** receives "Many Atomic Tasks".
+
+This allows both layers to evolve independently.
+
+---
+
+## 4. Where "Days" Actually Live
+
+Days like Monday, Tuesday, or Wednesday **do not live inside tasks**.
+
+They live:
+- In the UI
+- In the recurring rule
+- During task generation
+
+Once a task is created, the “day” disappears into the timestamp. A task doesn’t know it’s Monday. It only knows:
+*“I start at this exact millisecond and end at this exact millisecond.”*
+
+---
+
+## 5. The Minutes-Since-Day-Start Idea
+
+Instead of storing times as strings, we store time slots as constants:
+- **2:00 PM** → `840`
+- **10:00 PM** → `1320`
+
+These are **minutes since start of day**. This lets us say:
+> “Every Monday, from minute 840 to 1320”
+
+Then Convex combines:
+`Today’s Date` + `Slot Minutes` + `User Timezone` → **Real Timestamp**.
+
+---
+
+## 6. Planning vs. Enforcement
+
+We also separated the **Planner** from the **Enforcer**.
+
+### App Blocking (Event-Driven)
+- Does not need cron.
+- Does not need schedulers.
+- **App Opens** → Backend checks active tasks → Block or Allow.
+
+### Verification & Penalties (Server-Driven)
+- Must be time-based.
+- Must happen even if the app is closed.
+- **Convex handles the schedule.**
+
+---
+
+## 7. The Final Flow
+
+We converged on this clean architecture:
+
+**Pre-Day (Planner)**
+1. Check usage rules.
+2. Check day/slots.
+3. Convert slots → Absolute Timestamps.
+4. Create tasks.
+5. Schedule wakeups (at slot end).
+
+**During Day (Runtime)**
+1. App opens.
+2. Query active tasks (`start <= now <= end`).
+3. Enforce blocking.
+
+**Post-Slot (Verifier)**
+1. Convex wakes up.
+2. Verifies proofs.
+3. Success? Mark complete.
+4. Fail? Trigger penalty.
+
+---
+
+## Refined System in Action
+
+After considering critique and suggestions from various users, we refined the UI to match this mental model while keeping it simple.
+
+<video controls src="../pow/refinedversionaftercritics.mp4" width="100%"></video>
+
+---
+
+## Final Division of Labor
+
+This clarified how me and Atheeq work together:
+
+**Maajith (Me)**
+- UI & Flow
+- State (Zustand)
+- Bending messy user input into clean payloads
+
+**Atheeq**
+- Backend Truth
+- Enforcement
+- Scheduling & Penalties
+
+As long as the contract is explicit, this split is solid.
+
+---
+
+> **Final Takeaway:**
+> Tasks are atomic. Rules generate tasks. Convex owns time. Runtime only queries truth.
