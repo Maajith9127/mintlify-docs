@@ -123,10 +123,13 @@ Then Convex combines:
 
 We also separated the **Planner** from the **Enforcer**.
 
-### App Blocking (Event-Driven)
-- Does not need cron.
-- Does not need schedulers.
-- **App Opens** → Backend checks active tasks → Block or Allow.
+### App Blocking (Android Implementation)
+For Android app blocking, **we do not need a Convex server or cron jobs running continuously**.
+It happens completely event-driven at the client side:
+- **App Launch:** When the user launches an app, the local service checks the condition.
+- **Instant Check:** "Is this app allowed right now?"
+- **Action:** Block or Allow immediately.
+Backend is only queried if local state needs synchronization, but the blocking mechanism is lightweight and instant.
 
 ### Verification & Penalties (Server-Driven)
 - Must be time-based.
@@ -139,41 +142,31 @@ We also separated the **Planner** from the **Enforcer**.
 
 This is the exact flow that makes the system consistent, scalable, and secure.
 
-### 🔁 Daily Lifecycle (Per User)
+### Daily Lifecycle (Per User)
 
-#### 1️⃣ Start of Day (The Planner)
+#### 1. Start of Day (The Planner)
 At the beginning of each day (or via a rolling window), Convex runs a **Daily Planner** for the user.
-- Determines: *Today is Monday*.
-- Checks: *Which recurring rules apply today?*
-- Finds: *Which time slots exist today?* (e.g., 2 PM - 10 PM)
+- It senses: *What day is it?* (e.g., Monday).
+- It checks: *What recurring rules apply today?*
+- It sees: *How many verification-based tasks does this user have?*
 
-From this, the backend decides:
-> "For User 123, today I must care about these specific time windows."
+It then **makes a wake-up function** scheduled for the **end of each time slot**.
 
-#### 2️⃣ Schedule Wakeups
-For each time slot, the system:
-1. Converts the slot into absolute timestamps (`start_at`, `due_at`).
-2. Registers a **wakeup** at the end of the slot.
-```typescript
-scheduler.runAt(slot.due_at, verifyTask, { taskId });
-```
+#### 2. User Perspective (During the Slot)
+From the user's POV:
+- They know that in these specific time slots (e.g., 2 PM - 4 PM), they are "on the hook".
+- They need to provide proof (GPS location, photo, etc.) via the client side.
+- The client collects this raw data throughout the slot.
 
-#### 3️⃣ During the Day (Event-Driven Blocking)
-- **User opens app.**
-- App sends "Can I open?" request.
-- Backend checks: *Is there any task where `start_at <= now <= due_at`?*
-- **Result:** Block or Allow.
-- **Key Note:** No schedulers or cron jobs are running here. It is purely query-based.
-
-#### 4️⃣ At Slot End (The Verifier)
-At `due_at`, Convex wakes up and runs `verifyTask(taskId)`.
-- It fetches all proofs submitted by the client **during the slot**.
-- It evaluates the confidence score of those proofs.
-- It decides: **Success** ✅ or **Failure** ❌.
+#### 3. At Slot End (The Verifier)
+At the end of the time slot, our Convex function wakes up.
+- It **gathers those raw data/proofs** submitted by the client.
+- It **calculates a confidence score** based on the quality of proofs.
+- It **decides** whether to apply a penalty or mark the task as complete.
 
 ---
 
-### 🔍 Proof Verification & Penalty Logic
+### Proof Verification & Penalty Logic
 
 This part is critical. We don't just "fail" a user. We follow a strict accountability ladder.
 
@@ -181,40 +174,41 @@ This part is critical. We don't just "fail" a user. We follow a strict accountab
 1.  **Collect Proofs:** During the slot, the user uploads proofs (e.g., gym selfies, screen time screenshots). These are stored but not fully judged yet.
 2.  **Validate:** At the end of the slot, the backend aggregates these proofs.
 3.  **Decide:**
-    *   **High Confidence Score:** Task marked **Complete**. ✅
-    *   **Low/No Confidence:** Task marked **Failed**. ❌
+    *   **High Confidence Score:** Task marked **Complete**.
+    *   **Low/No Confidence:** Task marked **Failed**.
 4.  **Mercy (Penalty Waiver):** If failed, check if a "Penalty Waiver" is available.
     *   *If Yes:* Give a lifeline (e.g., "Submit explanation within 1 hour").
-    *   *If No:* **BOOM. Apply Penalty.** 💥
+    *   *If No:* **BOOM. Apply Penalty.**
 
 ```mermaid
 graph TD
-    A[Start of Day] -->|Planner| B[Create Tasks & Schedule Wakeups]
-    B --> C{During Slot}
-    C -->|User Interaction| D[Client Uploads Proofs]
-    D --> E[Store Proofs Temporary]
-    C -->|Time Expires| F[Convex Wakeup: verifyTask]
-    F --> G{Validate Proof Confidence}
-    G -->|Score > Threshold| H[Task Complete ✅]
-    G -->|Score < Threshold| I[Task Failed ❌]
-    I --> J{Penalty Waiver Available?}
-    J -->|Yes| K[Trigger Waiver / Lifeline Flow]
-    K -->|Lifeline Used| H
-    K -->|Lifeline Expired| L
-    J -->|No| L[Apply Penalty 💥]
-    L --> M[Charge User / Lock App]
+    A[Start of Day: Planner senses Day & Tasks] --> B[Create Wakeup Functions for Slot Ends]
+    B --> C{During Time Slot}
+    C -->|User Interaction| D[User Provides Proofs: GPS/Photo]
+    D --> E[Client Stores Raw Data]
+    C -->|Time Slot Ends| F[Convex Wakeup Function Fires]
+    F --> G[Gather Data & Calculate Confidence Score]
+    G --> H{Score High Enough?}
+    H -->|Yes| I[Task Complete]
+    H -->|No| J[Task Failed]
+    J --> K{Penalty Waiver Available?}
+    K -->|Yes| L[Trigger Waiver / Lifeline Flow]
+    L -->|Lifeline Used| I
+    L -->|Lifeline Expired| M
+    K -->|No| M[Apply Penalty]
+    M --> N[Charge User / Lock App]
 ```
 
-### 🔧 Important Refinements
+### Important Refinements
 1.  **Refinement 1:** We use a **rolling planner** (Today + Tomorrow) rather than just "Midnight" to handle server restarts or timezone shifts safely.
 2.  **Refinement 2:** We schedule **verification**, not "failure". The penalty is a *result* of the verification logic, not a scheduled event.
 
-### 🔒 Final Verdict
+### Final Verdict
 Your flow is:
-✅ **Correct**
-✅ **Scalable**
-✅ **Secure**
-✅ **Convex-appropriate**
+**Correct**
+**Scalable**
+**Secure**
+**Convex-appropriate**
 
 > **One Line Summary:**
 > Convex plans the day, wakes up at the right moments, evaluates proofs collected from the client, offers mercy once, then enforces consequences.
