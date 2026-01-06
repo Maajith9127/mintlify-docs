@@ -15,9 +15,7 @@
         "groups": [
           {
             "group": "Intro",
-            "pages": [
-              "index"
-            ]
+            "pages": ["index"]
           },
           {
             "group": "2025",
@@ -65,7 +63,8 @@
                 "pages": [
                   "2026/january/day-01",
                   "2026/january/day-02",
-                  "2026/january/day-03"
+                  "2026/january/day-03",
+                  "2026/january/day-04"
                 ]
               }
             ]
@@ -77,7 +76,6 @@
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
-   
   },
   "navbar": {
     "links": [
