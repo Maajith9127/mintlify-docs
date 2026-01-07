@@ -1,0 +1,139 @@
+---
+title: "January 5th, 2026"
+description: "No code written. Travelling from Saudi to India. But the recurring logic problem never left my mind."
+---
+
+# January 5th, 2026
+
+> Sometimes the best work happens when you're not at your desk.
+
+**The Day I Didn't Write Code**
+
+Today I couldn't do any work.
+
+I was travelling from Saudi Arabia to India — airports, flights, layovers, the whole thing.
+
+No laptop open. No terminal. No commits.
+
+But my mind never stopped working.
+
+---
+
+## The Context
+
+**Q: What was actually happening?**
+
+Physically: I was in transit.
+
+Mentally: I was solving the recurring logic problem for CommitT.
+
+This is the gap between "work" and "thinking about work" — and honestly, the thinking part might have been more valuable.
+
+---
+
+## The Problem That Wouldn't Leave
+
+**Q: What was I processing?**
+
+The recurring task logic.
+
+Specifically: **How do we make recurring tasks production-ready?**
+
+This isn't a small problem. It's the foundation of how CommitT actually works at scale.
+
+---
+
+## What Was Going Through My Mind
+
+### The Core Question
+
+If a user creates a recurring task:
+- **Every Monday, 2 PM - 4 PM**
+- **For the next 12 weeks**
+
+What actually happens in production?
+
+Do we:
+1. Create 12 separate tasks upfront?
+2. Generate them on-demand?
+3. Store a rule and compute at runtime?
+
+Each approach has trade-offs.
+
+### The Constraints I Was Thinking About
+
+- **Database size**: 1000 users × 52 weeks × 5 recurring tasks = 260,000 tasks. That's manageable but not trivial.
+- **Query performance**: "What tasks exist right now?" must be instant. No loops. No computation.
+- **Timezone handling**: A user in India and a user in Saudi Arabia see different "now". How do we handle that?
+- **Modification**: If a user edits a recurring task, do we update all future instances or just new ones?
+- **Cancellation**: If a user cancels one instance, does it affect the series?
+
+### The Mental Model I Was Building
+
+By the time I landed, I had a rough architecture in my head:
+
+**Option A: Pre-generate all tasks**
+- Pros: Simple queries, no runtime logic
+- Cons: Wastes space, hard to modify
+
+**Option B: Generate on-demand**
+- Pros: Flexible, space-efficient
+- Cons: Slower queries, complex caching
+
+**Option C: Hybrid (what I think we'll do)**
+- Generate tasks for the next 2 weeks
+- Keep a rolling window
+- Compute on-demand for edge cases
+
+---
+
+## Why This Matters
+
+**Q: Why is this so important?**
+
+Because the entire enforcement system depends on it.
+
+If recurring logic is broken:
+- Tasks don't exist when they should
+- Penalties don't trigger
+- Users think they're safe when they're not
+
+This isn't a "nice to have". It's foundational.
+
+---
+
+## The Realization
+
+**Q: What did I realize during the flight?**
+
+That sometimes the best thinking happens when you're away from the code.
+
+No distractions. No Slack. No "just one more commit".
+
+Just you, a window seat, and a problem that won't let go.
+
+---
+
+## Where I Am Now
+
+No code written today.
+
+But the mental model is clearer.
+
+The trade-offs are mapped.
+
+The next time I sit down to code, I'll know exactly what to build.
+
+---
+
+## Honest Reflection
+
+There's a weird guilt that comes with "not shipping" on a travel day.
+
+But I think this kind of thinking is underrated.
+
+The best code comes from clear thinking, not just fast typing.
+
+Today was clear thinking.
+
+That's enough.
