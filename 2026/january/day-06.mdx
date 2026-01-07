@@ -44,6 +44,38 @@ Nothing has happened yet. No task exists. This is just intent.
   <img src="/2026/pow/fromuserpovtimeslots.png" alt="User perspective: time slots and recurring rules" />
 </Frame>
 
+<Warning>
+**VITAL: One Rule = Multiple Atomic Tasks**
+
+In our case, this single rule creates **6 separate tasks** — not one task with multiple conditions.
+
+Why? Because each task must contain **only one time condition**.
+
+This is critical for accountability:
+
+- If a task fails, we know exactly which time slot failed
+- If a waiver is used, we know exactly which slot it applies to
+- If a penalty is applied, it's tied to a specific task, not a vague "rule"
+
+Without this atomicity, the entire enforcement system becomes ambiguous.
+
+```
+Rule: Mon/Wed/Fri, 6-9 AM and 5-7 PM
+↓
+Creates 6 tasks:
+  Task 1: Monday 6-9 AM
+  Task 2: Monday 5-7 PM
+  Task 3: Wednesday 6-9 AM
+  Task 4: Wednesday 5-7 PM
+  Task 5: Friday 6-9 AM
+  Task 6: Friday 5-7 PM
+```
+
+Each task is independent. Each task can fail independently. Each task can be waived independently.
+
+This is what makes tracking and enforcement possible.
+</Warning>
+
 ---
 
 ## Step 2: User Clicks "Save" — What Should Happen?
