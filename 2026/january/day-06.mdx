@@ -1,0 +1,326 @@
+---
+title: "January 6th, 2026"
+description: "The recurring logic architecture. Step-by-step reasoning from user input to production-grade system. Mental process only — the real battles are still ahead."
+---
+
+# January 6th, 2026
+
+> This is how we think through architecture. Not how we build it yet.
+
+**How Recurring Tasks Actually Work (The Mental Model)**
+
+Today was about sitting down and walking through the exact reasoning that led to our production-grade recurring task system.
+
+This is a mental process. The actual implementation — Android debugging, edge cases, real-world failures — that's still coming.
+
+But the thinking has to be clear first.
+
+---
+
+## Step 1: Start From What the User Actually Gives Us
+
+Let me explain this like I'm talking to another engineer.
+
+"Look, this is what the user gives us from the UI."
+
+The user creates a rule:
+
+```
+Days: Monday, Wednesday, Friday
+Time windows:
+  6:00 AM – 9:00 AM
+  5:00 PM – 7:00 PM
+Timezone: Asia/Kolkata
+Rule created on: Thursday, Jan 11, 2026 at 4:30 PM
+```
+
+Here's the critical point I stress:
+
+**This data does not describe tasks. It describes availability rules.**
+
+Nothing has happened yet. No task exists. This is just intent.
+
+<Frame>
+  <img src="/2026/pow/fromuserpovtimeslots.png" alt="User perspective: time slots and recurring rules" />
+</Frame>
+
+---
+
+## Step 2: User Clicks "Save" — What Should Happen?
+
+Now I ask the obvious question out loud:
+
+"When the user clicks Save, what am I actually supposed to do?"
+
+My first answer was:
+
+"Convert this into a task object with conditions."
+
+So I showed how:
+
+```typescript
+const task = {
+  id: "task_123",
+  userId: "user_456",
+  conditions: [
+    {
+      metric: "time",
+      relation: "within",
+      target: {
+        type: "range",
+        value: {
+          start_at: 1736592000, // Monday 6 AM
+          due_at: 1736602800    // Monday 9 AM
+        }
+      }
+    }
+  ],
+  status: "active"
+}
+```
+
+Time condition uses timestamps. Location condition uses geo. Other constraints attach as conditions.
+
+And yes, I can assemble a valid task object from this.
+
+At this stage, everything looks correct.
+
+But then I pause and ask the next question.
+
+---
+
+## Step 3: Okay, This Works Once — But What About Recurring?
+
+Here's the doubt I explicitly raise:
+
+"If this is recurring, do I just:
+- Schedule from Monday 6–9
+- Wait till 9 AM
+- Check evidence
+- Then recreate the same task with next week's timestamp?"
+
+And then I list the three trigger points I was thinking about:
+
+1. Server restart
+2. Recurring event end
+3. User clicks Save
+
+At this moment, the logic seems reasonable.
+
+But this is where production thinking kicks in.
+
+---
+
+## Step 4: Where This Approach Becomes Dangerous
+
+This is the critical realization, and I explain it very clearly.
+
+I tell them:
+
+"The danger here is not logic. The danger is idempotency and duplication."
+
+Then I walk through failures.
+
+### Problem 1: Server Crashes at 8:59 AM
+
+```
+Task exists
+Evaluation job maybe ran, maybe not
+Next task not created
+System has no idea what it missed
+```
+
+### Problem 2: Server Crashes at 9:00:01 AM
+
+```
+Evaluation ran
+Next task creation partially ran
+Job retries
+Now I might create duplicate tasks
+```
+
+### Problem 3: Server Restarts
+
+And this is the killer question:
+
+"How does the server know what recurring things even exist?"
+
+Answer: it doesn't.
+
+Because tasks don't explain why they exist.
+
+---
+
+## Step 5: Realization — This System Is Perfect For One-Time Tasks Only
+
+This is where I explicitly correct myself.
+
+I say:
+
+"What I have right now is actually perfect for one-time logic."
+
+User clicks Save → generate tasks for the next week → done.
+
+But then I ask the uncomfortable question:
+
+"How does the backend regenerate the same exact timestamps next week without the frontend helping again?"
+
+The backend can't guess intent from tasks.
+
+Tasks are already flattened output.
+
+The intent is gone.
+
+---
+
+## Step 6: Key Insight — Intent Must Live Separately From Tasks
+
+This is the turning point.
+
+I explain it like this:
+
+"The frontend knew how to convert intent into timestamps only because it still had the original rule."
+
+So the backend needs that same capability.
+
+That means:
+
+- Rules must exist independently
+- Tasks must be derived from rules
+- Tasks must be disposable and recreatable
+
+This is why we introduced the rules table.
+
+---
+
+## Step 7: Adding the Missing Piece — Persistent Rules
+
+Now I show them the rules schema and explain why this single addition changes everything:
+
+```typescript
+const rule = {
+  id: "rule_789",
+  userId: "user_456",
+  daysOfWeek: [1, 3, 5], // Monday, Wednesday, Friday
+  timeWindows: [
+    { start: 360, end: 540 },   // 6 AM - 9 AM (minutes since day start)
+    { start: 1020, end: 1140 }  // 5 PM - 7 PM
+  ],
+  timezone: "Asia/Kolkata",
+  active: true,
+  createdAt: 1736592600
+}
+```
+
+The rule stores:
+
+- Days of week
+- Time windows
+- Timezone
+- Active flag
+
+This becomes the source of truth.
+
+Tasks no longer need to explain themselves. The rule already does.
+
+---
+
+## Step 8: Chain Scheduling Revisited (Now Done Correctly)
+
+Now I go back to the original chain idea and reframe it:
+
+### Earlier (Broken):
+
+```
+Task ends → create next task
+No memory
+No recovery
+```
+
+### Now (Correct):
+
+```
+Rule exists permanently
+Chain scheduling only creates tasks from the rule
+Each task is linked back to its rule
+```
+
+If something breaks:
+
+I don't "fix tasks"
+
+I re-derive tasks from the rule
+
+That's the difference.
+
+---
+
+## Step 9: Why the Weekly Global Loop Is the Wrong Fix
+
+I then address the question explicitly:
+
+"Can I just run one loop per week for 10 million users?"
+
+And the answer is no, because:
+
+- It creates massive spikes
+- It couples all users into one job
+- Failures become global
+- Scaling becomes painful
+
+Avoiding infinite loops was correct instinct. Replacing them with a giant weekly loop was not.
+
+---
+
+## Final Conclusion (No Ambiguity)
+
+This is the exact conclusion I state clearly:
+
+**Chain scheduling + persistent rules = production-grade system**
+
+The original chain system was dangerous because:
+
+- It had no source of truth
+- It relied on timing
+- It couldn't recover safely
+
+The moment we introduced rules:
+
+- The system gained memory
+- Tasks became regeneratable
+- Crashes became survivable
+- Duplication became detectable
+
+At that point, the architecture stopped being "clever" and started being correct.
+
+That's why this version is production-grade.
+
+---
+
+## Important Caveat
+
+This is all mental process and reasoning.
+
+The tougher challenges are still ahead:
+
+- Android debugging and edge cases
+- Timezone handling in real deployments
+- Handling user modifications mid-series
+- Detecting and recovering from duplicates
+- Performance at scale
+
+We've solved the architecture problem. Now we have to solve the implementation problem.
+
+And that's where the real work begins.
+
+---
+
+## Honest Reflection
+
+There's a satisfaction in getting the mental model right before writing code.
+
+But I know from experience: the code will reveal problems the thinking didn't catch.
+
+That's fine. That's how it works.
+
+For now, the logic is sound. The next phase is making it survive reality.
