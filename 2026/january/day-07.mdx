@@ -1,0 +1,794 @@
+---
+title: "January 7th, 2026"
+description: "The mental model of Android's AccessibilityService and ForegroundService. Breaking down misconceptions and building the truth-verification architecture for CommitT."
+---
+
+# January 7th, 2026
+
+## 1. Setting the context: *How should we even learn this?*
+
+Before touching Kotlin or Android APIs, we agreed on one thing:
+
+> Learning syntax before understanding the system is useless.
+
+We already knew **React Native well**.
+
+So this wasn’t about “how to code a button”.
+
+We decided to use **question-derived learning**:
+
+- Ask uncomfortable questions
+- Chase confusion until it breaks
+- Only then accept an answer
+
+This entire journey follows that rule.
+
+---
+
+## 2. What are we even building?
+
+We clarified the product first.
+
+We are building **CommitT** — an accountability system.
+
+That immediately implied requirements like:
+
+- Detect which apps are launched
+- Block apps
+- Overlay screens
+- Persist across restarts
+- Accessibility control
+- Background execution
+- Location, camera, mic access
+- Enforced behavior, not suggestions
+
+At this point, one thing was obvious:
+
+> This is not a normal Android app.
+
+This is OS-adjacent software.
+
+---
+
+## 3. First wrong assumption: *Can Node.js do this?*
+
+We asked:
+
+> “Can we list Android apps or control the phone using Node.js?”
+
+Answer:
+
+- Node.js can run **servers**
+- Node.js cannot talk to **Android OS**
+- Node.js has zero access to system APIs
+
+So Node.js was immediately ruled out for OS control.
+
+---
+
+## 4. Second wrong assumption: *React Native should be enough, right?*
+
+Next question:
+
+> “We use React Native — can’t RN list installed apps?”
+
+Reality check:
+
+- React Native JS cannot access Android system APIs
+- RN can only do what **native modules expose**
+- Expo (managed) explicitly blocks system-level access
+
+This led to a key realization:
+
+> React Native is UI.  
+Kotlin is control.
+
+RN can *ask*.
+
+Native code must *do*.
+
+---
+
+## 5. Expo confusion: *Isn’t there a simple Expo function?*
+
+We thought:
+
+> “Expo gives camera, location, files… surely there’s a function for installed apps?”
+
+There isn’t. And this is intentional.
+
+Expo only exposes:
+
+- safe
+- common
+- non-abusive APIs
+
+Listing apps, blocking apps, observing UI -> **high-risk APIs**.
+
+Conclusion:
+
+> Expo managed workflow is incompatible with CommitT.
+
+This wasn’t a tooling issue — it was a **security boundary**.
+
+---
+
+## 6. Native module clarity
+
+We finally articulated the correct flow:
+
+> We write a native Android module (Kotlin)  
+>
+> That module talks to **Android OS APIs**  
+>
+> React Native calls this module  
+>
+> JS only consumes results
+
+This is the **only valid architecture** for RN + OS control.
+
+---
+
+## 7. The BIG question: *How do we know when another app opens?*
+
+This is where confusion really began.
+
+Initial assumption (wrong):
+
+> “When user clicks Save, we tell Android to notify us when blocked apps open.”
+
+This sounds logical — and is completely wrong.
+
+---
+
+## 8. Realization: *Android already watches everything*
+
+We corrected ourselves:
+
+> Android OS already runs 24/7.  
+>
+> Android already knows when screens change.  
+>
+> Android does not need our permission to observe UI.
+
+We are not asking Android to watch.
+
+We are asking Android to **let us listen**.
+
+---
+
+## 9. Enter AccessibilityService (first misunderstanding)
+
+We asked:
+
+> “Is AccessibilityService just a background service that runs forever?”
+
+Initial thought:
+
+- “24/7 service”
+- “Always running loop”
+
+Wrong.
+
+---
+
+## 10. Correct mental model of AccessibilityService
+
+AccessibilityService is:
+
+- **system-bound**
+- **event-driven**
+- **OS-controlled**
+- **listener-based**
+
+It does **not**:
+
+- poll
+- loop forever
+- control its lifecycle
+
+Think:
+
+> Interrupt handler attached to the OS UI system.
+
+---
+
+## 11. “System-bound listener” — what does that actually mean?
+
+We broke this down properly:
+
+### System-bound
+
+- OS decides when it runs
+- OS starts it
+- OS restarts it if needed
+
+### Listener
+
+- It waits
+- It does not ask
+- OS pushes events to it
+
+### Not app-controlled
+
+- You can’t start it manually
+- You can’t stop it manually
+- You can only react
+
+This is a **huge conceptual shift**.
+
+---
+
+## 12. Foreground confusion: *Foreground service? Foreground window?*
+
+At this point, terminology started misleading us.
+
+We thought:
+
+> “Foreground means background work?”
+
+No.
+
+---
+
+## 13. What is a *window* in Android?
+
+We learned:
+
+> A window is simply:  
+>
+> *whatever UI is currently allowed to receive user input.*
+
+Examples:
+
+- WhatsApp chat screen
+- Chrome tab
+- Settings page
+- Permission dialog
+- Lock screen
+- Overlay
+
+Each of these is a **window**.
+
+---
+
+## 14. What does *foreground* mean?
+
+Foreground =
+
+> The window the user is currently seeing and interacting with
+
+Only **one** window can be foreground at a time.
+
+---
+
+## 15. Foreground window change — the key concept
+
+This finally clicked:
+
+> Foreground window change = the visible screen changed
+
+That’s it.
+
+Not:
+
+- background task
+- service
+- CPU
+- process
+
+Just:
+
+> “The screen changed.”
+
+---
+
+## 16. So what does Android actually send to AccessibilityService?
+
+When a foreground window changes:
+
+- Android creates an accessibility event
+- OS sends **filtered metadata** to all enabled services
+
+Typically:
+
+- package name (almost always)
+- sometimes class name
+- sometimes limited UI metadata
+
+This is how blockers work.
+
+---
+
+## 17. Privacy fear: *Can Android see my WhatsApp chats?*
+
+We had to separate roles:
+
+### Android OS
+
+- Renders everything
+- Knows everything
+- Owns the real UI tree
+
+### AccessibilityService
+
+- Sees **only what apps expose**
+- Receives a **filtered accessibility tree**
+- Cannot access databases
+- Cannot see encrypted content
+- Cannot see hidden data
+
+Accessibility sees **surface**, not **storage**.
+
+---
+
+## 18. DOM analogy (this sealed understanding)
+
+We connected it to web:
+
+### Web
+
+- Browser knows full DOM
+- DevTools sees everything
+- JS sees exposed DOM
+
+### Android
+
+- OS knows full UI tree
+- OS sees everything
+- Accessibility sees exposed accessibility tree
+
+This analogy was **accurate**, not hand-wavy.
+
+---
+
+## 19. Settings blocking confusion
+
+We observed:
+
+> “How do app blockers block Settings, Device Admin, Accessibility pages?”
+
+Answer:
+
+- Settings is just another app (`com.android.settings`)
+- Accessibility detects it in foreground
+- Blockers block **Settings as a whole**
+
+They don’t aim for precision.
+
+They aim for **enforcement**.
+
+---
+
+## 20. Save button realization (important)
+
+This was subtle but critical:
+
+> Save does NOT tell Android anything.
+
+Save only:
+
+- updates internal rules
+- changes how our app reacts
+
+Android events happen **regardless**.
+
+---
+
+## 21. How do blockers actually block apps?
+
+There is **no kill API**.
+
+What exists:
+
+- GLOBAL_ACTION_HOME
+- GLOBAL_ACTION_BACK
+- GLOBAL_ACTION_RECENTS
+- gesture dispatch
+- overlays
+
+Real blockers:
+
+> Cover the app or redirect away.
+
+Not kill.
+
+---
+
+## 22. Foreground Service vs AccessibilityService
+
+Final clarification:
+
+- **Foreground window** -> UI concept
+- **Foreground service** -> background work with persistent notification
+
+Accessibility listens to **windows**.
+
+Foreground services keep **processes alive**.
+
+Different universes. Same word.
+
+---
+
+## 23. Location tracking case (6–7 AM)
+
+We asked:
+
+> “If we track location periodically, do we need notification?”
+
+Yes.
+
+Continuous sensitive access =
+
+**foreground service + persistent notification**.
+
+That’s Android’s transparency rule.
+
+---
+
+## 24. Penalty logic confusion
+
+We initially thought:
+
+> “Service off -> penalty”
+
+We corrected it to:
+
+> Intent matters. Context matters.
+
+OS crashes != cheating
+
+Reboots != cheating
+
+User revoking permission = cheating
+
+So backend must judge, not frontend.
+
+---
+
+## 25. Is this too much data for backend?
+
+No.
+
+This is **exactly how real systems work**:
+
+- fraud detection
+- anti-cheat
+- MDM
+- payments
+
+They reconstruct timelines.
+
+One signal is never trusted.
+
+---
+
+## 26. Final insight: random verification > continuous tracking
+
+This was a mature realization:
+
+> Random, unpredictable checks  
+>
+> beat constant monitoring.
+
+One strong proof > many weak pings.
+
+This aligns with:
+
+- anti-doping
+- audits
+- exams
+- accountability psychology
+
+---
+
+## Final mental model (the one that matters)
+
+> Android OS always observes UI.  
+AccessibilityService is a system-attached listener that receives filtered UI events.  
+Your app never controls the OS — it only reacts based on saved rules.
+
+---
+
+## 27. “Wait… foreground *service*?? I thought foreground already meant screen?”
+
+At this point, the confusion returned — but in a *new form*.
+
+We already understood:
+
+- **Foreground window** = the screen user sees
+- Accessibility listens to **window changes**
+
+Then we hit this question:
+
+> “If I want my app to run something from 6 AM to 7 AM, periodically, even when the screen is off… what is that?”
+
+This is where the term **foreground service** messed with us.
+
+---
+
+## 28. “So what actually is a foreground service?”
+
+We stripped away the misleading name and asked:
+
+> What problem does Android solve with foreground services?
+
+Answer:
+
+> A foreground service is just a background task that Android promises not to kill easily — as long as the user can visibly see it running via a notification.
+
+That’s it.
+
+No UI.
+
+No window.
+
+No screen required.
+
+Examples suddenly made sense:
+
+- Music playback
+- Google Maps navigation
+- Fitness tracking
+- VPN
+
+All running **without a visible screen**.
+
+So the word *foreground* here means:
+
+> foreground in user awareness, not UI.
+
+---
+
+## 29. “So accessibility != foreground service?”
+
+This was an important checkpoint.
+
+We explicitly separated them:
+
+- AccessibilityService -> listens to **UI events**
+- Foreground Service -> keeps **background work alive**
+
+They live in **different OS subsystems**.
+
+Same word.
+
+Completely different meanings.
+
+That misunderstanding alone explains *a lot* of bad Android code online.
+
+---
+
+## 30. “Ok… then if from 6–7 AM I want to send location periodically?”
+
+We asked a very concrete question:
+
+> “If I want to periodically send location data during a time window, do I need to show a persistent notification?”
+
+Short answer:
+
+> Yes. Absolutely. No workaround.
+
+Reason:
+
+- Continuous background access
+- Sensitive permission (location)
+- Modern Android privacy rules
+
+Android’s stance is simple:
+
+> “If something sensitive is happening in the background, the user must be able to see it.”
+
+That visibility = **foreground service notification**.
+
+---
+
+## 31. “If user turns this off… penalty applies?”
+
+This was the next logical jump — and also a dangerous one.
+
+Initial instinct:
+
+> “User turns it off -> penalty.”
+
+But we stopped ourselves.
+
+Because Android can stop things **without user intent**.
+
+So we reframed the question:
+
+> How do we distinguish cheating from OS behavior?
+
+---
+
+## 32. “Not all ‘off’ events mean cheating”
+
+We listed real scenarios:
+
+- Phone rebooted
+- OS killed the process
+- Network temporarily lost
+- GPS unavailable
+- App crashed
+
+Penalising here would be unfair.
+
+Then we listed **intentional actions**:
+
+- User revoked permission
+- User disabled accessibility
+- User force-stopped app
+- User entered restricted settings
+
+These *do* signal intent.
+
+So the rule became:
+
+> Penalty is not based on a single signal.  
+It’s based on reconstructed intent.
+
+---
+
+## 33. “But to know intent… don’t we need to send a LOT of data to backend?”
+
+This was the hesitation point.
+
+It *felt* like overkill.
+
+So we asked the real question:
+
+> Is this how real production systems actually work?
+
+Answer:
+
+> Yes. This is exactly how serious systems work.
+
+Not by trusting one flag.
+
+But by correlating **timelines**.
+
+---
+
+## 34. “Real systems don’t trust states — they trust events”
+
+This was a mindset shift.
+
+We realised:
+
+- State = “service is off”
+- Event = “permission revoked at 06:12”
+
+State is ambiguous.
+
+Events are explanatory.
+
+So instead of sending:
+
+```json
+{"service":"stopped"}
+
+```
+
+We send:
+
+- permission changes
+- lifecycle callbacks
+- reboot signals
+- heartbeat gaps
+- network state
+
+Each event is tiny.
+
+Together, they tell the story.
+
+That’s not over-engineering.
+
+That’s **how truth is inferred**.
+
+---
+
+## 35. “Ok… but do we even need continuous tracking?”
+
+This was a big one.
+
+We stepped back and asked:
+
+> What are we really trying to prove?
+
+Not:
+
+- “User moved every minute”
+
+But:
+
+- **“User was actually there during this window.”**
+
+Then the insight hit:
+
+> Random verification beats continuous tracking.
+
+---
+
+## 36. Why random checks are stronger than constant monitoring
+
+We realised something important:
+
+If the user knows:
+
+> “At any random moment between 6–7 AM, I might be asked to prove I’m there”
+
+Then:
+
+- Leaving phone behind doesn’t work
+- Fake GPS doesn’t help much
+- Temporary disabling is risky
+
+This is how:
+
+- drug testing works
+- audits work
+- exam proctoring works
+
+One strong, unpredictable check
+
+> beats 100 predictable pings
+
+---
+
+## 37. Continuous tracking != strong proof
+
+We explicitly wrote this down:
+
+Continuous tracking:
+
+- drains battery
+- requires persistent notification
+- feels invasive
+- creates more OS failure cases
+- is easier to game
+
+Random verification:
+
+- low overhead
+- high confidence
+- clear intent signal
+- better UX
+- fair penalties
+
+This aligned perfectly with our earlier philosophy:
+
+> Collect minimum data that proves truth — not maximum data.
+
+---
+
+## 38. Everything finally aligned
+
+At this point, all the earlier pieces snapped together:
+
+- Accessibility -> detects *what app is on screen*
+- Foreground service -> keeps time-bound background work alive
+- Backend -> reconstructs intent from events
+- Random verification -> enforces accountability without surveillance
+- Penalties -> applied only when intent is clear
+
+Nothing felt hacked.
+
+Nothing felt abusive.
+
+Nothing felt accidental.
+
+---
+
+## Final realisation (not a summary, just the moment it clicked)
+
+> We are not building a tracker.  
+>
+> We are building a **truth-verification system**.
+
+Android isn’t fighting us.
+
+It’s forcing us to be **explicit, fair, and transparent**.
+
+Once we accepted that,
+
+the architecture designed itself.
