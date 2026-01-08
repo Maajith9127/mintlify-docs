@@ -13,7 +13,7 @@ Before touching Kotlin or Android APIs, we agreed on one thing:
 
 We already knew **React Native well**.
 
-So this wasn’t about “how to code a button”.
+So this wasn't about "how to code a button".
 
 We decided to use **question-derived learning**:
 
@@ -54,7 +54,7 @@ This is OS-adjacent software.
 
 We asked:
 
-> “Can we list Android apps or control the phone using Node.js?”
+> "Can we list Android apps or control the phone using Node.js?"
 
 Answer:
 
@@ -70,7 +70,7 @@ So Node.js was immediately ruled out for OS control.
 
 Next question:
 
-> “We use React Native — can’t RN list installed apps?”
+> "We use React Native — can't RN list installed apps?"
 
 Reality check:
 
@@ -80,7 +80,7 @@ Reality check:
 
 This led to a key realization:
 
-> React Native is UI.  
+> React Native is UI.
 Kotlin is control.
 
 RN can *ask*.
@@ -89,13 +89,13 @@ Native code must *do*.
 
 ---
 
-## 5. Expo confusion: *Isn’t there a simple Expo function?*
+## 5. Expo confusion: *Isn't there a simple Expo function?*
 
 We thought:
 
-> “Expo gives camera, location, files… surely there’s a function for installed apps?”
+> "Expo gives camera, location, files… surely there's a function for installed apps?"
 
-There isn’t. And this is intentional.
+There isn't. And this is intentional.
 
 Expo only exposes:
 
@@ -103,13 +103,13 @@ Expo only exposes:
 - common
 - non-abusive APIs
 
-Listing apps, blocking apps, observing UI -> **high-risk APIs**.
+Listing apps, blocking apps, observing UI → **high-risk APIs**.
 
 Conclusion:
 
 > Expo managed workflow is incompatible with CommitT.
 
-This wasn’t a tooling issue — it was a **security boundary**.
+This wasn't a tooling issue — it was a **security boundary**.
 
 ---
 
@@ -117,13 +117,14 @@ This wasn’t a tooling issue — it was a **security boundary**.
 
 We finally articulated the correct flow:
 
-> We write a native Android module (Kotlin)  
->
-> That module talks to **Android OS APIs**  
->
-> React Native calls this module  
->
-> JS only consumes results
+> We write a native Android module (Kotlin)
+
+
+That module talks to **Android OS APIs**
+
+React Native calls this module
+
+JS only consumes results
 
 This is the **only valid architecture** for RN + OS control.
 
@@ -135,7 +136,7 @@ This is where confusion really began.
 
 Initial assumption (wrong):
 
-> “When user clicks Save, we tell Android to notify us when blocked apps open.”
+> "When user clicks Save, we tell Android to notify us when blocked apps open."
 
 This sounds logical — and is completely wrong.
 
@@ -145,11 +146,12 @@ This sounds logical — and is completely wrong.
 
 We corrected ourselves:
 
-> Android OS already runs 24/7.  
->
-> Android already knows when screens change.  
->
-> Android does not need our permission to observe UI.
+> Android OS already runs 24/7.
+
+
+Android already knows when screens change.
+
+Android does not need our permission to observe UI.
 
 We are not asking Android to watch.
 
@@ -161,12 +163,12 @@ We are asking Android to **let us listen**.
 
 We asked:
 
-> “Is AccessibilityService just a background service that runs forever?”
+> "Is AccessibilityService just a background service that runs forever?"
 
 Initial thought:
 
-- “24/7 service”
-- “Always running loop”
+- "24/7 service"
+- "Always running loop"
 
 Wrong.
 
@@ -193,7 +195,7 @@ Think:
 
 ---
 
-## 11. “System-bound listener” — what does that actually mean?
+## 11. "System-bound listener" — what does that actually mean?
 
 We broke this down properly:
 
@@ -211,8 +213,8 @@ We broke this down properly:
 
 ### Not app-controlled
 
-- You can’t start it manually
-- You can’t stop it manually
+- You can't start it manually
+- You can't stop it manually
 - You can only react
 
 This is a **huge conceptual shift**.
@@ -225,7 +227,7 @@ At this point, terminology started misleading us.
 
 We thought:
 
-> “Foreground means background work?”
+> "Foreground means background work?"
 
 No.
 
@@ -235,9 +237,10 @@ No.
 
 We learned:
 
-> A window is simply:  
->
-> *whatever UI is currently allowed to receive user input.*
+> A window is simply:
+
+
+*whatever UI is currently allowed to receive user input.*
 
 Examples:
 
@@ -268,7 +271,7 @@ This finally clicked:
 
 > Foreground window change = the visible screen changed
 
-That’s it.
+That's it.
 
 Not:
 
@@ -279,7 +282,7 @@ Not:
 
 Just:
 
-> “The screen changed.”
+> "The screen changed."
 
 ---
 
@@ -346,7 +349,7 @@ This analogy was **accurate**, not hand-wavy.
 
 We observed:
 
-> “How do app blockers block Settings, Device Admin, Accessibility pages?”
+> "How do app blockers block Settings, Device Admin, Accessibility pages?"
 
 Answer:
 
@@ -354,7 +357,7 @@ Answer:
 - Accessibility detects it in foreground
 - Blockers block **Settings as a whole**
 
-They don’t aim for precision.
+They don't aim for precision.
 
 They aim for **enforcement**.
 
@@ -399,8 +402,8 @@ Not kill.
 
 Final clarification:
 
-- **Foreground window** -> UI concept
-- **Foreground service** -> background work with persistent notification
+- **Foreground window** → UI concept
+- **Foreground service** → background work with persistent notification
 
 Accessibility listens to **windows**.
 
@@ -414,7 +417,7 @@ Different universes. Same word.
 
 We asked:
 
-> “If we track location periodically, do we need notification?”
+> "If we track location periodically, do we need notification?"
 
 Yes.
 
@@ -422,7 +425,7 @@ Continuous sensitive access =
 
 **foreground service + persistent notification**.
 
-That’s Android’s transparency rule.
+That's Android's transparency rule.
 
 ---
 
@@ -430,15 +433,15 @@ That’s Android’s transparency rule.
 
 We initially thought:
 
-> “Service off -> penalty”
+> "Service off → penalty"
 
 We corrected it to:
 
 > Intent matters. Context matters.
 
-OS crashes != cheating
+OS crashes ≠ cheating
 
-Reboots != cheating
+Reboots ≠ cheating
 
 User revoking permission = cheating
 
@@ -467,9 +470,10 @@ One signal is never trusted.
 
 This was a mature realization:
 
-> Random, unpredictable checks  
->
-> beat constant monitoring.
+> Random, unpredictable checks
+
+
+beat constant monitoring.
 
 One strong proof > many weak pings.
 
@@ -484,13 +488,13 @@ This aligns with:
 
 ## Final mental model (the one that matters)
 
-> Android OS always observes UI.  
-AccessibilityService is a system-attached listener that receives filtered UI events.  
+> Android OS always observes UI.
+AccessibilityService is a system-attached listener that receives filtered UI events.
 Your app never controls the OS — it only reacts based on saved rules.
 
 ---
 
-## 27. “Wait… foreground *service*?? I thought foreground already meant screen?”
+## 27. "Wait… foreground *service*?? I thought foreground already meant screen?"
 
 At this point, the confusion returned — but in a *new form*.
 
@@ -501,13 +505,13 @@ We already understood:
 
 Then we hit this question:
 
-> “If I want my app to run something from 6 AM to 7 AM, periodically, even when the screen is off… what is that?”
+> "If I want my app to run something from 6 AM to 7 AM, periodically, even when the screen is off… what is that?"
 
 This is where the term **foreground service** messed with us.
 
 ---
 
-## 28. “So what actually is a foreground service?”
+## 28. "So what actually is a foreground service?"
 
 We stripped away the misleading name and asked:
 
@@ -517,7 +521,7 @@ Answer:
 
 > A foreground service is just a background task that Android promises not to kill easily — as long as the user can visibly see it running via a notification.
 
-That’s it.
+That's it.
 
 No UI.
 
@@ -540,14 +544,14 @@ So the word *foreground* here means:
 
 ---
 
-## 29. “So accessibility != foreground service?”
+## 29. "So accessibility ≠ foreground service?"
 
 This was an important checkpoint.
 
 We explicitly separated them:
 
-- AccessibilityService -> listens to **UI events**
-- Foreground Service -> keeps **background work alive**
+- AccessibilityService → listens to **UI events**
+- Foreground Service → keeps **background work alive**
 
 They live in **different OS subsystems**.
 
@@ -559,11 +563,11 @@ That misunderstanding alone explains *a lot* of bad Android code online.
 
 ---
 
-## 30. “Ok… then if from 6–7 AM I want to send location periodically?”
+## 30. "Ok… then if from 6–7 AM I want to send location periodically?"
 
 We asked a very concrete question:
 
-> “If I want to periodically send location data during a time window, do I need to show a persistent notification?”
+> "If I want to periodically send location data during a time window, do I need to show a persistent notification?"
 
 Short answer:
 
@@ -575,21 +579,21 @@ Reason:
 - Sensitive permission (location)
 - Modern Android privacy rules
 
-Android’s stance is simple:
+Android's stance is simple:
 
-> “If something sensitive is happening in the background, the user must be able to see it.”
+> "If something sensitive is happening in the background, the user must be able to see it."
 
 That visibility = **foreground service notification**.
 
 ---
 
-## 31. “If user turns this off… penalty applies?”
+## 31. "If user turns this off… penalty applies?"
 
 This was the next logical jump — and also a dangerous one.
 
 Initial instinct:
 
-> “User turns it off -> penalty.”
+> "User turns it off → penalty."
 
 But we stopped ourselves.
 
@@ -601,35 +605,42 @@ So we reframed the question:
 
 ---
 
-## 32. “Not all ‘off’ events mean cheating”
+## 32. "Not all 'off' events mean cheating"
 
 We listed real scenarios:
 
-- Phone rebooted
-- OS killed the process
-- Network temporarily lost
-- GPS unavailable
-- App crashed
+Phone rebooted
+
+OS killed the process
+
+Network temporarily lost
+
+GPS unavailable
+
+App crashed
 
 Penalising here would be unfair.
 
 Then we listed **intentional actions**:
 
-- User revoked permission
-- User disabled accessibility
-- User force-stopped app
-- User entered restricted settings
+User revoked permission
+
+User disabled accessibility
+
+User force-stopped app
+
+User entered restricted settings
 
 These *do* signal intent.
 
 So the rule became:
 
-> Penalty is not based on a single signal.  
-It’s based on reconstructed intent.
+> Penalty is not based on a single signal.
+It's based on reconstructed intent.
 
 ---
 
-## 33. “But to know intent… don’t we need to send a LOT of data to backend?”
+## 33. "But to know intent… don't we need to send a LOT of data to backend?"
 
 This was the hesitation point.
 
@@ -649,14 +660,14 @@ But by correlating **timelines**.
 
 ---
 
-## 34. “Real systems don’t trust states — they trust events”
+## 34. "Real systems don't trust states — they trust events"
 
 This was a mindset shift.
 
 We realised:
 
-- State = “service is off”
-- Event = “permission revoked at 06:12”
+- State = "service is off"
+- Event = "permission revoked at 06:12"
 
 State is ambiguous.
 
@@ -681,13 +692,13 @@ Each event is tiny.
 
 Together, they tell the story.
 
-That’s not over-engineering.
+That's not over-engineering.
 
-That’s **how truth is inferred**.
+That's **how truth is inferred**.
 
 ---
 
-## 35. “Ok… but do we even need continuous tracking?”
+## 35. "Ok… but do we even need continuous tracking?"
 
 This was a big one.
 
@@ -697,11 +708,11 @@ We stepped back and asked:
 
 Not:
 
-- “User moved every minute”
+- "User moved every minute"
 
 But:
 
-- **“User was actually there during this window.”**
+- **"User was actually there during this window."**
 
 Then the insight hit:
 
@@ -715,12 +726,12 @@ We realised something important:
 
 If the user knows:
 
-> “At any random moment between 6–7 AM, I might be asked to prove I’m there”
+> "At any random moment between 6–7 AM, I might be asked to prove I'm there"
 
 Then:
 
-- Leaving phone behind doesn’t work
-- Fake GPS doesn’t help much
+- Leaving phone behind doesn't work
+- Fake GPS doesn't help much
 - Temporary disabling is risky
 
 This is how:
@@ -735,7 +746,7 @@ One strong, unpredictable check
 
 ---
 
-## 37. Continuous tracking != strong proof
+## 37. Continuous tracking ≠ strong proof
 
 We explicitly wrote this down:
 
@@ -765,11 +776,11 @@ This aligned perfectly with our earlier philosophy:
 
 At this point, all the earlier pieces snapped together:
 
-- Accessibility -> detects *what app is on screen*
-- Foreground service -> keeps time-bound background work alive
-- Backend -> reconstructs intent from events
-- Random verification -> enforces accountability without surveillance
-- Penalties -> applied only when intent is clear
+- Accessibility → detects *what app is on screen*
+- Foreground service → keeps time-bound background work alive
+- Backend → reconstructs intent from events
+- Random verification → enforces accountability without surveillance
+- Penalties → applied only when intent is clear
 
 Nothing felt hacked.
 
@@ -781,13 +792,14 @@ Nothing felt accidental.
 
 ## Final realisation (not a summary, just the moment it clicked)
 
-> We are not building a tracker.  
->
-> We are building a **truth-verification system**.
+> We are not building a tracker.
 
-Android isn’t fighting us.
 
-It’s forcing us to be **explicit, fair, and transparent**.
+We are building a **truth-verification system**.
+
+Android isn't fighting us.
+
+It's forcing us to be **explicit, fair, and transparent**.
 
 Once we accepted that,
 
