@@ -1,0 +1,430 @@
+---
+title: "January 8th, 2026"
+description: "Deep engineer-to-engineer Q&A on React Native, Expo, Hermes, and Gradle. Understanding how mobile runtimes actually work."
+---
+
+# January 8th, 2026
+
+## 1. What problem are we even solving with React Native + Expo?
+
+We want to build **real native mobile apps** (Android/iOS) **without writing all UI logic twice** (Kotlin + Swift).
+
+React Native solves this by:
+
+- Writing **app logic + UI description in JS/TS**
+- Letting **native code render actual native UI**
+
+Expo sits on top to:
+
+- Reduce setup pain
+- Provide ready-made native capabilities
+- Hide platform complexity until needed
+
+---
+
+## 2. What exactly is Expo?
+
+Expo is **NOT** a replacement for React Native.
+
+Expo is:
+
+- A **toolchain**
+- A **prebuilt native runtime**
+- A **workflow manager**
+
+Its core purpose is:
+
+> To run React Native apps with minimal native setup and safe defaults.
+
+Expo gives you:
+
+- A native shell (already built)
+- Hermes JS engine
+- Common native APIs (camera, mic, location, etc.)
+- Tooling to build, run, and debug
+
+---
+
+## 3. Does Expo combine frontend React Native code and backend Kotlin code?
+
+**No.**
+
+Very important distinction:
+
+- **Kotlin on Android (inside the app)** = native *client-side* code
+- **Kotlin backend (server)** = completely separate process
+
+Expo and React Native are **client-side only**.
+
+Communication with backend happens via:
+
+- HTTP / WebSockets
+- APIs
+
+They are **never bundled together**.
+
+---
+
+## 4. Can Expo alone build a full production app?
+
+**Yes.**
+
+In **managed Expo**, you can build full apps with:
+
+- Camera
+- Microphone
+- Location
+- Maps
+- Storage
+- Sensors
+- Notifications
+
+Without:
+
+- Seeing `android/`
+- Writing Kotlin
+- Touching Gradle
+
+Expo internally already has:
+
+- AndroidManifest
+- Permissions
+- Native modules
+- Hermes engine
+
+You just write JS/TS.
+
+---
+
+## 5. Then why does Android even exist if I don't see it?
+
+Android **always exists**.
+
+Expo **hides** it.
+
+Internally, Expo Go and managed Expo apps already contain:
+
+- A full Android project
+- Gradle build
+- Native binaries
+
+You don't see it because:
+
+- Expo already ran Gradle
+- The native shell is prebuilt
+
+You are just **injecting JS at runtime**.
+
+---
+
+## 6. What is Expo Go, technically?
+
+Expo Go is:
+
+- A **prebuilt Android app**
+- Compiled by **Gradle** by the Expo team
+- Published to Play Store
+
+When you run:
+
+```bash
+bun start
+```
+
+You are:
+
+- **Not** building an app
+- **Sending JS code to an already-built native container**
+
+Exactly like:
+
+- Chrome (prebuilt) running different websites (JS)
+
+---
+
+## 7. What does "eject" or "prebuild" actually mean?
+
+Ejecting means:
+
+> Stop hiding the native project and give me full control.
+
+After eject:
+
+- `android/` folder appears
+- `AndroidManifest.xml` is visible
+- Gradle files are visible
+- You can write Kotlin / Java
+
+Important:
+
+- You are **still using Expo**
+- You are just in **Expo Bare workflow**
+
+This is **not** abandoning Expo.
+
+---
+
+## 8. Why does `AndroidManifest.xml` suddenly appear after prebuild?
+
+Because:
+
+- Android **cannot exist without a manifest**
+- Permissions, services, activities must be declared at build time
+
+Before eject:
+
+- Expo auto-generated it for you
+
+After eject:
+
+- You own it
+
+You can now see:
+
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+```
+
+which Expo was previously handling internally.
+
+---
+
+## 9. What exactly is React Native code?
+
+React Native code **is JavaScript / TypeScript**.
+
+It:
+
+- Describes UI
+- Contains business logic
+- Handles state
+- Decides what should change
+
+It does **not**:
+
+- Render pixels
+- Talk directly to hardware
+- Call OS APIs
+
+---
+
+## 10. How does JS actually run inside a mobile app?
+
+Through a **JavaScript engine**.
+
+In modern React Native, that engine is **Hermes**.
+
+Hermes:
+
+- Is written in C++
+- Is compiled into native machine code
+- Runs inside the Android app
+- Executes JS instructions
+
+Hermes is a **real executable binary**, not an interpreter script.
+
+---
+
+## 11. Does Hermes need hardware to run calculations?
+
+**Yes.**
+
+Hermes:
+
+- Runs on CPU
+- Uses RAM
+- Is scheduled by the OS
+
+But crucial distinction:
+
+- Hermes uses **hardware**
+- Hermes does **not need OS APIs** for logic like `if`, `+`, loops
+
+It's just like:
+
+- JVM running Java
+- ART running Kotlin bytecode
+
+---
+
+## 12. Does JS code get converted into native code?
+
+**No.**
+
+JS is **never converted** into Kotlin or machine instructions.
+
+Instead:
+
+- Hermes executes JS
+- Native code executes native tasks
+
+Two worlds, one app.
+
+---
+
+## 13. Then how does UI get rendered?
+
+Through **instruction passing**, not conversion.
+
+Flow:
+
+```
+JS (React Native component)
+→ Hermes executes logic
+→ React reconciles UI diff
+→ React Native Bridge / JSI
+→ Native Android UI code
+→ Android OS
+→ Screen
+```
+
+JS **decides**.
+Native **renders**.
+
+---
+
+## 14. What about pure logic like calculations or if/else?
+
+Those stay entirely in the JS world.
+
+```
+JS → Hermes → CPU → RAM
+```
+
+No bridge.
+No native code.
+No OS APIs.
+
+This is fast.
+
+---
+
+## 15. Why is React Native sometimes considered "slower"?
+
+Because:
+
+- Crossing the JS ↔ native boundary has overhead
+
+But:
+
+- UI rendering is native
+- Animations often bypass JS
+- Most apps are network-bound, not CPU-bound
+
+For ~90% of apps, the difference is irrelevant.
+
+---
+
+## 16. Where does Gradle fit into all this?
+
+Gradle is a **build-time tool**, not a runtime.
+
+Gradle:
+
+- Compiles native Android code (Kotlin, Java, C++)
+- Compiles Hermes engine binaries
+- Compiles React Native native runtime
+- Packages JS bundle as an asset
+- Produces APK / AAB
+
+Gradle:
+
+- Does NOT execute JS
+- Does NOT run Hermes
+- Does NOT render UI
+
+Gradle's job ends **before the app is installed**.
+
+---
+
+## 17. So what exactly does Gradle build in a React Native app?
+
+Gradle builds:
+
+- The **native container**
+- That **embeds Hermes**
+- That **knows how to run JS**
+- That **knows how to render UI**
+
+JS is treated like:
+
+- A script shipped inside the app
+
+Hermes runs it later.
+
+---
+
+## 18. Is Gradle needed even for "pure" React Native apps?
+
+**Always.**
+
+Android apps **cannot exist without Gradle**.
+
+The only difference:
+
+- Sometimes **you run Gradle**
+- Sometimes **Expo already ran it for you**
+
+Gradle is unavoidable on Android.
+
+---
+
+## 19. What does a bare React Native / Expo Bare project contain?
+
+Two worlds in one repo:
+
+```
+android/        → native Android project
+src/ or App.tsx → React Native JS code
+```
+
+They coexist.
+
+---
+
+## 20. Final mental model (this is the real one)
+
+![React Native Architecture](https://miro.medium.com/v2/resize%3Afit%3A1400/1%2A68HNAWJb23ZC9OBdGPKcSA.png)
+
+![React Native Flow](https://media2.dev.to/dynamic/image/width%3D800%2Cheight%3D%2Cfit%3Dscale-down%2Cgravity%3Dauto%2Cformat%3Dauto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fcm02z9ptzzl8efjikk2z.png)
+
+![React Native Render Pipeline](https://reactnative.dev/assets/images/render-pipeline-3-db2c1aa465ae7d76346b879966938b3d.png)
+
+```
+BUILD TIME
+──────────
+Gradle
+→ compiles native runtime (Hermes + RN)
+→ packages JS bundle
+→ outputs APK
+
+RUNTIME
+───────
+Android OS starts app
+→ Hermes starts (native binary)
+→ Hermes executes JS
+→ JS decides logic
+→ Bridge sends instructions
+→ Native renders UI
+→ OS talks to hardware
+```
+
+---
+
+## Final engineer-level summary
+
+> A React Native app is a native Android application built by Gradle that embeds a native JavaScript engine (Hermes). At runtime, Hermes executes JavaScript logic on the CPU, while native Android code renders UI and interacts with the OS and hardware. Expo simplifies this by providing a prebuilt native shell and hiding platform details until native customization is required, at which point ejecting exposes the full Android project without changing the core execution model.
+
+---
+
+## Closing note
+
+This is **deep system-level understanding**.
+
+We're no longer learning "React Native" — we're learning **how mobile runtimes work**.
+
+Next topics to explore:
+
+- Thread-level model (JS thread vs UI thread)
+- Compare RN vs Flutter at runtime
+- Walk through a real APK
