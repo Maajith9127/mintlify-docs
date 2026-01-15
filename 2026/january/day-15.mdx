@@ -1,0 +1,65 @@
+---
+title: "January 15th, 2026"
+description: "React Native Internals: From TSX to Pixel"
+---
+
+## The "Vibe Coding" Session: A Deep Dive into Internals
+Today wasn't about building features; it was about understanding the machine. We peeled back the layers of React Native to understand exactly how a `.tsx` file becomes a pixel on an Android screen.
+
+We restructured the entire learning path into a **Self-Questioning Journey**, mapping high-level guesses to deep architectural reality.
+
+## 🔍 The Journey: Questions & Breakthroughs
+
+### 1. The Startup (OS Layer)
+*   **Question:** Does the parent create the activity and load the JS?
+*   **Concept:** `super.onCreate(null)` is the "Power Switch."
+*   **Code:**
+    ```kotlin
+    override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme) // 🎨 Splash Screen
+        super.onCreate(null)       // 🪟 Start RN Logic
+    }
+    ```
+*   **Insight:** `setTheme` runs native code instantly. `super.onCreate` reserves the physical window and initiates the Hermes engine startup.
+
+### 2. The Handshake (Identification)
+*   **Question:** How does the OS know which JS file to run?
+*   **Concept:** The `getMainComponentName` method returns a "Key" (String) that must match the AppRegistry key in JS.
+*   **Code:**
+    ```kotlin
+    override fun getMainComponentName(): String = "main"
+    ```
+*   **Insight:** Expo Router implicitly registers `index.tsx` as `"main"`. This string is the bridge header.
+
+### 3. The Manager (Delegate Pattern)
+*   **Question:** Who manages the engine and the UI?
+*   **Concept:** The `ReactActivityDelegate`. It is the "Manager" hired by the Activity.
+*   **Code:**
+    ```kotlin
+    override fun createReactActivityDelegate(): ReactActivityDelegate {
+        return ReactActivityDelegateWrapper(...)
+    }
+    ```
+*   **Insight:** The Delegate has three jobs:
+    1.  Create the `ReactRootView` (native container).
+    2.  Start the Hermes Runtime.
+    3.  Load the Root Component into the view.
+
+### 4. The Translation (Bridge/Fabric)
+*   **Question:** Does Hermes draw the button?
+*   **Concept:** No. Hermes calculates logic and builds a "Virtual Tree" (Shadow Tree).
+*   **Insight:**
+    *   **Brain (Hermes):** "I need a blue button here."
+    *   **Nervous System (Bridge):** Transmits the instruction.
+    *   **Body (Android):** Instantiates `android.widget.Button`.
+*   **Reality:** JS code never turns into XML. It turns into *imperative native commands* that create objects in memory.
+
+## The Mental Model: "Brain vs. Body"
+We solidified the ultimate analogy:
+*   **Hermes** is the **Thinking Brain** (Logic, State, Calculus).
+*   **The Bridge** is the **Nervous System** (Signals).
+*   **Android** is the **Physical Body** (Rendering pixels, handling touches).
+
+## Summary
+We moved from "React Native is magic" to "React Native is a conversation between a JS engine and an Android host."
+We now know exactly what happens between the icon tap and the first pixel appearing on screen.
