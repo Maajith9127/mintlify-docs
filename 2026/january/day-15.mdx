@@ -1,58 +1,95 @@
 ---
 title: "January 15th, 2026"
-description: "React Native Internals: From TSX to Pixel"
+description: "React Native Internals: A Deep Dive into MainActivity.kt"
 ---
 
-## The "Vibe Coding" Session: A Deep Dive into Internals
-Today wasn't about building features; it was about understanding the machine. We peeled back the layers of React Native to understand exactly how a `.tsx` file becomes a pixel on an Android screen.
+## Not "Vibe Coding" — Actual Understanding
 
-We restructured the entire learning path into a **Self-Questioning Journey**, mapping high-level guesses to deep architectural reality.
+Today wasn't about "vibe coding" or guessing. It was about actually sitting down and trying to understand **The Machine**. We stopped treating React Native as magic and peeled back the layers to see how the engine starts and how all the things connect.
+
+We spent the entire session dissecting **this specific code block** (`MainActivity.kt`), line by line, to understand the lifecycle of a React Native app on Android.
+
+### The Code We Dissected
+```kotlin
+import android.os.Build
+import android.os.Bundle
+
+import com.facebook.react.ReactActivity
+import com.facebook.react.ReactActivityDelegate
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
+import com.facebook.react.defaults.DefaultReactActivityDelegate
+
+import expo.modules.ReactActivityDelegateWrapper
+
+class MainActivity : ReactActivity() {
+  override fun onCreate(savedInstanceState: Bundle?) {
+    // Set the theme to AppTheme BEFORE onCreate to support
+    // coloring the background, status bar, and navigation bar.
+    // This is required for expo-splash-screen.
+    setTheme(R.style.AppTheme);
+    super.onCreate(null)
+  }
+
+  /**
+   * Returns the name of the main component registered from JavaScript. This is used to schedule
+   * rendering of the component.
+   */
+  override fun getMainComponentName(): String = "main"
+
+  /**
+   * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
+   * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
+   */
+  override fun createReactActivityDelegate(): ReactActivityDelegate {
+    return ReactActivityDelegateWrapper(
+          this,
+          BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+          object : DefaultReactActivityDelegate(
+              this,
+              mainComponentName,
+              fabricEnabled
+          ){})
+  }
+
+  /**
+    * Align the back button behavior with Android S
+    * where moving root activities to background instead of finishing activities.
+    */
+  override fun invokeDefaultOnBackPressed() {
+      if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
+          if (!moveTaskToBack(false)) {
+              // For non-root activities, use the default implementation to finish them.
+              super.invokeDefaultOnBackPressed()
+          }
+          return
+      }
+      super.invokeDefaultOnBackPressed()
+  }
+}
+```
 
 ## 🔍 The Journey: Questions & Breakthroughs
+
+We restructured the entire learning path into a **Self-Questioning Journey**, mapping high-level guesses to deep architectural reality.
 
 ### 1. The Startup (OS Layer)
 *   **Question:** Does the parent create the activity and load the JS?
 *   **Concept:** `super.onCreate(null)` is the "Power Switch."
-*   **Code:**
-    ```kotlin
-    override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.AppTheme) // 🎨 Splash Screen
-        super.onCreate(null)       // 🪟 Start RN Logic
-    }
-    ```
-*   **Insight:** `setTheme` runs native code instantly. `super.onCreate` reserves the physical window and initiates the Hermes engine startup.
+*   **Insight:** `setTheme` runs native code instantly to show the splash screen. `super.onCreate` reserves the physical window and initiates the Hermes engine startup.
 
 ### 2. The Handshake (Identification)
 *   **Question:** How does the OS know which JS file to run?
 *   **Concept:** The `getMainComponentName` method returns a "Key" (String) that must match the AppRegistry key in JS.
-*   **Code:**
-    ```kotlin
-    override fun getMainComponentName(): String = "main"
-    ```
+*   **Code:** `override fun getMainComponentName(): String = "main"`
 *   **Insight:** Expo Router implicitly registers `index.tsx` as `"main"`. This string is the bridge header.
 
 ### 3. The Manager (Delegate Pattern)
 *   **Question:** Who manages the engine and the UI?
 *   **Concept:** The `ReactActivityDelegate`. It is the "Manager" hired by the Activity.
-*   **Code:**
-    ```kotlin
-    override fun createReactActivityDelegate(): ReactActivityDelegate {
-        return ReactActivityDelegateWrapper(...)
-    }
-    ```
 *   **Insight:** The Delegate has three jobs:
     1.  Create the `ReactRootView` (native container).
     2.  Start the Hermes Runtime.
     3.  Load the Root Component into the view.
-
-### 4. The Translation (Bridge/Fabric)
-*   **Question:** Does Hermes draw the button?
-*   **Concept:** No. Hermes calculates logic and builds a "Virtual Tree" (Shadow Tree).
-*   **Insight:**
-    *   **Brain (Hermes):** "I need a blue button here."
-    *   **Nervous System (Bridge):** Transmits the instruction.
-    *   **Body (Android):** Instantiates `android.widget.Button`.
-*   **Reality:** JS code never turns into XML. It turns into *imperative native commands* that create objects in memory.
 
 ## The Mental Model: "Brain vs. Body"
 We solidified the ultimate analogy:
