@@ -1,0 +1,91 @@
+---
+title: "January 17th, 2026"
+description: "Location Data Storage & The Industry Debate: Atomic vs. Monolithic Zustand Architectures"
+---
+
+# January 17th, 2026
+
+## The "Day 16" Connection: Bridging Frontend to Schema
+
+Today was the "Great Integration" day. We moved from purely thinking about how the app *feels* to how the data *flows*. We had the **Convex Schema** staring at us on one screen and our **Zustand Store** on the other. 
+
+The fundamental problem? The backend is incredibly generic and powerful, but the frontend needs to be human and specific. 
+
+---
+
+## 🔍 The Q&A: Architecting the "Commit" Flow
+
+### Q: Why is the Convex Schema so "Generic"?
+
+**The Story:** 
+When we looked at the `tasks` table, we saw a `conditions` array:
+```typescript
+conditions: v.array(
+  v.object({
+    metric_key: v.string(), // "location" or "time"
+    component: v.optional(v.string()),
+    relation: relationEnum,
+    target: v.object({
+      type: targetTypeEnum,
+      value: v.any(),
+    }),
+  }),
+)
+```
+The backend doesn't know what a "Location" is specifically. It just knows it's a `metric_key` called "location" with a `target.value` that could be anything. This is **Industry Standard Flexibility**. It allows us to add "Heart Rate," "Screen Time," or "Focus Mode" later without ever changing the database structure.
+
+---
+
+### Q: The Industry Standard Dilemma — One Store or Many?
+
+**The Question:** 
+*"Right now, all my task-related data is in one giant Zustand store. If I have Time, Location, and social verification, should I make a separate store for each metric? One for location, one for time? What do the pros do?"*
+
+**The "Industry Standard" Answer:**
+In large-scale production apps (think Uber, Airbnb, or complex SaaS), developers typically lean toward **A Single "Draft" Store** but with **Modular Logic**.
+
+#### 1. The "Monolithic Draft" (The Current Way)
+*   **Pros:** Easy to submit. When the user hits "Save," you just grab `state.task` and send it to the backend. No syncing across stores.
+*   **Cons:** The file becomes a 1,000-line monster. If `location.tsx` changes a value, the `time_picker.tsx` might re-render unnecessarily.
+
+#### 2. The "Atomic Metrics" (The Separate Stores Way)
+*   **Pros:** Extreme performance. The Location flow only talks to the `useLocationStore`. It's clean and isolated.
+*   **Cons:** **"The Synchronization Nightmare."** When you finally want to create the task, you have to collect data from 5 different stores. What if one is empty? What if they conflict?
+
+---
+
+### Q: So, what is the "Winner" for CommitT?
+
+We decided on the **"Single Draft Store with Flat Slices"** approach. 
+
+Instead of creating entirely different stores (which creates separate memory buckets), we use a single store but divide the data into a **"Draft State"**.
+
+**The Mental Model:**
+Imagine a physical folder called "New Commit." As you walk through the house:
+1. In the **Kitchen (Time Screen)**, you drop a note about 5:00 PM into the folder.
+2. In the **Garage (Location Screen)**, you drop a map into the same folder.
+3. At the **Front Door (Summary Screen)**, you pick up the folder and hand it to the mailman (Convex).
+
+**Why this wins:** 
+It keeps the **Source of Truth** in one place. In the industry, "State Synchronization" is the #1 cause of bugs in complex forms. By keeping it in one store, we eliminate the possibility that the Location screen thinks the task is for "Monday" while the Time screen thinks it's for "Tuesday."
+
+---
+
+### Q: How do we map the Metric Data?
+
+We looked at our metrics in the DB:
+*   **Location:** requires `geo` components and `within/outside` relations.
+*   **Time:** requires `start/end` and `gt/lt` relations.
+
+**The Strategy:** 
+We don't hardcode the UI. We use the metric data from the backend to *drive* the UI. If the backend says the unit is "meters," the frontend automatically adds "m" to the input. This is how you build a system for millions—you build a **Dynamic Registry**, not a static app.
+
+---
+
+## 🏆 Summary for Day 16
+We didn't just connect an API; we decided on a **State Strategy**. 
+*   **Avoid Atomic Store Overkill:** Keep the draft in one place to prevent sync bugs.
+*   **Trust the Schema:** Use the generic `conditions` array to keep the app future-proof.
+*   **Connect the Dots:** We are now ready to take the `lat/lng` from the map and the `HH:mm` from the clock and package them into that single, beautiful JSON object for Convex.
+
+**Progress:** The "Bridge" is built. Now we just need to walk across it.
