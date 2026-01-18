@@ -33,15 +33,15 @@ The fix is simple but effective. We use the `showsVerticalScrollIndicator` prop.
 ```
 
 **Why this matters:**
-It reduces visual cognitive load. The user already knows a list scrolls by the way it's presented; they don't need a gray bar distracting them from the actual content (the commits).
+It reduces visual cognitive load. The user already knows a list scrolls by the way it's presented (items cut off at the bottom); they don't need a gray bar distracting them from the actual content. This is particularly important in "immersive" apps where you want the user to focus entirely on the data (the commits) rather than the mechanism of viewing it.
 
 ---
 
-### Q: "Moving to the navigation, the bottom tab bar needs to feel more responsive. Specifically, when a page is chosen, the icon should fill with a specific blue color #4FA0FF to denote the active state. Right now it just stays as an outline. How do we handle this state change?"
+### Q: "Moving to the navigation, the bottom tab bar needs to feel more responsive. Specifically, when a page is chosen, the logo has to be filled with the blue color #4FA0FF to denote the active state. Right now it just stays as an outline. How do we handle this state change?"
 
 **The Answer:**
 
-This isn't just a color change—it's an asset swap. To make a tab feel "selected," we need to transition from a lightweight "outline" icon to a heavy "filled" icon.
+This isn't just a color change—it's an asset swap. To make a tab feel "selected," we need to transition from a lightweight "outline" icon to a heavy "filled" icon. This is a subtle but powerful cue that tells the user, "You are *here*."
 
 **Step 1: Define the Variants**
 In `BottomBar.tsx`, we expanded our data structure to hold both the inactive (outline) and active (filled) icon names.
@@ -50,15 +50,15 @@ In `BottomBar.tsx`, we expanded our data structure to hold both the inactive (ou
 // The Tabs Configuration
 {
   name: 'commits',
-  icon: 'shield-outline', // Inactive state
-  iconFilled: 'shield',   // Active state
+  icon: 'shield-outline', // Inactive state: Lightweight, doesn't demand attention
+  iconFilled: 'shield',   // Active state: Solid, anchors the user's location
   label: 'Commits',
   href: '/commits',
 },
 ```
 
 **Step 2: The Logic Switch**
-Inside the rendering loop, we check the `isFocused` boolean. This drives both the color and the icon choice.
+Inside the rendering loop, we check the `isFocused` boolean, which React Navigation provides to tell us if the current route matches the tab. This boolean drives both the color and the icon choice.
 
 ```tsx
 // Inside BottomBar.tsx
@@ -84,19 +84,23 @@ return (
 ### Cross Question: "So we aren't just changing the color, we are actually swapping the icon asset itself?"
 
 **Answer:**
-Exactly. Simply changing the color of an outline icon doesn't give enough visual "weight" to the active state.
+Exactly. simply changing the color of an outline icon doesn't give enough visual "weight" to the active state.
 
-*   **Inactive:** `shield-outline` in Gray (#94A3B8) -> Low visual priority.
-*   **Active:** `shield` (Filled) in Blue (#4FA0FF) -> High visual priority.
+*   **Inactive:** `shield-outline` in Gray (#94A3B8) -> Low visual priority. It sits in the background.
+*   **Active:** `shield` (Filled) in Blue (#4FA0FF) -> High visual priority. It pops out.
 
-By swapping `shield-outline` with `shield` **AND** applying the `#4FA0FF` color, we create a much stronger "selected" state. This is a common pattern in iOS and Material Design—active states should feel "heavier" or "solid."
+By swapping `shield-outline` with `shield` **AND** applying the `#4FA0FF` color, we create a much stronger "selected" state. This creates a "Solid vs. Hollow" visual hierarchy:
+*   **Hollow (Outline):** "You can go here."
+*   **Solid (Filled):** "You are currently here."
+
+This pattern is deeply ingrained in mobile user habits (see Instagram, Twitter/X, or Spotify) and makes navigation feel intuitive and responsive.
 
 ---
 
 ## 🏆 Summary for Day 17
 
 We moved from functional to "feeling right."
-*   **Cleanliness:** We stripped away the utility-looking scrollbar to let the content breathe.
-*   **Feedback:** We implemented a "Solid vs. Hollow" icon strategy for navigation, giving users immediate, clear feedback on where they are in the application.
+*   **Cleanliness:** We stripped away the utility-looking scrollbar to let the content breathe. This removes the "website wrapped in an app" feel.
+*   **Feedback:** We implemented a "Solid vs. Hollow" icon strategy for navigation, giving users immediate, clear, and high-contrast feedback on where they are in the application.
 
-It's these small details—the absence of a scrollbar, the fill of an icon—that separate a prototype from a product.
+It's these small details—the absence of a scrollbar, the fill of an icon—that separate a prototype from a polished product.
