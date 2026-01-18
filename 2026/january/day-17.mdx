@@ -1,0 +1,102 @@
+---
+title: "January 17th, 2026"
+description: "UI Polish: Removing Visual Clutter & Active States"
+---
+
+# January 17th, 2026
+
+## UI Polish: Refining the Visual Experience
+
+Today was technically a "polish" day, but in mobile development, polish *is* the product. We focused on two specific user experience hurdles: visual clutter in lists and communicating state in the navigation bar.
+
+---
+
+## 🔍 The Q&A: Scrollbars & Active Tabs
+
+### Q: "I noticed the commit list has a visible scroll bar on the right. How can we make the content scrollable but keep the UI clean by removing that visual indicator?"
+
+**The Answer:**
+
+The visible scroll bar is a default behavior in React Native's `FlatList` and `ScrollView`, but for a premium "app-like" feel, we often want to hide it to avoid visual noise, especially on a clean list interface.
+
+The fix is simple but effective. We use the `showsVerticalScrollIndicator` prop.
+
+**In `apps/native/app/(main)/commits.tsx`:**
+
+```tsx
+<FlatList
+  data={commits}
+  // ... existing props
+  showsVerticalScrollIndicator={false} // The magic line
+  renderItem={renderCommit}
+/>
+```
+
+**Why this matters:**
+It reduces visual cognitive load. The user already knows a list scrolls by the way it's presented; they don't need a gray bar distracting them from the actual content (the commits).
+
+---
+
+### Q: "Moving to the navigation, the bottom tab bar needs to feel more responsive. Specifically, when a page is chosen, the icon should fill with a specific blue color #4FA0FF to denote the active state. Right now it just stays as an outline. How do we handle this state change?"
+
+**The Answer:**
+
+This isn't just a color change—it's an asset swap. To make a tab feel "selected," we need to transition from a lightweight "outline" icon to a heavy "filled" icon.
+
+**Step 1: Define the Variants**
+In `BottomBar.tsx`, we expanded our data structure to hold both the inactive (outline) and active (filled) icon names.
+
+```tsx
+// The Tabs Configuration
+{
+  name: 'commits',
+  icon: 'shield-outline', // Inactive state
+  iconFilled: 'shield',   // Active state
+  label: 'Commits',
+  href: '/commits',
+},
+```
+
+**Step 2: The Logic Switch**
+Inside the rendering loop, we check the `isFocused` boolean. This drives both the color and the icon choice.
+
+```tsx
+// Inside BottomBar.tsx
+const isFocused = state.index === index;
+
+return (
+  <TouchableOpacity>
+    <Ionicons
+      // 1. Swap the Icon: If focused, use the filled variant
+      name={isFocused ? tab.iconFilled : tab.icon}
+      
+      // 2. Swap the Color: If focused, use our brand blue
+      color={isFocused ? '#4FA0FF' : '#94A3B8'} 
+      size={24}
+    />
+    <Text style={{ color: isFocused ? '#4FA0FF' : '#94A3B8' }}>
+      {tab.label}
+    </Text>
+  </TouchableOpacity>
+);
+```
+
+### Cross Question: "So we aren't just changing the color, we are actually swapping the icon asset itself?"
+
+**Answer:**
+Exactly. Simply changing the color of an outline icon doesn't give enough visual "weight" to the active state.
+
+*   **Inactive:** `shield-outline` in Gray (#94A3B8) -> Low visual priority.
+*   **Active:** `shield` (Filled) in Blue (#4FA0FF) -> High visual priority.
+
+By swapping `shield-outline` with `shield` **AND** applying the `#4FA0FF` color, we create a much stronger "selected" state. This is a common pattern in iOS and Material Design—active states should feel "heavier" or "solid."
+
+---
+
+## 🏆 Summary for Day 17
+
+We moved from functional to "feeling right."
+*   **Cleanliness:** We stripped away the utility-looking scrollbar to let the content breathe.
+*   **Feedback:** We implemented a "Solid vs. Hollow" icon strategy for navigation, giving users immediate, clear feedback on where they are in the application.
+
+It's these small details—the absence of a scrollbar, the fill of an icon—that separate a prototype from a product.
