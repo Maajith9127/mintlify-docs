@@ -93,6 +93,12 @@
                   "2026/january/day-30",
                   "2026/january/day-31"
                 ]
+              },
+              {
+                "group": "February",
+                "pages": [
+                  "2026/february/day-01"
+                ]
               }
             ]
           }
