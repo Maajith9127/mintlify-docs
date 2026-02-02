@@ -1,0 +1,116 @@
+---
+title: "February 3rd, 2026"
+description: "The 5-Week Implementation Roadmap: From Task Logic to Social Accountability."
+---
+
+# February 3rd, 2026
+
+**The Blueprint is Locked. Now We Build.**
+
+After weeks of preparation, the full implementation roadmap is now clear. Here are the whiteboard notes that capture the plan:
+
+<img src="../pow/feb3rd1.png" alt="Roadmap Notes - Part 1" />
+<img src="../pow/feb3rd2.png" alt="Roadmap Notes - Part 2" />
+<img src="../pow/feb3rd3.png" alt="Roadmap Notes - Part 3" />
+
+---
+
+## 🗓️ Week 1: Core Task & Scheduling Logic
+
+This week is about the **backbone** of CommitT: creating tasks, storing recurrence rules, and making sure alarms survive device restarts.
+
+### 1. Create Task Flow
+
+| Step | Action | Details |
+|------|--------|---------|
+| 1 | User creates a Commitment/Task | Store: Title, Description, Conditions |
+| 2 | Store Recurrence Rule | Daily/Weekly/Custom + interval + end condition |
+| 3 | Create First Task Instance | Calculate next occurrence from recurrence rule |
+| 4 | Schedule Local Alarm | Use Android AlarmManager to wake user at task start time (must persist across restarts!) |
+| 5 | Schedule Proof Collection | At task end time, trigger validation logic |
+| 6 | Start Location Service (if opted) | Begin sending GPS to backend OR just do a single check-in |
+
+### 2. During Active Task Window
+
+| Condition Type | What Happens |
+|----------------|--------------|
+| Full Time Interval | Continuously send location to backend + store locally |
+| Check-in Only | Send GPS once at start, verify on backend, done |
+
+### 3. Task Completion / End of Instance
+
+| Step | Action |
+|------|--------|
+| 1 | Validate proofs (location, photo, etc.) |
+| 2 | Mark instance as `verified` / `missed` / `waived` |
+| 3 | Create next Task Instance (from recurrence rule) |
+| 4 | Schedule the next alarm + proof collection |
+
+### 4. Update Task Flow
+
+| Step | Action |
+|------|--------|
+| 1 | Delete/Update current pending Task Instance |
+| 2 | Update the Recurrence Rule in DB |
+| 3 | Re-run instance creation logic (same as create flow) |
+| 4 | Reschedule local alarms & location services |
+
+### ⚠️ Critical: Alarm Persistence
+
+> **Alarms must survive device restarts.**
+> 
+> Use `BOOT_COMPLETED` broadcast receiver + re-register alarms on boot.
+
+This was already implemented in January (Day 14) with the `withBootReceiver` config plugin. We have the foundation; now we wire it to real tasks.
+
+---
+
+## 🗓️ Weeks 2 & 3: Social Network Graph
+
+This is where CommitT becomes **"Social Stikk"**.
+
+- Build the social/friend system (add, remove, accept invites)
+- Allow assigning tasks to accountability partners
+- Visibility controls (public / private / friends-only)
+- Proof-of-work feed (friends see your check-ins, can react)
+
+---
+
+## 🗓️ Week 4: App Block Features (App B - Digital Commitment)
+
+This is the **"make cheating irrational"** layer.
+
+- Detect app launches (Accessibility Service)
+- Block specified apps during task windows
+- Show overlay / force return to home screen
+- "Request Unlock" flow → all partners must approve
+
+---
+
+## 🗓️ Week 5: Penalty & Waiver
+
+The **stakes** that make it real.
+
+**Penalty Options (implement at least one):**
+- Monetary (forfeit ₹X)
+- Streak loss (reset counter)
+- Embarrassing photo sent to partners
+
+**Waiver Options (implement at least one):**
+- Solve 100 CAPTCHAs
+- Write a 3000-word reflection
+- Complete a harder replacement task
+- Grace period (1 free miss per month)
+
+---
+
+## Next Step
+
+**Today:** Start implementing Week 1 - Create Task Flow.
+
+This means:
+1. Backend: Convex mutations for creating tasks with recurrence rules.
+2. Frontend: Wire the existing UI to call those mutations.
+3. Native: Ensure AlarmManager schedules the first instance.
+
+Let's ship.
