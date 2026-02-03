@@ -114,3 +114,191 @@ This means:
 3. Native: Ensure AlarmManager schedules the first instance.
 
 Let's ship.
+
+---
+
+## 🚀 Today's Implementation: First Slice of Week 1
+
+### The Challenge with AI-Assisted Development
+
+The thing with working with AI is that at the moment, whatever you do seems good, but after a few months or days of work, the quality of work can seem really bad. To avoid this, we need to:
+
+1. **Write production-level code** from day one
+2. **Follow best practices** rigorously
+3. **Plan before coding** - each slice should be crystal clear
+
+---
+
+### Today's Slice: Create Task with Recurrence Rule
+
+**User Flow:**
+```
+User creates task in Zustand → User hits "Commit/Save" → Backend processes
+```
+
+**Three Possibilities on Commit:**
+1. ✨ **First time commit** → Create recurrence rule → Create first task instance
+2. 🔄 **Update existing** → Validate changes → Update rule & reschedule
+3. ❌ **Delete** → Cancel all scheduled instances
+
+---
+
+### Validation Requirements (Before Any Create/Update)
+
+| Validation | Description |
+|------------|-------------|
+| **At least 1 time slot** | Recurrence rule MUST have at least one time slot with one day |
+| **No time/location overlap** | Same user cannot have overlapping tasks in the same time slot |
+
+---
+
+### Step-by-Step Production Implementation
+
+#### Step 1: Backend - Validation Logic (`validators.ts`)
+
+Create **pure functions** to validate:
+- ✅ At least one time condition exists in the rule
+- ✅ No overlapping tasks in the same time slot for this user
+- ✅ Time slots are valid (start < end)
+
+```typescript
+// Pure function - easy to test, no side effects
+function validateRecurrenceRule(rule: RecurrenceRule): ValidationResult {
+  // Check at least one time condition
+  // Check no internal overlaps
+  // Return { valid: boolean, errors: string[] }
+}
+
+function checkForOverlaps(
+  newRule: RecurrenceRule, 
+  existingTasks: Task[]
+): OverlapResult {
+  // Compare time slots across days
+  // Return { hasOverlap: boolean, conflictingTasks: Task[] }
+}
+```
+
+#### Step 2: Backend - Recurrence Calculator (`recurrence.ts`)
+
+Create **pure function** `getNextOccurrence()`:
+- Takes: recurrence rule + base date
+- Returns: next `{ start: Date, end: Date }`
+
+```typescript
+function getNextOccurrence(
+  rule: RecurrenceRule, 
+  afterDate: Date
+): { start: Date, end: Date } | null {
+  // Handle: once, daily, weekly, monthly, custom
+  // Respect: days_of_week, interval, end conditions
+  // Return null if recurrence has ended
+}
+```
+
+#### Step 3: Backend - Modify `createTask` Mutation
+
+Wire everything together in a single transaction:
+
+```typescript
+export const createTask = mutation({
+  args: { /* task data + recurrence rule */ },
+  handler: async (ctx, args) => {
+    // 1. Run validations
+    const validation = validateRecurrenceRule(args.recurrenceRule);
+    if (!validation.valid) throw new Error(validation.errors.join(", "));
+    
+    // 2. Check for overlaps with existing tasks
+    const existingTasks = await ctx.db.query("tasks")
+      .filter(q => q.eq(q.field("userId"), args.userId))
+      .collect();
+    const overlaps = checkForOverlaps(args.recurrenceRule, existingTasks);
+    if (overlaps.hasOverlap) throw new Error("Time slot conflict");
+    
+    // 3. Insert the task with recurrence rule
+    const taskId = await ctx.db.insert("tasks", { ... });
+    
+    // 4. Calculate first instance times
+    const firstOccurrence = getNextOccurrence(args.recurrenceRule, new Date());
+    
+    // 5. Insert first taskInstance
+    const instanceId = await ctx.db.insert("taskInstances", {
+      taskId,
+      startTime: firstOccurrence.start,
+      endTime: firstOccurrence.end,
+      status: "pending"
+    });
+    
+    // 6. Schedule Convex function at end time
+    await ctx.scheduler.runAt(firstOccurrence.end, internal.tasks.onInstanceEnd, {
+      instanceId
+    });
+    
+    return { taskId, instanceId };
+  }
+});
+```
+
+#### Step 4: Backend - Scheduled Function (`onInstanceEnd`)
+
+This runs automatically at each instance's end time:
+
+```typescript
+export const onInstanceEnd = internalMutation({
+  args: { instanceId: v.id("taskInstances") },
+  handler: async (ctx, { instanceId }) => {
+    // 1. Get the instance and its parent task
+    const instance = await ctx.db.get(instanceId);
+    const task = await ctx.db.get(instance.taskId);
+    
+    // 2. Mark instance as ready for verification
+    await ctx.db.patch(instanceId, { 
+      status: "awaiting_verification" 
+    });
+    
+    // 3. Calculate next occurrence
+    const nextOccurrence = getNextOccurrence(
+      task.recurrenceRule, 
+      instance.endTime
+    );
+    
+    // 4. If recurrence continues, create next instance
+    if (nextOccurrence) {
+      const nextInstanceId = await ctx.db.insert("taskInstances", {
+        taskId: task._id,
+        startTime: nextOccurrence.start,
+        endTime: nextOccurrence.end,
+        status: "pending"
+      });
+      
+      // 5. Schedule next end-time trigger
+      await ctx.scheduler.runAt(
+        nextOccurrence.end, 
+        internal.tasks.onInstanceEnd, 
+        { instanceId: nextInstanceId }
+      );
+    }
+  }
+});
+```
+
+---
+
+### Files to Create/Modify Today
+
+| File | Purpose |
+|------|---------|
+| `convex/lib/recurrence.ts` | Pure functions for calculating next occurrence |
+| `convex/lib/validators.ts` | Pure validation functions (overlap check, rule validation) |
+| `convex/tasks.ts` | `createTask` mutation with full flow |
+| `convex/internal/tasks.ts` | `onInstanceEnd` scheduled function |
+
+---
+
+### Quality Checklist
+
+- [ ] All business logic in **pure functions** (testable, no side effects)
+- [ ] Proper **TypeScript types** for all data structures
+- [ ] **Error handling** with meaningful messages
+- [ ] **No hardcoded values** - all config in constants
+- [ ] **Atomic transactions** - if one step fails, nothing is committed
+- [ ] **Idempotent operations** where possible
