@@ -1,0 +1,146 @@
+---
+title: "February 4th, 2026"
+description: "Production-Level Validation Module & Frontend Improvements"
+---
+
+# February 4th, 2026
+
+**Building the Validation Foundation**
+
+Today was focused on creating a robust, production-ready validation system for task drafts and improving the UI components to support proper error handling.
+
+---
+
+## What We Built Today
+
+### 1. Time Set Screen Improvements (`time-set.tsx`)
+
+| Change | Details |
+|--------|---------|
+| Save button logic | Now requires both days AND time slots to be enabled |
+| New derived state | `hasTimeSlots`, `canSave = hasDaysSelected && hasTimeSlots` |
+
+### 2. Confirmation Modal Enhancement (`ConfirmationModal.tsx`)
+
+| Change | Details |
+|--------|---------|
+| New prop | `singleButton?: boolean` |
+| Behavior | When true, hides cancel button, centers the confirm button |
+| Use case | Error acknowledgement modals with just "Ok" button |
+
+### 3. Production-Level Validation Module (NEW FILES)
+
+```
+lib/validation/taskDraft.ts
+├── Types
+│   ├── ValidationResult (valid: true | false with error & errorCode)
+│   └── ValidationErrorCode (TITLE_REQUIRED, TIME_REQUIRED, TIME_REQUIRES_X_CONDITION)
+│
+├── Validators
+│   ├── validateTitle() - Checks title is non-empty
+│   ├── validateTimeRequired() - Checks time condition exists
+│   ├── validateTimeXRule() - Enforces Time + X rule
+│   ├── hasCondition() - Helper to check metric in conditions
+│   ├── hasPartnerCondition() - Check if partner assigned
+│   └── hasAnyXCondition() - Check for any X condition
+│
+├── Main Entry Point
+│   └── validateTaskDraft(draft) - Runs all checks in order
+│
+└── Utilities
+    └── getConditionSummary() - Debug helper
+```
+
+```
+lib/validation/index.ts
+```
+Central export file for clean imports.
+
+### 4. Final Screen Validation (`final.tsx`)
+
+| Change | Details |
+|--------|---------|
+| Import | `import { validateTaskDraft } from "@/lib/validation/taskDraft"` |
+| `handleCommitPress()` | Uses centralized validation before showing confirm modal |
+| Error modal | Shows validation errors with single "Ok" button |
+| Confirm button text | Dynamic: "Commit" for new, "Update" for edit mode |
+
+---
+
+## Validation Rules Implemented
+
+| Step | Check | Error Message |
+|------|-------|---------------|
+| 1 | Title required | "Please enter a name for your commitment" |
+| 2 | Time required | "Please set a time for your commitment" |
+| 3 | Time + X required | "Time + X combination is required. Please add Location, Partner, Picture, or Video." |
+
+---
+
+## Files Modified/Created
+
+| File | Action |
+|------|--------|
+| `apps/native/app/(create-commit)/time-set.tsx` | Modified - Save button logic |
+| `apps/native/app/(create-commit)/final.tsx` | Modified - Validation + error modal |
+| `apps/native/components/ui/modal/ConfirmationModal.tsx` | Modified - singleButton prop |
+| `apps/native/lib/validation/taskDraft.ts` | NEW - Task draft validators |
+| `apps/native/lib/validation/index.ts` | NEW - Module exports |
+
+---
+
+## Git Setup (From Previous Session)
+
+```bash
+# Quick push command (in ~/.bashrc)
+pp() { git add -A && git commit -m "$1" && git push origin HEAD:main; }
+
+# Usage
+pp "your commit message"
+
+# Repo
+https://github.com/Maajith9127/mono.git
+
+# Branch: dev-maajith → pushes to main
+```
+
+---
+
+## Convex Overview (For Next Session)
+
+### Key Concepts Discussed
+
+- `scheduler.runAt(timestamp, functionRef, args)` - Schedule function at specific time
+- `scheduler.runAfter(delayMs, functionRef, args)` - Schedule after delay
+- `internalMutation` / `internalAction` - Backend-only functions (for scheduled jobs)
+- **Durability** - Jobs persist through restarts, auto-retry on failure
+- **Limits** - 1M free function calls/month, 1M outstanding scheduled jobs
+
+### Planned Architecture
+
+```
+User creates task → Save to DB → Calculate next occurrence 
+→ Create taskInstance → Schedule check at deadline 
+→ Scheduled function runs → Check if verified → Apply penalty or schedule next
+```
+
+---
+
+## Next Steps
+
+1. Look at current `tasks.ts` in `packages/backend/convex/`
+2. Create `taskInstances` table - For individual occurrences
+3. Implement recurrence calculation - Find next occurrence from rule
+4. Add scheduling logic - Schedule verification check at deadline
+5. Create `checkCompletion` internal function - Runs at deadline
+
+---
+
+## Key Takeaways
+
+| Insight | Details |
+|---------|---------|
+| Convex scheduler | Durable, auto-retry, no Redis/BullMQ needed |
+| 1M free calls/month | Enough for 10K+ users easily |
+| Validation in `lib/validation/` | Testable, reusable, production-ready |
+| Time + X rule | Time alone not valid, needs location/partner/pic/video |
