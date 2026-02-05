@@ -1,0 +1,92 @@
+---
+title: "February 5th, 2026"
+description: "Implementation of Self-Perpetuating Verification Chain and Security Hardening"
+---
+
+# February 5th, 2026
+
+**Hardening the Core: Verification Chains and Conflict Detection**
+
+Today's focus was on implementing the self-perpetuating verification system that powers the "chain" of accountability in CommitT, alongside critical security hardening and conflict detection mechanisms.
+
+---
+
+## 🏗️ What We Built Today
+
+We delivered a series of critical backend and frontend updates, moving from basic task creation to a robust, conflict-aware, and secure system.
+
+### 1. Self-Perpetuating Verification Chain
+**Commit:** `0882ca6` `feat(tasks): schedule verification check at time slot end`
+
+The core engine of CommitT is now live. When a task instance is created, we automatically schedule its verification.
+
+- **Automated Scheduling**: At the end of every time slot, a system job runs to verify the user's proof.
+- **The "Chain"**: This verification job not only checks the current instance but is responsible for spawning the *next* instance in the chain.
+
+### 2. Intelligent Conflict Detection
+**Commit:** `7d8e0d9` `feat(tasks): add conflict detection and refactor task screens`
+
+We solved the "double-booking" problem by implementing conflict detection at both the database and UI levels.
+
+**Backend (`convex/tasks.ts`):**
+- **Conflict Check**: Added logic to scan existing time windows before creating or updating tasks.
+- **Graceful Failures**: Instead of throwing raw errors, we now return structured result objects `{ success, error }` to the frontend.
+- **Self-Exclusion**: Updates correctly ignore the current task being edited to prevent false positives.
+
+**Frontend (`final.tsx` & `commits.tsx`):**
+- **Error Modals**: User-friendly messages when conflicts are detected (e.g., "You already have a commitment on Monday at 9:00 AM").
+- **Performance**: Heavy rendering logic in the commits list was memoized.
+- **Refactor**: Cleaned up the "Final" screen by extracting constants and types.
+
+### 3. Robust Security & Auth
+**Commit:** `cb5a399` `fix(security): implement robust auth, validation & error handling`
+
+We locked down the API to prevent unauthorized access and ensured data integrity.
+
+- **Strict Auth**: `create`, `update`, and `remove` mutations now enforce `ctx.auth` checks.
+- **Session-Based Identity**: We stopped trusting client-side `userId` arguments. The backend now derives identity directly from the secure session.
+- **Mirror Validation**: Backend validation rules now perfectly mirror frontend rules, preventing API misuse (e.g., bypassing UI checks).
+- **Error Handling**: Added robust `try-catch` blocks to handle network or server failures gracefully in the UI.
+
+### 4. Recurrence Schema Migration
+**Commit:** `b52228b` `feat(schema): move time_windows to recurrence`
+
+We aligned the database schema with our finalized recurrence model.
+
+- **Schema Update**: Moved `time_windows` out of generic conditions and into the dedicated `recurrence` object.
+- **Type Sync**: Updated frontend TypeScript types to match the new Convex schema.
+
+---
+
+## 📂 Key Files Modified
+
+| Component | File Path | Changes |
+|-----------|-----------|---------|
+| **Backend** | `packages/backend/convex/tasks.ts` | Conflict detection, auth enforcement, scheduling logic |
+| **Backend** | `packages/backend/convex/lib/conflictDetection.ts` | New conflict checking module |
+| **Frontend** | `apps/native/app/(create-commit)/final.tsx` | Error handling, conflict modal, type safety |
+| **Frontend** | `apps/native/app/(main)/commits.tsx` | List optimization, memoization, sorting |
+| **Store** | `apps/native/stores/useTaskDraftStore.ts` | Updated mutations to remove insecure `userId` arg |
+
+---
+
+## 🔒 Security & Validation Details
+
+We implemented a "Trust No One" approach for the API:
+
+1. **Authorization**: Only the task creator (assigner) can modify or delete a task.
+2. **Input Validation**:
+   - Title must be present
+   - Time windows must be valid (start < end)
+   - Recurrence rules must have at least one valid slot
+3. **Identity**: `userId` is pulled from the JWT token, not the request body.
+
+---
+
+## ⏭️ Next Steps
+
+With the core verification loop and security layer in place, we are ready to move to:
+
+1. **Proof Collection**: Implementing the actual upload/verification logic for photos and location.
+2. **Partner Verification**: Allowing accountability partners to validate proofs.
+3. **Notifications**: Alerting users when their verification is due.
