@@ -1,0 +1,51 @@
+---
+title: "February 6th, 2026"
+description: "Standardizing User ID Access & Fixing Task Fetching"
+---
+
+# February 6th, 2026
+
+**Critical Fixes: Identity Standardization & Data Fetching**
+
+Today involved a major refactor to align our API endpoints with the updated authentication middleware and fix a critical data fetching bug that was hiding commitments in the native app.
+
+---
+
+## 🛠️ Major Backend Refactor
+
+We standardized how User IDs are accessed across the backend to ensure consistency and security.
+
+### Backend Changes (`convex/tasks.ts`)
+
+- **Standardized ID Access**: Updated `delete` and `update` commitment mutations to correctly access `user._id` from the authenticated context.
+- **Strict Typing**: Replaced legacy usage of `user.id` and `user.subject` to match the strict `Doc<"users">` type definition injected by the auth middleware.
+- **Consistency**: Ensured consistent property access across the entire commitments API module.
+
+---
+
+## 📱 Frontend Fixes
+
+### Task List Regression (`commits.tsx`)
+
+A regression was identified where the task list query was passing a hardcoded `"user_id"` string, causing the list to appear empty.
+
+- **Fixed Regression**: Updated the query to use the actual authenticated user's ID.
+- **Conditional Querying**: Implemented proper session-based conditional querying. The `list.byAssignee` query now waits for a valid `session.user.id` before firing (using the "skip" pattern).
+
+```typescript
+// Old (Bugged)
+const tasks = useQuery(api.tasks.list, { userId: "user_id" });
+
+// New (Fixed)
+const userId = session?.user?.id;
+const tasks = useQuery(
+  api.tasks.list, 
+  userId ? { userId } : "skip"
+);
+```
+
+---
+
+## ✅ Result
+
+This resolves the critical issue where created commitments were not appearing in the main list view. The app now correctly fetches and displays tasks for the logged-in user immediately after creation.
