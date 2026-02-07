@@ -1,0 +1,72 @@
+---
+title: "February 7th, 2026"
+description: "Architectural Decision: Per-Task vs Per-User Scheduling Chains"
+---
+
+# February 7th, 2026
+
+**Architectural Deep Dive: Scheduling Strategy**
+
+Today we made a definitive architectural decision regarding how the verification and recurrence loop should be structured. The choice was between a "Per-Task Chain" (many independent loops) and a "Per-User Chain" (one master loop per user).
+
+---
+
+## 🏗️ The Decision: Stick with Per-Task Architecture
+
+We strongly reaffirmed the current **Per-Task Chain** architecture. While a Per-User master chain might look cleaner in the dashboard, it introduces significant complexity and performance penalties.
+
+### Why Per-Task is Superior?
+
+| Feature | Per-Task (Current) | Per-User (Rejected) |
+|---------|-------------------|---------------------|
+| **Database Reads** | **O(1)** - Direct ID lookup | **O(n)** - Query all user tasks |
+| **Complexity** | **Low** - ~10 lines of code | **High** - ~30+ lines, edge cases |
+| **Race Conditions** | **None** - Tasks are independent | **High** - Concurrent updates cause conflicts |
+| **Mutation Cost** | **Low** - Reschedule 1 task | **High** - Rescan all tasks on every edit |
+| **Failure Isolation** | **Perfect** - One task fails, others run | **Poor** - Master chain breaks = all tasks stop |
+
+---
+
+## 🔍 Detailed Analysis
+
+### 1. Database Load
+With a Per-User chain, every verification event would require querying **all** of a user's pending task instances to find the "next" one.
+- **Per-Task**: 1 read per verification.
+- **Per-User**: N reads per verification (where N = total tasks).
+
+### 2. Timing & Precision
+The sequential nature of a Per-User chain means overhead accumulates. If a user has 50 tasks, the 50th task's execution time would be delayed by the cumulative query time of the previous 49. Per-Task chains fire exactly when scheduled.
+
+### 3. Code Complexity
+The Per-Task recursion is elegant and simple:
+```typescript
+async function runVerification(ctx, { instanceId }) {
+  const instance = await ctx.db.get(instanceId); // O(1)
+  await verify(instance);
+  await scheduleNext(instance.taskId); // Simple recursion
+}
+```
+
+A Per-User master chain requires handling array reducing, filtering, cancellation of existing jobs, and complex race condition management during updates.
+
+---
+
+## 🚀 Recommendation
+
+**We are keeping the current architecture.**
+
+The benefits of independence, performance, and simplicity far outweigh the cosmetic benefit of having fewer rows in the scheduler dashboard.
+
+> **Next Actions:**
+> Stop questioning the architecture. It is correct.
+> Focus on building user-facing features:
+> 1. GPS Verification
+> 2. Photo Verification
+> 3. Partner Verification
+> 4. Video Verification
+
+---
+
+## 📝 Reference
+
+This decision prevents us from falling into the trap of "over-engineering" a centralized scheduler that Convex doesn't need. Convex's scheduler is built to handle thousands of independent jobs efficiently—we should leverage that.
