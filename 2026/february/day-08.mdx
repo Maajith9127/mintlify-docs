@@ -1,0 +1,54 @@
+---
+title: "February 8th, 2026"
+description: "Calendar State Refactor, Drag-and-Drop Fixes, and Layout Updates"
+---
+
+# February 8th, 2026
+
+**Revamping the Calendar Experience**
+
+Today's work centered on significantly improving the scheduling interface, moving from local state to a robust global store, and refining the drag-and-drop interactions.
+
+---
+
+## 🏗️ Calendar State & Interaction Overhaul
+
+### Global State Management
+**Refactor:** Migrated calendar event state from local `useState` in `verify.tsx` to a new global store using **Zustand**.
+- **Store Actions:** Implemented actions for adding, updating, and selecting events.
+- **Debugging:** Added a custom logger middleware to track state changes effectively.
+
+### Robust Drag Handling
+**Fix:** Resolved a critical bug where events would disappear or throw invalid date warnings after dragging.
+- **Logic Update:** Added robust parsing to correctly extract start/end times from various return formats (ISO strings, Date objects).
+- **Data Integrity:** Ensured exclusive handling of `dateTime` (timed events) vs `date` (all-day events) to maintain valid event structures.
+
+---
+
+## 📅 UI/UX Enhancements
+
+### Custom Date Picker & Header
+- **New Component:** Added `DatePickerModal` matching the system UI style.
+- **Navigation:** Integrated the date picker and a "Today" quick-nav button directly into the Schedules header.
+
+### Full Event Interactivity
+- **Drag-to-Move**: Enabled seamless moving of events.
+- **Drag-to-Create**: allowed creating new events by dragging on empty slots.
+- **Resize**: Implemented intuitive event resizing.
+- **Responsiveness**: Improved drag gestures with instant-press recognition.
+
+### Visual Polish
+- **Selection**: Implemented tap-to-select and background tap-to-deselect.
+- **Theme**: Updated calendar styles with minimalist time labels, custom font sizes, and optimized dark mode colors.
+- **Cleanup**: Removed redundant `schedule.tsx` and `verify.tsx` screens.
+
+---
+
+## 📱 Layout Architecture
+
+### Switch to Tabs Layout
+**Refactor:** Replaced `Stack` navigation with `Tabs` in `_layout.tsx` to improve state persistence.
+- **Persistence:** This prevents pages from unmounting and losing state when navigating between tabs.
+- **Bottom Bar**: Updated `BottomTabBar` to implement standard `BottomTabBarProps`, using `state.routes` and `descriptors` for correct tab handling.
+- **Fixes**: Resolved white background artifacts on the `schedules` screen by wrapping content in a `View` container.
+- **Styling**: Removed the default top border from the tab bar for a cleaner dark theme look.
