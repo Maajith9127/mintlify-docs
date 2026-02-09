@@ -1,0 +1,82 @@
+---
+title: "February 9th, 2026"
+description: "Rapid Recurrence Engine Prototype & Virtual Forecasts"
+---
+
+# February 9th, 2026
+
+**The Reality + Forecast Hybrid Model**
+
+Today we implemented a "rapid prototype" of the recurrence engine to visually validate our scheduling architecture. This introduced the concept of merging strict database records ("Reality") with client-side generated occurrences ("Forecast") to create a seamless infinite calendar experience.
+
+---
+
+## 🏎️ Rapid Recurrence Engine
+
+**Commit:** `96b4ea0` `proto(tasks): implement rapid recurrence engine for experimentation`
+
+We needed a way to visualize recurring tasks without generating millions of database rows upfront. The solution is a hybrid data model:
+
+### 1. The "Reality" Layer (Database Instances)
+- **Source**: Convex `taskInstances` table.
+- **Represents**: Past completed tasks, today's active tasks, and specific exceptions.
+- **Mutability**: Fully editable, have status (completed/missed), and persistent IDs.
+
+### 2. The "Forecast" Layer (Virtual Occurrences)
+- **Source**: Generated on the client-side from `tasks` recurrence rules.
+- **Represents**: Future instances that *haven't happened yet*.
+- **Mutability**: Read-only until interaction converts them into real instances (or until the scheduler creates them just-in-time).
+
+---
+
+## 🛠️ Implementation Details
+
+### Frontend Logic (`useScheduleEvents.ts`)
+
+We created a custom hook that merges these two worlds:
+
+```typescript
+export function useScheduleEvents(rangeStart, rangeEnd) {
+  // 1. Fetch "Reality" locally or from DB
+  const dbInstances = useQuery(api.commitments.list.instances, { ... });
+  
+  // 2. Fetch Rules (Tasks)
+  const tasks = useQuery(api.commitments.list.byAssignee, ...);
+
+  // 3. Generate "Forecast" & Merge
+  return useMemo(() => {
+    const reality = mapToEvent(dbInstances); // Blue events
+    const forecast = generateOccurrences(tasks, range) // Virtual events
+      .filter(occ => !realityHas(occ.time)); // De-duplication
+
+    return [...reality, ...forecast];
+  }, [dbInstances, tasks]);
+}
+```
+
+### Recurrence Utility (`recurrence.ts`)
+
+Included a pure function `generateOccurrences` that:
+- Takes a task + date range.
+- Iterates through days checking `isDayMatch`.
+- Projects `time_windows` onto specific dates.
+- Returns "virtual" objects compatible with the calendar component.
+
+### Backend Updates
+
+- **New Index**: Added `by_assignee_start` to `taskInstances` schema for efficient range querying.
+- **API Endpoint**: `list.instances` now accepts `start` and `end` timestamps to support windowed fetching (e.g., "Give me this week's data").
+
+---
+
+## 📱 User Experience Impact
+
+- **Infinite Scrolling**: Users can scroll weeks into the future and see their schedule populated instantly.
+- **Performance**: We don't flood the DB with years of future rows.
+- **Flexibility**: Changing a recurrence rule updates the entire future forecast instantly.
+
+---
+
+## 📝 Key Takeaway
+
+This "Reality + Forecast" pattern allows us to be **database-conservative** but **user-expansive**. We only persist what matters (history and near-term active tasks), while projecting the rest.
