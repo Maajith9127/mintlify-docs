@@ -1,0 +1,113 @@
+---
+title: "February 10th, 2026"
+description: "Architectural Evolution: Calendar Data Fetching & Virtual Event Strategy"
+---
+
+# February 10th, 2026
+
+**The Evolution of Infinite Scrolling: From Naive Time-Splits to State-Based Merging**
+
+Today we finalized the architectural strategy for handling the complex requirements of an infinite calendar with recurring commitment chains. This document details the journey from initial concepts to the production-grade "Per-Task Merging" strategy.
+
+---
+
+## 1. The Core Challenge
+
+**Problem:** Calendars are theoretically infinite, but database queries must be finite.
+- **Naive Approach:** Fetch everything. (Fails at scale).
+- **Pagination:** Clunky for browsing months/years.
+- **Solution:** **Sliding Window**. Fetch only the visible range + buffer (e.g., ±14 days).
+
+---
+
+## 2. The Data Problem: Materialized vs. Virtual
+
+**Challenge:** We have two distinct types of data that look the same on a UI.
+1. **Past Events (Real):** Must be stored in DB (verified/failed state).
+2. **Future Events (Virtual):** Should be projected from rules. Storing 10 years of future rows is wasteful and dangerous (updates become nightmares).
+
+**Decision:**
+- **Past:** Materialized rows in `taskInstances`.
+- **Future:** Virtual Events generated on the fly from `tasks` recurrence rules.
+
+---
+
+## 3. The "Verification Chain" Complexity
+
+CommitT is different from Google Calendar. Tasks are **sequential chains**:
+`Instance 1` → `Verify` → `Create Instance 2`
+
+**Failed Approach:** "Just-In-Time" Creation for any future event.
+- *Why:* You can't verify Instance #5 if Instance #3 hasn't happened.
+- **Result:** Future virtual events are **read-only projections**. Verification is strictly for the current pending instance in the chain.
+
+---
+
+## 4. The Critical Pivot: The "Gap" Problem
+
+ We initially tried a simple **Time-Based Split**:
+- `0 → Now`: Fetch Real Instances.
+- `Now → ∞`: Generate Virtual.
+
+**The Flaw:**
+A task's "current pending instance" might be due tomorrow.
+- If we cut fetching at "Now", we miss the real pending instance.
+- If we generate virtual from "Now", we show a duplicate (real + virtual).
+- **Conclusion:** There is no single "Global Cutoff Date". Every task is in a different state.
+
+---
+
+## 5. The Final Strategy: "Per-Task Merging" (Industry Grade)
+
+This approach maps closely to how Outlook handles recurrence exceptions.
+
+### Components
+1. **Query A:** Fetch **ALL** instances in the visible window (Verified / Failed / Pending).
+2. **Query B:** Fetch **ALL** task rules.
+
+### Client-Side Merge Logic
+
+We perform this operation in the frontend store:
+
+1. **Group Instances:** Map real instances by `task_id`.
+2. **Iterate Definitions:** Loop through all Tasks.
+3. **Find the Cutoff:** For each specific task, find the end time of its **last real instance** in this window.
+4. **Fill the Gap:**
+   - Show all real instances.
+   - Start generating virtual events **strictly after** the last real instance's end time.
+
+### Why this is "Industry Grade"
+
+- **N+1 Prevention:** Only 2 network requests total.
+- **Accuracy:** Respects the unique state of every commitment chain.
+- **Conflict Resolution:** Real DB state ("I failed yesterday") strictly overrides the Rule ("I do this daily").
+- **Lazy Materialization:** We respect the chain. The DB only holds what is real; the UI fills in the rest.
+
+---
+
+## 📅 Implementation Plan
+
+**Goal:** Implement robust "Per-Task Merging".
+
+### Frontend (`useCalendarStore.ts`)
+
+- **Modify `loadEventsForRange`**:
+  - Call `fetchInstances` for the *entire* range.
+  - Call `fetchTasks` (if needed).
+  - Implement `mergeInstancesAndRecurrence(instances, tasks, range)`:
+    - Group by task.
+    - Merge real + virtual based on per-task cutoff.
+
+### Frontend (`schedules.tsx`)
+
+- **Simplify**: Remove "split past/future" logic. Just pass the visible window.
+
+### Verification Plan
+
+- **Scroll Test:** Verify past events appear correctly.
+- **Future Test:** Verify infinite scroll works with virtual events.
+- **The "Gap" Test:**
+  - Create a task with a pending instance **today**.
+  - Verify today shows **Real Instance** (interactive).
+  - Verify tomorrow shows **Virtual Event** (read-only).
+  - **Crucial:** Ensure NO duplicates appear.
