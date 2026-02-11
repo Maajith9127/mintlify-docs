@@ -1,0 +1,57 @@
+---
+title: "February 12th, 2026"
+description: "Implementation of Reactive Infinite Scrolling & Custom Event Styling"
+---
+
+# February 12th, 2026
+
+**Solving the Infinite Scroll Puzzle**
+
+So yesterday (Feb 11th), we realized how painful client-side merging was. Today, we implemented a robust solution that handles the "infinite" nature of the calendar with proper database efficiency and UX polish.
+
+---
+
+## 🏗️ The Critical Improvements
+
+**Commit:** `feat(calendar): implement reactive infinite scrolling and custom event styling`
+
+We completely refactored the calendar component to support efficient, reactive data fetching with Convex, replacing the static store mechanism.
+
+### 1. Reactive Data Layer
+- **New Query:** Implemented `api.instances.list.byRange` on the backend.
+- **Optimized Index:** Added a `by_assignee_start` database index to `schema.ts`.
+- **Impact:** This allows us to fetch *exactly* the instances needed for the current view + buffer, without scanning the whole table.
+
+### 2. Smart Pagination ("The Buffer Strategy")
+We didn't just "fetch everything." We implemented a smart boundary check:
+- **Logic:** Only refetch data when the user scrolls within **2 weeks** of the edge of the currently loaded range.
+- **Result:** Drastically reduced API calls while keeping the scrolling experience silky smooth.
+
+### 3. Seamless UX (No Flickers)
+- **Problem:** When fetching new range data, the old events would disappear for a split second (flicker).
+- **Solution:** Implemented a ref-based cache (`prevEventsRef`) to preserve existing events on screen while new data is fetching in the background.
+
+### 4. UI Customization
+Overrode the default event rendering to match our specific design system:
+- **Style:** 14px rounded corners, centered content.
+- **Typography:** Enforced white text for better contrast on colored event blocks.
+
+### 5. Navigation Fixes
+- **Restored:** Programmatic "Today" navigation via store synchronization, ensuring the "Go to Today" button actually works reliably.
+
+---
+
+## 📂 Files Changed
+
+| Component | File | Change |
+|-----------|------|--------|
+| **Backend** | `packages/backend/convex/api/instances/list.ts` | Added `byRange` query |
+| **Database** | `packages/backend/convex/schema.ts` | Added `by_assignee_start` index |
+| **Frontend** | `apps/native/app/(main)/schedules.tsx` | Implemented infinite scroll logic |
+| **Bugfix** | Backend Query Handler | Resolved missing return statement |
+
+---
+
+## 📝 Summary
+
+We moved from a "naive fetch" to a **"smart sliding window"**. The calendar now feels infinite to the user, but acts finite and efficient to the database.
