@@ -43,18 +43,40 @@ To render a simple calendar, the frontend currently has to perform a high-wire a
 
 ---
 
-## 💥 Why It's "Hectic"
+## 💥 Why It's "Hectic" - The Technical Breakdown
 
-This approach forces the frontend to maintain **two sources of truth** for the same timeline:
-1. **Database Rows** (Materialized)
-2. **Recurrence Rules** (Virtual)
+The current "lazy materialization" approach forces the frontend to handle logic that belongs in the backend:
 
-Every consumer of this data (Schedule View, List View, Widgets) has to re-implement this merging logic. It creates a fragile system where "off-by-one" errors and boundary glitches are inevitable.
+### 1. Two Sources of Truth
+We are forced to reconcile two completely different data structures for the exact same timeline:
+- **Database Rows** (Materialized Instances) -> "What happened"
+- **Recurrence Rules** (Virtual Objects) -> "What should happen"
+
+### 2. The "Boundary" Problem
+The most fragile part is the "seam" where real instances end and virtual ones begin.
+- **Off-by-one errors:** Is the next slot covered by a pending instance or is it virtual?
+- **Timezone hell:** Recurrence rules effectively "float" while instances are fixed in UTC.
+- **Status conflicts:** If a task was skipped yesterday, does the rule know to skip it or will it regenerate it?
+
+### 3. Duplication of Logic
+Every single consumer of calendar data must re-implement this complex merge logic:
+- The **Schedule View** needs it.
+- The **List View** needs it.
+- The **Home Widget** needs it.
+- **Notification Helpers** need it.
+
+### 4. Testing Nightmares
+To verify if the calendar works, we can't just mock a DB response. We have to:
+- Simulate a DB state with specific gaps.
+- Simulate the client-side clock.
+- Verify the merge logic produced the correct seamless list.
 
 ---
 
 ## 🚀 The Pivot Point
 
-We are acknowledging that while lazy materialization saves DB space, it shifts an unacceptable amount of complexity to the client. This realization sets the stage for a major refactor: **moving the source of truth back to a unified model.**
+We are acknowledging that while lazy materialization saves DB space, it shifts an unacceptable amount of complexity to the client. We are essentially re-implementing the scheduler in React just to render a view.
+
+This realization sets the stage for a major refactor: **moving the source of truth back to a unified model.**
 
 > **Next Steps:** We need a design that simplifies data fetching so the frontend can just "render events" without performing complex temporal calculus.
