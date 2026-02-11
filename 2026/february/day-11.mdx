@@ -1,0 +1,60 @@
+---
+title: "February 11th, 2026"
+description: "The Core Challenge: Client-Side Scheduling Complexity"
+---
+
+# February 11th, 2026
+
+**The Great Refactor: Why Client-Side Merging is Unsustainable**
+
+Today marks a critical realization point in our architecture. We identified a fundamental pain point in our current "lazy materialization" strategy that makes frontend development exponentially harder.
+
+---
+
+## 🧐 The Curiosity Question
+
+> **"When we go to the calendar, if we need to show the next instance, we need to combine past instances, and for the future we need to use the recurrence logic to render virtual events for which instances haven't been formed yet, then merge them, and then look after edge cases... and it becomes hectic. Am I right?"**
+
+The answer is a resounding **YES**.
+
+---
+
+## 🧩 The Current Architecture
+
+Our current flow is optimized for database efficiency but creates massive complexity for the UI.
+
+1. **Task Creation**: `final.tsx` → `create.ts` → `service.ts`
+2. **Scheduling**: `scheduler.ts` creates **ONLY the next instance**.
+3. **Chain Logic**: It schedules a check at the end of that instance to create the subsequent one.
+
+### The Problem: "The Calendar View"
+
+To render a simple calendar, the frontend currently has to perform a high-wire act:
+
+1. **Fetch Real Instances**: Query the DB for what exists (past + current).
+2. **Fetch Recurrence Rules**: Get the abstract definitions (`RRULE`, days, times).
+3. **Generate Virtual Events**: Run complex date logic on the client to project future slots.
+4. **Merge & Deduplicate**: Combine real rows with virtual objects, ensuring no overlaps at the "now" boundary.
+5. **Handle Edge Cases**:
+   - What if a user completed a task early?
+   - What if a task was skipped?
+   - What about timezones?
+   - What about infinite scrolling?
+
+---
+
+## 💥 Why It's "Hectic"
+
+This approach forces the frontend to maintain **two sources of truth** for the same timeline:
+1. **Database Rows** (Materialized)
+2. **Recurrence Rules** (Virtual)
+
+Every consumer of this data (Schedule View, List View, Widgets) has to re-implement this merging logic. It creates a fragile system where "off-by-one" errors and boundary glitches are inevitable.
+
+---
+
+## 🚀 The Pivot Point
+
+We are acknowledging that while lazy materialization saves DB space, it shifts an unacceptable amount of complexity to the client. This realization sets the stage for a major refactor: **moving the source of truth back to a unified model.**
+
+> **Next Steps:** We need a design that simplifies data fetching so the frontend can just "render events" without performing complex temporal calculus.
