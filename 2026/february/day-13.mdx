@@ -1,0 +1,67 @@
+---
+title: "February 13th, 2026"
+description: "Instance Pre-Materialization Refactor & UI Polish"
+---
+
+# February 13th, 2026
+
+**Standardizing the Calendar Experience**
+
+Today we focused on refining the user experience with production-grade UI components and preparing for a major backend refactor to pre-materialize instances.
+
+---
+
+## 🏗️ Instance Pre-Materialization Strategy
+
+We are moving away from "just-in-time" creation to **pre-materialization**. This simplifies querying and ensures the calendar always has real data to show.
+
+### Phase 1: Schema + Generation (In Progress)
+- **Schema:** Added `next_instance_id` to `taskInstances` to create a linked list of instances.
+- **Generator:** Implementing `createAllInstances` in `scheduler.ts` to generate all future instances upfront (within reason).
+- **Service:** Updating `createInternal` to use this new generator.
+
+### Phase 2: Update/Delete (Complete)
+- **Refactor:** `updateInternal` now deletes future instances and regenerates them.
+- **Cancel:** `removeInternal` correctly cancels the schedule chain.
+
+---
+
+## 📱 UI & Mobile Features
+
+We implemented a suite of high-quality UI components to make the app feel native and polished.
+**Commit:** `feat(ui): implement skeleton loading and event detail modal`
+
+### 1. Skeleton Loading
+- **Schedules Screen:** Added a custom `ScheduleSkeleton` with a fade-out animation.
+- **Commits Screen:** Added `CommitCardSkeleton` for the list view.
+- **Logic:** Overlay skeleton for ~4s, then fade out and remove from DOM to prevent layout shifts.
+
+### 2. Event Detail Modal
+A custom Bottom-Sheet style modal for viewing event details.
+- **Design:** Dark theme (`bg-[#1E1E1E]`), standardized typography (`AuthHeading`, `BodyText`).
+- **Features:**
+  - "Verify" primary action button.
+  - Visual toggle for "Event" vs "Task".
+  - Formatted time display (e.g., "Mon, Feb 13 9:00 AM").
+
+### 3. Maps Integration
+- **Library:** `expo-maps` (Google Maps provider).
+- **Logic:** Extracts location data from `event.originalData.conditions`.
+- **Visualization:** 
+  - Shows User Location (Blue Dot).
+  - Draws Geofence (Blue Circle, 100m radius).
+  - Auto-centers camera on target.
+
+---
+
+## 📝 Technical Debt / Notes
+
+- **Lint Errors:** TypeScript errors related to `convex/react` and `uniwind` persist in the editor but build fine.
+- **Platform:** Map component is currently guarded for **Android only**. iOS support is pending.
+
+---
+
+## 🚀 Next Steps
+
+1. **Complete Phase 3 (Calendar Query):** Wire up `schedules.tsx` to fetch the pre-materialized instances.
+2. **Optimize:** Ensure the query uses the `by_assignee_start` index efficiently.
