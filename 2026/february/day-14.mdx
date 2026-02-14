@@ -1,0 +1,66 @@
+---
+title: "February 14th, 2026"
+description: "Major Refactor: Domain Consolidation & Frontend Decomposition"
+---
+
+# February 14th, 2026
+
+**Cleaning House: Architecture Consolidation & React Cleanup**
+
+Today was a massive day for paying down technical debt. We restructured the entire backend API to be domain-centric and decomposed massive frontend screens into clean, testable hooks.
+
+---
+
+## 🛠️ Backend Consolidation
+
+validating the architectural decision to simplify the API layer. We moved away from scattered `get/list/create` files to consolidated domain modules.
+
+### 1. Commitments & Instances API
+- **Merged Operations:**
+  - `commitments/get.ts` + `commitments/list.ts` → `commitments/read.ts`
+  - `instances/get.ts` + `instances/list.ts` → `instances/read.ts`
+- **Simplified Layer:** Removed the unnecessary `core/commitments/queries.ts` abstraction. The API now queries the DB directly, reducing boilerplate.
+- **Conflict Logic:** Relocated `conflictDetection.ts` from `lib/` to `core/commitments/` to co-locate it with domain logic.
+
+### 2. Full CRUD Implementation
+- **New Endpoints:** Added `create.ts`, `update.ts`, and `delete.ts` to `api/instances/` to support full lifecycle management of instances.
+- **Consistency:** Both `commitments` and `instances` now follow the exact same API structure (`read`, `create`, `update`, `delete`).
+
+---
+
+## 📱 Frontend Decomposition
+
+We tackled the growing complexity of our main screens by extracting logic into custom hooks.
+
+### 1. Schedules Screen Refactor
+The `SchedulesScreen` was over 250 lines. We reduced it to ~100 lines by extracting:
+
+| Hook | Responsibility |
+|------|----------------|
+| `useCalendarRange` | Manages infinite scroll, date ranges, and debouncing. |
+| `useCalendarEvents` | Handles Convex data fetching and transforms data for CalendarKit. |
+| `useSkeletonAnimation` | Manages the loading fade-out effects. |
+| `CalendarConfig.ts` | Centralized colors, themes, and locale settings. |
+
+### 2. Commits Screen Refactor
+Similarly, the `CommitsScreen` was decomposed:
+
+| Hook | Responsibility |
+|------|----------------|
+| `useTasks` | Clean tasks data fetching (Commitments). |
+| `useTaskActions` | Handles mutations (create/delete) and navigation. |
+| `useTaskSelection` | Manages UI state for menus and modals. |
+
+### 3. Skeleton Loading Polish
+- **Fix:** Replaced the full-screen overlay in `CommitsScreen` with proper list-item skeletons.
+- **Layout:** used `View` containers to prevent layout collapse during loading states.
+
+---
+
+## 📝 Key Takeaways
+
+We adhered to the "Separation of Concerns" principle today.
+- **Backend:** Organized by **Domain** (Commitments vs Instances) rather than **Action** (Get/List).
+- **Frontend:** Separated **View** (Render) from **Logic** (Hooks).
+
+This sets a solid foundation for adding complex features like "Partner Verification" without the codebase collapsing under its own weight.
