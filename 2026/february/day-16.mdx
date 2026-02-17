@@ -1,0 +1,52 @@
+---
+title: "February 16th, 2026"
+description: "Event Detailing & Verification Card Enhancements"
+---
+
+# February 16th, 2026
+
+**Deep Dive into Event Details & Live Verification**
+
+Today we focused on the depth of the user experience—specifically, what happens when a user clicks an event, and what they see on the home screen "Verification Card."
+
+---
+
+## 🔍 Event Detail Modal Refactor
+
+We moved the event details from a simple alert to a rich, scrollable bottom-sheet experience.
+
+**Commit:** `Refactor EventDetailModal and centralize event selection state`
+- **State:** Centralized `selectedEvent` in the global `useCalendarStore`, decoupling it from local component state.
+- **Design:** Updated to a sleek dark theme (`#1A1A1A`) popup.
+
+**Commit:** `feat(EventDetailModal): Refine UI with dynamic Map integration and Status badges`
+- **Location:** Added an interactive Google Maps integration that shows the event's geofence.
+- **Status:** Dynamic badges now indicate if an event is Verified, Pending, or Failed.
+- **Content:** Added clear sections for Description, Time, and Status.
+
+**Commit:** `feat(EventDetailModal): Add scrollable Penalty and Waiver sections`
+- **Conditions:** We now visualize the "stakes" of the commitment.
+- **Penalties:** Icons for Money, Photo, Message, BlockApp.
+- **Waivers:** Icons for Captcha, Paragraph, Intense, Run.
+- **Scroll:** Wrapped content in a `ScrollView` to handle long descriptions and condition lists gracefully.
+
+---
+
+## ⏱️ Verification Card & Live Timer
+
+The home screen card that tells you "What's next?" got a major upgrade.
+
+**Commit:** `feat(VerificationCard): Implement dynamic event fetching and timer`
+- **Dynamic Data:** Connected the card to `useCalendarEvents` to fetch the real upcoming pending instance.
+- **Live Timer:** Implemented a countdown timer that ticks down to the deadline.
+- **Empty States:** Handles scenarios with no upcoming tasks gracefully.
+
+**Commit:** `feat(ui): Enhance VerificationCard loading state with shimmer skeleton`
+- **Shimmer Effect:** Replaced static "Loading..." text with a high-quality "Shine-through" shimmer skeleton.
+- **SkeletonBlock:** Upgraded our core skeleton component from a simple pulse to a moving gradient shine for a more premium feel.
+
+---
+
+## 📝 Summary
+
+We transitioned from "displaying data" to "displaying context." The Event Modal now tells the full story of a commitment (Where? What happens if I fail? How do I get out of it?), and the Home Card creates urgency with a live countdown.
