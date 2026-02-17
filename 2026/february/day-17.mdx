@@ -1,0 +1,165 @@
+---
+title: "February 17th, 2026"
+description: "Local DB Architecture Decision: Deep Analysis for Native Services"
+---
+
+# February 17th, 2026
+
+**The Local DB Question: Which Database Powers Our Native Services?**
+
+Today we performed a deep architectural analysis to decide which local database will power the offline-first features of CommitT: app blocking, pestering alarms, and task mirroring.
+
+---
+
+## The Requirements
+
+Before comparing databases, we defined exactly what we need:
+
+| ID | Requirement | Description |
+|----|-------------|-------------|
+| R1 | **Task Mirroring** | When a task is saved to Convex, it must also be stored locally for offline/background operations. |
+| R2 | **Instant App Blocking** | `metric_key: "app_block"` must trigger instantly when the user opens a blocked app. Sub-millisecond lookups required. |
+| R3 | **Pestering Alarms** | Alarms start before task time (configurable offset), repeat every N minutes, show full-screen overlays, survive restarts. |
+| R4 | **Complex Queries** | "Which apps are blocked now?", "What alarms fire in the next 15 minutes?", "Tasks with location conditions?" |
+| R5 | **Nested Data** | Tasks have deeply nested objects (`recurrence.time_windows[]`, `conditions[].target.value`). Must store AND query into this structure. |
+
+---
+
+## The Hidden Constraint: Native Android Access
+
+> **App Blocking and Alarms don't run in React Native. They run as native Android services written in Java/Kotlin.**
+
+This is the critical insight most comparisons miss. Three separate processes need to read the same database:
+
+| Process | Runs In | Use Case |
+|---------|---------|----------|
+| React Native App | JS Thread | Create/edit tasks, show UI, sync with Convex |
+| Accessibility Service | Native Java Service (always running) | Detect app opened -> query DB -> "is it blocked?" -> show overlay |
+| AlarmManager Receiver | Native Java BroadcastReceiver | 6:45 AM fires -> query DB -> get task details -> launch alarm |
+
+---
+
+## Elimination Round
+
+### Initial Comparison
+
+| Requirement | MMKV | AsyncStorage | expo-sqlite | WatermelonDB | Realm | OP-SQLite |
+|-------------|------|-------------|-------------|--------------|-------|-----------|
+| R1: Store full tasks | JSON blob | JSON blob | Tables | Models | Objects | Tables |
+| R2: Instant lookup | Fast | Slow (Async) | Fast | Fast | Fast | Fastest |
+| R3: Alarm queries | No query | No query | Full SQL | Query API | Query | Full SQL |
+| R4: Complex queries | No | No | Full SQL | Rich API | Rich API | Full SQL |
+| R5: Nested data | Manual | Manual | JSON cols | Relations | Embedded | JSON cols |
+| Native Java Access | Tencent SDK | No API | `android.database.sqlite` | Awkward | Different paradigm | Same `.db` file |
+
+### Eliminated
+
+| Option | Reason |
+|--------|--------|
+| **MMKV** | Can't query "which apps are blocked now" without loading everything. No indexing. |
+| **AsyncStorage** | Slow, async, no queries. Not serious for this use case. |
+| **WatermelonDB** | Its killer feature (built-in sync) is redundant with Convex. Adds ORM complexity for no gain. |
+| **Realm** | MongoDB Atlas sync is wasted. Two sync systems (Realm + Convex) is a liability. |
+
+### Finalists: expo-sqlite vs OP-SQLite
+
+| Factor | expo-sqlite | OP-SQLite |
+|--------|-------------|-----------|
+| Expo first-party | Yes | No (third-party) |
+| Maintained by | Expo team | Community |
+| Config/setup | Minimal | More native config |
+| Sync API (new arch) | Synchronous | Synchronous |
+| Performance | Fast enough | ~2x faster |
+| Future compatibility | Guaranteed | Uncertain |
+
+**Winner: expo-sqlite.** The 2x speed difference of OP-SQLite is irrelevant because the Accessibility Service reads from native `android.database.sqlite` anyway, which is the same speed regardless of which RN wrapper is used.
+
+---
+
+## Long-Term Feature Map
+
+Every future feature we've planned maps cleanly onto SQLite:
+
+| Future Feature | DB Need | SQLite Query |
+|----------------|---------|--------------|
+| Pestering alarms | BroadcastReceiver queries active alarms | `SELECT * FROM alarms WHERE fire_at <= ? AND dismissed = 0` |
+| App blocking | Accessibility Service checks package | `SELECT 1 FROM blocked_apps WHERE package = ? AND active_until > ?` |
+| Overlay dismissal | Native Activity marks acknowledgement | `UPDATE alarms SET dismissed = 1 WHERE id = ?` |
+| Task mirroring | Full task stored for offline | `tasks` table with JSON columns |
+| Verification cache | Store proof before upload | `verification_proofs` table |
+| Completion analytics | Streaks and rates | `SELECT COUNT(*) FROM instances WHERE status = 'verified' GROUP BY date` |
+| Home screen widget | AppWidgetProvider reads next task | Same `.db` file |
+| Wear OS companion | Watch shows next commitment | Shared SQLite |
+| Data export | User exports history | `.db` file is portable |
+
+---
+
+## Hybrid Strategy: MMKV + SQLite
+
+We will use a clean split:
+
+| Layer | Store | What |
+|-------|-------|------|
+| **MMKV** | Simple config | User preferences, onboarding flags, auth tokens, theme, "last sync timestamp" |
+| **SQLite** | Domain data | Tasks, alarms, blocked apps, verification proofs, instances |
+
+---
+
+## Proposed SQLite Schema
+
+```sql
+-- Mirror of Convex tasks table
+CREATE TABLE tasks (
+  id TEXT PRIMARY KEY,
+  convex_id TEXT UNIQUE,
+  title TEXT NOT NULL,
+  description TEXT,
+  recurrence TEXT NOT NULL,      -- JSON blob
+  conditions TEXT NOT NULL,      -- JSON blob
+  assignee_id TEXT,
+  assigner_id TEXT,
+  created_at INTEGER,
+  updated_at INTEGER,
+  synced_at INTEGER              -- Last sync timestamp
+);
+
+-- Alarm schedule (derived from tasks)
+CREATE TABLE alarms (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_id TEXT NOT NULL REFERENCES tasks(id),
+  instance_start INTEGER NOT NULL,
+  fire_at INTEGER NOT NULL,
+  repeat_interval INTEGER,
+  dismissed INTEGER DEFAULT 0,
+  notification_id TEXT,
+  UNIQUE(task_id, instance_start)
+);
+CREATE INDEX idx_alarms_fire ON alarms(fire_at, dismissed);
+
+-- Blocked apps (from conditions)
+CREATE TABLE blocked_apps (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_id TEXT NOT NULL REFERENCES tasks(id),
+  package_name TEXT NOT NULL,
+  active_from INTEGER,
+  active_until INTEGER
+);
+CREATE INDEX idx_blocked_package ON blocked_apps(package_name, active_until);
+
+-- Verification proofs (before upload)
+CREATE TABLE verification_proofs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_id TEXT NOT NULL,
+  instance_start INTEGER,
+  proof_type TEXT,
+  proof_data TEXT,               -- JSON
+  uploaded INTEGER DEFAULT 0,
+  created_at INTEGER
+);
+```
+
+---
+
+## Final Verdict
+
+**expo-sqlite** is the clear winner. It satisfies every requirement, works natively with Android services, is maintained by the Expo team, and gives us full SQL power with JSON column support for nested data.
