@@ -1,0 +1,53 @@
+---
+title: "February 15th, 2026"
+description: "UI Experimentation: From 1-Day to 4-Day Calendar Views"
+---
+
+# February 15th, 2026
+
+**Refining the Calendar Experience**
+
+Today was a day of rapid UI iteration. We experimented with different calendar layouts, moving from a single-day view to a 4-day view, and polished the loading states to match the new designs.
+
+---
+
+## 🎨 Calendar Theme & Layout Refactor
+
+**Commit:** `feat(native): refactor commits screen and customize calendar theme`
+
+We started by cleaning up the `CommitsScreen` layout and customizing the calendar's visual identity.
+- **Layout:** Switched `CommitsScreen` to use a `View` container instead of `SafeAreaView` for better control over the fixed header.
+- **Theme (`CalendarConfig.ts`):**
+  - **Minimalist:** Hid hour column and header borders (set to black).
+  - **Contrast:** Darkened and thickened grid lines on day containers.
+  - **Typography:** Increased day number font size to **20px**.
+  - **Spacing:** Increased `hourHeight` to **80px** for larger, more touchable time slots.
+
+---
+
+## 🔄 The "Verify" Rebrand & Shimmer Updates
+
+**Commit:** `feat(native): rebrand verify tab and customize calendar appearance`
+
+We officially renamed the "Verify" tab to **"Calendar"** with a new icon, signaling a shift in focus from just verification to holistic schedule management.
+- **Shimmer:** Refactored `CalendarShimmer` to match the new 80px row height and black border style.
+- **Colors:** Temporarily reverted event colors to use task-based coloring.
+
+---
+
+## 4️⃣ The 4-Day View Shift
+
+**Commit:** `feat: update calendar to 4-day view and redesign shimmer skeleton`
+
+Late in the day, we made a significant UX pivot:
+- **View Mode:** Switched the calendar from a 1-day view to a **4-day view**. This provides users with better context of their upcoming week without the density of a full 7-day view.
+- **Unified Styling:** Standardized all events to a single brand color (**#4FA0FF**) with white text and square corners for a clean, uniform look.
+- **Skeleton Redesign:** Completely redesigned `CalendarShimmer` to match the 4-day grid.
+  - Replaced text placeholders with abstract pulsing `SkeletonBlock` components.
+  - Reduced time column width to **15%** to allocate more space to the event grid.
+
+---
+
+## 📝 Summary
+
+We moved from a granular day-view to a broader 4-day context window. The UI is now darker, cleaner, and uses a unified blue brand color for events.
