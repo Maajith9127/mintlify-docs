@@ -1,0 +1,55 @@
+---
+title: "February 18th, 2026"
+description: "Local SQLite Database Setup & Sunday Scheduling Fix"
+---
+
+# February 18th, 2026
+
+**Building the Local Foundation: expo-sqlite is Live**
+
+Following the architectural decision on Day 17, today we put it into practice. We set up the local SQLite database with a versioned migration system and fixed a subtle but critical scheduling bug.
+
+---
+
+## Local SQLite Database Setup
+
+**Commit:** `feat: set up local SQLite database for alarm system`
+
+We installed `expo-sqlite`, configured the Expo plugin, and created a production-grade local database layer.
+
+### Database Module (`lib/local-db.ts`)
+
+Built with a **versioned migration system** so we can evolve the schema over time without data loss.
+
+#### Tables Created
+
+| Table | Purpose |
+|-------|---------|
+| `local_tasks` | Mirrors Convex tasks locally. Stores recurrence rules, conditions, and metadata for offline access. |
+| `scheduled_alarms` | Tracks AlarmManager registrations. Links to tasks, stores fire times, repeat intervals, and dismissal state. |
+| `alarm_overrides` | Handles single-instance exceptions (e.g., user drags an event to a different time). |
+| `blocked_apps` | Prepared for future app blocking feature. Stores package names and active time windows. |
+
+### App Integration
+
+- **Root Layout:** Wrapped with `SQLiteProvider` for app-wide database access.
+- **Performance:** Enabled **WAL journal mode** for concurrent read/write performance.
+- **Integrity:** Enabled **foreign keys** to enforce referential integrity between tables.
+
+---
+
+## Sunday Scheduling Fix
+
+**Commit:** `fix(scheduler): normalize ISO-8601 Sunday (7) to JS convention (0)`
+
+### The Bug
+
+Weekly recurrences set to **Sunday** sent `days_of_week: [7]` (ISO-8601 standard), but the scheduler used JavaScript's `getDay()` which returns **0** for Sunday.
+
+### Why It Was Subtle
+
+Monday through Saturday were completely unaffected because both ISO-8601 and JavaScript conventions align for those days (Mon=1, Tue=2, ..., Sat=6). Only Sunday diverged: ISO says 7, JS says 0.
+
+### The Fix
+
+Added a normalization step that converts ISO-8601 day 7 to JavaScript day 0 before comparison, ensuring Sunday tasks fire correctly.
