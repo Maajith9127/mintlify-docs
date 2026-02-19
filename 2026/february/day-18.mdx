@@ -1,13 +1,13 @@
 ---
 title: "February 18th, 2026"
-description: "Local SQLite Database Setup & Sunday Scheduling Fix"
+description: "Local SQLite Setup, Task CRUD Sync, AlarmModule & Sunday Fix"
 ---
 
 # February 18th, 2026
 
 **Building the Local Foundation: expo-sqlite is Live**
 
-Following the architectural decision on Day 17, today we put it into practice. We set up the local SQLite database with a versioned migration system and fixed a subtle but critical scheduling bug.
+Following the architectural decision on Day 17, today we put it all into practice. We set up the local SQLite database, wired task CRUD to sync between Convex and local, created a native AlarmModule, and fixed a subtle scheduling bug.
 
 ---
 
@@ -38,6 +38,57 @@ Built with a **versioned migration system** so we can evolve the schema over tim
 
 ---
 
+## Task CRUD Sync (Convex → Local SQLite)
+
+**Commit:** `feat(native): sync task CRUD to local SQLite database`
+
+Wired all task operations to write to **both** Convex and the local DB:
+
+| Operation | Flow |
+|-----------|------|
+| **Create** | Insert into `local_tasks` after successful Convex create |
+| **Update** | Update `local_tasks` row after successful Convex update |
+| **Delete** | Delete from `local_tasks` after successful Convex delete |
+
+### Design Principles
+
+- **Convex is source of truth.** Local writes are non-blocking and fail gracefully with console errors if the local DB is unavailable.
+- **Schema parity.** Local schema mirrors Convex exactly (`assigner_id`, `assignee_id`, `title`, `description`, `visibility`, `recurrence`, `conditions`, timestamps).
+- **Nested data.** Complex objects (`recurrence`, `conditions`) stored as JSON strings.
+- **Debug FAB.** Added a floating debug button that lets us inspect the local DB contents at any time during development.
+
+---
+
+## AlarmModule (Native Expo Module)
+
+**Commit:** `feat(native): add AlarmModule with Expo Modules API + global Alarm FAB`
+
+Created a local Expo Module using the **modern Expo Modules Kotlin DSL** (`expo.modules.kotlin.modules.Module`).
+
+### What Was Built
+
+- **`AlarmModule`**: Exposes `showToast()` as a proof-of-concept native function (displays an Android Toast).
+- **`AlarmFab`**: Global floating button added in `_layout.tsx`, accessible from every screen.
+- **Auto-linking**: Uses `expo-module.config.json` — no manual `MainApplication.kt` patching needed.
+
+### What Was Removed (Legacy Cleanup)
+
+We completely refactored away from the old Config Plugin injection pattern:
+- Removed `plugins/withAlarmModule/` (legacy `ReactContextBaseJavaModule` approach).
+- Cleaned up injected `AlarmModule.kt` and `AlarmPackage.kt` from `android/`.
+- Removed `add(AlarmPackage())` from `MainApplication.kt`.
+
+### Files Added
+
+```
+modules/alarm-module/expo-module.config.json
+modules/alarm-module/index.ts
+modules/alarm-module/android/build.gradle
+modules/alarm-module/android/src/main/java/expo/modules/alarm/AlarmModule.kt
+```
+
+---
+
 ## Sunday Scheduling Fix
 
 **Commit:** `fix(scheduler): normalize ISO-8601 Sunday (7) to JS convention (0)`
@@ -53,3 +104,4 @@ Monday through Saturday were completely unaffected because both ISO-8601 and Jav
 ### The Fix
 
 Added a normalization step that converts ISO-8601 day 7 to JavaScript day 0 before comparison, ensuring Sunday tasks fire correctly.
+
