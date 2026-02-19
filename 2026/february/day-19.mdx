@@ -1,0 +1,75 @@
+---
+title: "February 19th, 2026"
+description: "SchedulerModule: Self-Chaining Native Alarm System"
+---
+
+# February 19th, 2026
+
+**The Native Scheduler is Alive: Self-Chaining Alarms**
+
+Today we built the core native scheduling engine — a Kotlin module that reads task recurrence rules from the local SQLite database and creates self-perpetuating alarm chains entirely on the native side.
+
+---
+
+## SchedulerModule (New Expo Module)
+
+**Commit:** `feat(native): add SchedulerModule with self-chaining alarm system`
+
+Located at `modules/scheduler-module/`, this is the heart of our offline alarm system.
+
+### How It Works
+
+1. **Reads** task data from local SQLite (`commit.db`).
+2. **Parses** recurrence rules (type, `days_of_week`, `time_windows`).
+3. **Calculates** the next time slot using `findNextTimeSlot()`.
+4. **Schedules** an action at the computed time via `Handler.postDelayed()`.
+5. **Self-chains:** When the action fires, it automatically calculates and schedules the NEXT occurrence. The chain continues indefinitely.
+
+### Architecture
+
+- **Per-task chains** tracked via `ConcurrentHashMap<convexId, Runnable>`.
+- **One-time tasks** end after first fire.
+- **Recurring tasks** chain forever until cancelled.
+
+### API
+
+| Function | Purpose |
+|----------|---------|
+| `scheduleForTask(convexId)` | **CREATE**: Start a new chain for a task |
+| `rescheduleForTask(convexId)` | **UPDATE**: Cancel old chain, start new one |
+| `cancelForTask(convexId)` | **DELETE**: Stop the chain |
+| `getActiveChains()` | **DEBUG**: List all active chain IDs |
+
+### Frontend Integration
+
+| Screen | When | Calls |
+|--------|------|-------|
+| `final.tsx` (Create) | After local DB insert | `scheduleForTask()` |
+| `final.tsx` (Update) | After local DB update | `rescheduleForTask()` |
+| `useTaskActions.ts` (Delete) | Before DB deletion | `cancelForTask()` |
+
+---
+
+## Bug Fixes
+
+Three subtle bugs were discovered and resolved during implementation:
+
+### 1. DB Path Mismatch
+- **Problem:** Module was using `getDatabasePath()` which returned the wrong directory.
+- **Fix:** expo-sqlite stores databases at `filesDir/SQLite/`, not the default Android DB path.
+
+### 2. Chain Not Continuing
+- **Problem:** `findNextTimeSlot()` kept returning the same window because `endSecs > currentSecs` was true for the currently active window.
+- **Fix:** Added an `afterMs` parameter to skip past windows that have already been processed.
+
+### 3. Adjacent Windows Skipped
+- **Problem:** A window starting at exactly the previous window's end time was being excluded.
+- **Fix:** Changed `<=` to `<` in the comparison so the boundary case is correctly included.
+
+---
+
+## Legacy Cleanup
+
+- **Removed:** Old plugin-based `withAlarmModule/` approach.
+- **Removed:** Manual `AlarmPackage` registration from `MainApplication.kt`.
+- **Refactored:** `AlarmModule` now uses the modern Expo Modules Kotlin DSL.
