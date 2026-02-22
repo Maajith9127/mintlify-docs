@@ -1,0 +1,17 @@
+---
+title: "February 20th, 2026"
+description: "Reliable alarm rescheduling and pre-alarm UI unification"
+---
+
+# February 20th, 2026
+
+**Bug Fixes & Refinements**
+
+Today was focused on ensuring our alarm system is bulletproof and cleaning up the UI experience around pre-alarms.
+
+- **Fixed reliable alarm rescheduling after device reboot:**
+  Fixed an issue where alarms were being pushed a week forward after a reboot. This was resolved by reusing the saved `fireAtMs` from device-protected storage when it's still valid.
+- **Unified pre-alarm and main alarm UI:**
+  - Removed `PreAlarmActivity` and its Toast/TTS logic.
+  - Updated `AlarmReceiver` to launch the full-screen `AlarmActivity` for both main alarms and pre-alarms.
+  - Passed `isPreAlarm` and `taskTitle` flags so `AlarmActivity` can adapt its text appropriately (e.g., displaying "Upcoming" for pre-alarms).
