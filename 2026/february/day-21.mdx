@@ -1,0 +1,26 @@
+---
+title: "February 21st, 2026"
+description: "Migrating to pre-calculated JavaScript task instances architecture and synchronizing local SQLite with Convex backend"
+---
+
+# February 21st, 2026
+
+**Architecture Shift: Pre-calculated Task Instances & Backend Parity**
+
+Today, we completely shifted the responsibility of complex recurrence scheduling out of the opaque native Android layer into a transparent, mathematically identical structure across our JavaScript frontend, local SQLite database, and Convex backend.
+
+- **Migrate to pre-calculated JavaScript task instances architecture:**
+  - Added an `instances` table to the local SQLite DB (Version 3) with indexing on start/end times.
+  - Created `lib/scheduler.ts` to statically calculate exactly 1 year of timestamps from recurrence rules using dayjs.
+  - Updated `final.tsx` to batch insert 365 generated instances into the local DB automatically upon task creation or update.
+  - Updated `useTaskActions.ts` to explicitly delete all associated instances when a local task is deleted from `commits.tsx`, preventing ghost alarms.
+  - Enhanced `DbDebugFab` in `_layout.tsx` to fetch and pretty-print explicitly generated task instance timestamps (with titles) to improve debug visibility.
+
+- **Synchronize local SQLite instances explicitly with Convex backend:**
+  - Updated backend `create` and `update` mutations to return explicit `instances` rows.
+  - Removed the duplicated client-side recurrence calculation (`lib/scheduler.ts`).
+  - Updated `final.tsx` to insert the actual 365 backend instances directly into SQLite `instances`, preserving their exact Convex instance `_id` and timestamps.
+  - Bumped the local DB `version` to 4, adding an explicit `taskId` column to `instances` via `ALTER TABLE` to avoid frontend `JOIN` requirements.
+  - Updated `useTaskActions.ts` deletion logic using a nested SQL lookup to explicitly clear local instances during a task deletion.
+
+This architectural change ensures a mathematically identical 1:1 parity between Convex backend instances and Android local SQLite alarms, entirely eliminating local clock drift and opaque scheduling bugs.
