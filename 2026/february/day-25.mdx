@@ -1,0 +1,31 @@
+---
+title: "February 25th, 2026"
+description: "Production cleanup for modal singleton, UI refinements, and server-authoritative evidence validators"
+---
+
+# February 25th, 2026
+
+**Modal Refinements & Server-Side Validation**
+
+Today's focus was on heavily refining the `EventDetailModal` for production stability, fixing map interactions, and building the foundation for secure, server-authoritative evidence validation.
+
+### Production UI Cleanup & Modal Stability
+- **Singleton Guard:** Rewrote `EventDetailModal` as a self-contained singleton (zero props) with a module-level guard to definitively prevent the Expo Router double-mount bug.
+- **Direct State Reads:** We now read `selectedEventId` and `selectedEvent` directly from Zustand, eliminating the need for an extra Convex `useQuery` subscription and optimizing performance.
+- **Documentation & Cleanup:** Added comprehensive JSDoc detailing the data flow, singleton guard rationale, and usage rules. Cleaned up `useCalendarStore` with grouped types and updated comments in `(main)/_layout.tsx`.
+- **Deprecation:** Officially deprecated and deleted `EventDetailModal2` (the experimental prototype) and its associated experimental components (`EventDetailConditions2`, `EventDetailLocation2`).
+
+### UI Features & Map Scroll Fix
+- **Verification Statuses:** Added `applied`, `waived`, `percentage`, and `neutral` states to `VerificationStatusCircle`.
+- **Circle Styling:** Unified all circles to a consistent styling (`border-white/40`, `bg-white/5`), increased the circle size to `w-12/h-12`, and increased the icon size to 24. Used a cursor-pointer icon for the neutral state and a percent icon for percentage.
+- **Map Interaction Fix:** Fixed a severe UI conflict where the map inside the `ScrollView` absorbed touch events improperly. We dynamically toggle `scrollEnabled` via `onTouchStart`/`onTouchEnd` callbacks so the native map regains full pan/pinch control.
+- **Waiver UI:** Updated waiver subtitles with relevant penalty context.
+
+### Backend: Server-Authoritative Validators
+- **Condition States:** Added a `ConditionStatus` union type in the backend (`types/domain/commitment.ts`) mirroring the frontend UI states.
+- **Condition Interface:** Extended the `Condition` interface with optional `id`, `status`, and `verifiedAt` fields for tracking specific instances.
+- **Validator Registry:** Created a pure-function validator registry at `core/verification/evidenceValidators.ts` to cleanly handle verification logic securely on the server.
+- **Core Validators:**
+  - Implemented a `verifyTime` validator to strictly enforce server-side clock window enforcement.
+  - Implemented a `verifyLocation` validator to enforce exact haversine bounds checking and GPS accuracy.
+  - Added validator stubs for `Device`, `Photo`, and `Biometric` verification types.
