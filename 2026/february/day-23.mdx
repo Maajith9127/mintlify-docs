@@ -1,0 +1,29 @@
+---
+title: "February 23rd, 2026"
+description: "Verification Engine, Global Live State, and Modular UI Refinements"
+---
+
+# February 23rd, 2026
+
+**The Verification Pipeline & Global State Architecture**
+
+Today, we built out the verification engine and refined our global state architecture to create a seamless, reactive user experience. We also modularized our React components to improve performance and code maintainability.
+
+### The Verification Engine
+- **Initial Endpoint:** Created a basic `verify.ts` Convex mutation acting as the entry point for the verification pipeline. It currently handles payload testing for authentication and basic routing.
+- **Frontend Wiring:** Wired up the **Verify** button inside `EventDetailModal` to explicitly call the new Convex mutation, passing the active instance ID and alerting on successful round-trip responses.
+- **Evidence Gathering:** Developed the `useVerificationEngine` hook to manage evidence gathering logic (location, photo, etc.) seamlessly, and integrated it directly into `EventDetailModal` to handle dynamic button states and payload generation.
+- **Live Pipeline & Auth Guards:** Created a dedicated Zustand store to manage global "Upcoming" verification states robustness and auth guards securely.
+
+### Global Live State for Calendar
+- **Headless Synchronizers:** Implemented headless synchronizers (`useCalendarEvents`, `useUpcomingVerification`) in the root layout to maintain persistent Convex subscriptions globally.
+- **Single Source of Truth:** Established a single source of truth for all calendar instances via Zustand, drastically reducing redundant database fetches.
+- **ID-Based Selection:** Refactored our application state to use strict ID-based selection and handle global range states more efficiently.
+- **Component Updates:** Updated `VerificationCard` to consume the new specialized global state.
+
+### UI Modularization & Refinement
+- **Modal Stability:** Fixed a ghost UI sliding issue by caching event data in local state within `EventDetailModal`. When it closes, the React component finishes its slide-down animation gracefully without abruptly unmounting.
+- **Component Extraction:** Cleaned up `EventDetailModal.tsx` by removing over 200 lines of mixed logic. We extracted Penalty and Waiver sections into a dedicated `EventDetailConditions.tsx` component.
+- **Location UI:** Extracted complex Google Maps logic, permission checks, and geofence math functions into `EventDetailLocation.tsx`. Refined the location UI to match a Google Calendar-style layout, rendering a beautiful full-width map below the address details.
+
+These updates solidify `EventDetailModal` as a clean, Global Singleton Coordinator for event layouts and supercharge our verification workflow.
