@@ -1,0 +1,25 @@
+---
+title: "February 24th, 2026"
+description: "Resolving alarm scheduling chain breaks and standardizing the Verification UI."
+---
+
+# February 24th, 2026
+
+**Robust Alarms & Modular Verification Status UI**
+
+Today's focus was fortifying the Android alarm scheduling chain and polishing the Verification Status UI components.
+
+### Native Android Alarm Reliability
+- **Secured Scheduling Chain:** `AlarmReceiver` now immediately re-schedules the next alarm in the background upon waking. This guarantees the chain survives even if the UI is completely constrained, skipped, or swiped away.
+- **Silent Mode Bypass:** Enforced silent mode bypass to ensure the user is actively notified.
+
+### Modular Verification Status UI
+- **`VerificationStatusCircle`:** Created a universal `VerificationStatusCircle` component to cleanly standardize the UI for condition verification (neutral, verified, failed, partial).
+- **Widespread Integration:** Updated `EventDetailModal` and other condition sections to use the new circle component.
+- **Design & Layout Polish:** 
+  - Implemented text truncation (`numberOfLines={1}`) in `BodyText` and applied it to condition rows to prevent long text from overlapping with the new verification circles.
+  - Removed `font-semibold` from All-day, Location, and Condition titles to match the cleaner `BodyText` regular weight design.
+  - Replaced tight truncation with `overflow: hidden` on parent containers to ensure text cleanly wraps or hides without breaking the row layouts.
+
+### Global Modal Bug Fixes
+- **Double Mount Bug Fixed:** Prevented a duplicate mounting issue where Expo Router was mounting `(main)/_layout.tsx` twice during Stack transitions (especially with the `transparentModal` presentation option). This previously caused two concurrent `EventDetailModal` instances to render.
