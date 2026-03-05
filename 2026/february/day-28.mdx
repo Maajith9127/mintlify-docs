@@ -1,0 +1,26 @@
+---
+title: "February 28th, 2026"
+description: "Randomized continuous verification checkpoints, grace period UI, and dynamic pre-alarm parsing over Android lockscreen."
+---
+
+# February 28th, 2026
+
+**Continuous Verification & Dynamic Scheduler Configuration**
+
+Today, we laid the groundwork for continuous commitment verification. Instead of just verifying a commitment once, the system can now periodically and randomly challenge the user to prove they are actively maintaining their commitment (e.g., staying at a location throughout a time block).
+
+### 1. Randomized Check-In Schema & Configuration UI
+We introduced the foundational schema and interface required to support continuous verification.
+- **Backend Schema & Domain Types:** Expanded the core domain types and database schema to include a discrete `checkpoints` array within the condition object. This array tracks scheduled, randomized verification times, allowing the backend to challenge and validate a user's exact presence periodically throughout an active time block.
+- **Dynamic Frontend Settings:** The commitment configuration screen has been updated to fully support this new continuous verification style. The settings interface now features dynamic styling to clearly indicate disabled states contextually.
+- **Check-In Frequency Selector:** Integrated a new "Check-In Frequency" option into the setup flow. This UI component automatically reveals itself when a user selects the strict **Stay Throughout** verification mode, allowing them to intuitively configure exactly how many random verifications they wish to perform per hour.
+
+### 2. Event Timer & Grace Period UI
+We brought deeper real-time visibility to strict configuration settings directly inside the Event Modal.
+- **Displaying Grace Periods:** The modal UI now prominently displays the configured Grace Period countdown natively within the live event timer.
+- **Early Expiration Status:** Handled logic to display an accurate, early expiration status. If a user exhausts their grace period before verifying, the UI reacts immediately to lock the state and show exactly why the attempt expired.
+
+### 3. Native Dynamic Scheduler Parsing
+Continuing our work on the native Android module, we bridged the frontend configurations seamlessly into the OS layer.
+- **Dynamic Pre-Alarm Intervals:** Integrated dynamic config parsing directly into the native scheduler. Instead of hardcoded offsets, the Android AlarmManager natively reads the user's custom `preAlarm` interval settings from the deeply synced SQLite database.
+- **Media Routing Over Lockscreen:** Guaranteed that critical alarm media (ringtone/vibration) accurately routes over the Android lockscreen when triggered by the newly parsed custom intervals.
