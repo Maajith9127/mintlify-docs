@@ -1,0 +1,50 @@
+---
+title: "February 26th, 2026"
+description: "Server-authoritative verification, live UI countdowns, and robust frontend error handling"
+---
+
+# February 26th, 2026
+
+**Server-Authoritative Verification & Precise Frontend Feedback**
+
+Today involved a massive leap forward in the reliability, security, and user experience of our verification pipeline. We shifted significantly toward server-authoritative validations, implemented granular UI states, and robustly mapped hardware sensors (GPS) into our backend architecture.
+
+Here is the in-depth breakdown of what was achieved:
+
+### 1. Server-Authoritative Per-Condition Verify Flow
+We entirely re-engineered the backend to serve as the absolute source of truth for verification:
+- **Strict Sequence Guard:** Added a sequence guard using the `taskId` index to ensure users can *only* verify their chronologically next pending task instance. You cannot verify tasks out of order.
+- **Ownership Validation:** Rewrote the `verify` mutation to strictly check database ownership and validate chronological sequences.
+- **Idempotency Logic:** Modified the mutation's idempotency controls, allowing users to retry failed verifications while automatically skipping over already-verified conditions.
+- **Persistent State:** Added `time_status` to our schema, cleanly persisting verification results into the database.
+
+### 2. Implicit Time Verification & Live UI Countdown
+We upgraded time verification to be an implicit, secure, server-side evaluation:
+- **Backend Time Enforcement:** Removed explicit `time_status` branches and fields. Implemented a strict implicit sequence guard that verifies `startMs`/`endMs` bounds directly against the *server's* current time before authorizing any transaction.
+- **Live UI Ticker:** On the frontend (`EventDetailTime.tsx`), replaced the manual generic verification circle with a dynamic, slowly pulsing React Native `setInterval` countdown ticker. It visually displays "Starts-in", "Expires-in", or "Expired" states in real-time.
+- **Formatter Upgrades:** Extended our time formatter to accurately parse `HH:MM:SS` for dynamically representing large time windows without losing granularity.
+- **Boilerplate Reduction:** Stripped out boilerplate code in `EventDetailModal` previously responsible for polling local state and tracking time.
+
+### 3. Granular UI & Modal Modularization
+The UI was broken down into highly cohesive, specialized React components to handle complexity cleanly:
+- **Component Architecture:** Refactored `EventDetailModal.tsx` into a clean orchestrator. Extracted rendering logic into specialized sub-components:
+  - `EventDetailHeader.tsx`: Manages the close button, title, description, and status badge pill.
+  - `EventDetailTime.tsx`: Manages the time window details, timezone, and interactive verification controls.
+- **Verification Status Circles:** 
+  - Upgraded `VerificationStatusCircle` to be fully interactive (accepting `onPress` and `isLoading` props).
+  - Designed the verified state with an app-theme green (`#4CD964`) border, tint, and check icon.
+  - Designed the failed state with a red (`#FF3B30`) border, tint, and a distinct refresh/close icon to imply retry capabilities.
+  - **Stale State Fix:** Added a `useEffect` inside `EventDetailModal` to explicitly reset `conditionStatuses` when a differently selected event is loaded. This seeds the initial state directly from the Zustand snapshot, preventing "stale green ticks" from carrying over between events.
+
+### 4. GPS Location Validation Integration
+We wired the native device environment directly into our new server-authoritative guards:
+- **Evidence Pipeline:** The `verify.ts` mutation was updated from hardcoded validations to dynamically accept evidence payloads through the `validateEvidence` dispatcher.
+- **Native GPS Retrieval:** Inside `LocationSection`, an interactive `VerificationStatusCircle` was implemented using our custom `useLocation()` hook. It securely requests and captures the device's GPS coordinates upon tap.
+- **Modal Evidence Propagation:** Updated `handleVerifyCondition` to encapsulate the GPS payload and pass it to the Convex endpoint. Modified the state initialization effect in `EventDetailModal` to proactively seed `conditionStatuses` from the event's `conditions` array, guaranteeing explicit constraint statuses are accurately displayed upon reopen.
+- **Diagnostic Logging:** Placed a diagnostic log in the backend's `location.ts` validating raw coordinate payloads returning from the frontend.
+
+### 5. Graceful Error Handling & Feedback
+System errors and rejected validations now fail gracefully, maintaining user trust:
+- **Graceful Backend Rejections:** Inside `verify.ts`, replaced fatal `throw new Error()` calls with graceful `{ success: false, reason: string }` return payloads for expected business-logic rejections (e.g., non-active time windows, sequence mismatches). This prevents server panics and noisy console trace dumps.
+- **`ConfirmationModal` Integration:** Fixed the `ConfirmationModal` layout so the `message` prop accurately renders beneath the title. Integrated it smoothly into `EventDetailModal` to catch graceful failure payloads.
+- **UX Excellence:** Enhanced the verification flow to strip raw internal error codes. Users now receive immediate, clear, user-friendly feedback when a condition check naturally fails (e.g., "Verification failed. Task hasn't started yet!").
