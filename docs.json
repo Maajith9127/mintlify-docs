@@ -126,6 +126,12 @@
                   "2026/february/day-27",
                   "2026/february/day-28"
                 ]
+              },
+              {
+                "group": "March",
+                "pages": [
+                  "2026/march/day-01"
+                ]
               }
             ]
           }

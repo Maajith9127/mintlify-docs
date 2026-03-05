@@ -1,6 +1,6 @@
 ---
 title: "February 28th, 2026"
-description: "Randomized continuous verification checkpoints, strict backend normalization, and dynamic scheduling over Android lockscreen."
+description: "Randomized continuous verification checkpoints, grace period UI, and dynamic pre-alarm parsing over Android lockscreen."
 ---
 
 # February 28th, 2026
@@ -14,25 +14,13 @@ We introduced the foundational schema and interface required to support continuo
 - **Backend Schema & Domain Types:** Expanded the core domain types and database schema to include a discrete `checkpoints` array within the condition object. This array tracks scheduled, randomized verification times, allowing the backend to challenge and validate a user's exact presence periodically throughout an active time block.
 - **Dynamic Frontend Settings:** The commitment configuration screen has been updated to fully support this new continuous verification style. The settings interface now features dynamic styling to clearly indicate disabled states contextually.
 - **Check-In Frequency Selector:** Integrated a new "Check-In Frequency" option into the setup flow. This UI component automatically reveals itself when a user selects the strict **Stay Throughout** verification mode, allowing them to intuitively configure exactly how many random verifications they wish to perform per hour.
-- **Default Payload:** Populated the `stay_throughout` default payload with "relaxed intensity" and `1` allowed miss out of the gate, providing a balanced initial user experience.
 
-### 2. 'Stay Throughout' Continuous Architecture
-We heavily refined the "Stay Throughout" continuous checking architecture to be robust and scalable:
-- **Root-Level Random Checkpoint Mapping:** Restored root-level random checkpoint generation mapping for continuous task verifications. We deliberately un-nested checkpoints from the Master Conditions, ensuring scalable 1:N checking for specific snapshots without causing runtime state collisions.
-- **Checkpoint Boundary Simplification:** Changed the `stay_throughout` checkpoint logic to strictly align start and end times exactly with the generated 5-minute chunk boundaries themselves. We removed confusing random sub-offsets and grace periods within these slices, drastically simplifying the verification logic by demanding a single check-in across that exact 5-minute slice.
-- **Timezone Fixes:** Resolved frustrating server-timezone optical illusion bugs where developers saw UTC outputs in localized timestamp strings. Fixed this by explicitly forcing `{ timeZone: 'Asia/Kolkata' }` on backend generators.
-- **Extensive Architectural Specs:** Added highly detailed, production-level architectural comments across `schema.ts` and `verify.ts`.
-
-### 3. Tally Tracking & UI Recovery
+### 2. Event Timer & Grace Period UI
 We brought deeper real-time visibility to strict configuration settings directly inside the Event Modal.
-- **Aggressive Client-Side Tracking:** Built aggressive client-side "missed tally" tracking. The UI now visually displays Green, Yellow, or Red indicators accurately derived from both explicit check-in failures and implicit window timeouts vs `allowedMisses`.
 - **Displaying Grace Periods:** The modal UI now prominently displays the configured Grace Period countdown natively within the live event timer.
 - **Early Expiration Status:** Handled logic to display an accurate, early expiration status. If a user exhausts their grace period before verifying, the UI reacts immediately to lock the state and show exactly why the attempt expired.
-- **Checkpoint UI Recovery:** Implemented persistent checkpoint UI recovery for continuous check-in bounds, ensuring users don't lose context after app refreshes.
 
-### 4. Native Dynamic Scheduler Parsing & Local DB
+### 3. Native Dynamic Scheduler Parsing
 Continuing our work on the native Android module, we bridged the frontend configurations seamlessly into the OS layer.
-- **Local SQLite Normalization:** Fully normalized the `task_instances` offline local database schema, directly baking in complete offline checkpoints tracking for disconnected states.
-- **Persistent Checkpoint Alarms:** Implemented persistent native checkpoint alarms so the Android OS wakes up exactly for continuous bounds check-ins.
 - **Dynamic Pre-Alarm Intervals:** Integrated dynamic config parsing directly into the native scheduler. Instead of hardcoded offsets, the Android AlarmManager natively reads the user's custom `preAlarm` interval settings from the deeply synced SQLite database.
 - **Media Routing Over Lockscreen:** Guaranteed that critical alarm media (ringtone/vibration) accurately routes over the Android lockscreen when triggered by the newly parsed custom intervals.

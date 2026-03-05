@@ -1,0 +1,28 @@
+---
+title: "March 1st, 2026"
+description: "Restored 'Stay Throughout' continuous verification architecture, simplified checkpoint boundaries, and normalized local database schema."
+---
+
+# March 1st, 2026
+
+**Continuous Verification Architecture & Local DB Normalization**
+
+Today's focus was on refining the continuous verification mechanics we introduced yesterday. We simplified the checkpoint boundaries for "Stay Throughout" tasks and fully normalized our local SQLite offline database.
+
+### 1. 'Stay Throughout' Continuous Verification Architecture
+We heavily refined the "Stay Throughout" continuous checking architecture to be robust and scalable:
+- **Root-Level Random Checkpoint Mapping:** Restored root-level random checkpoint generation mapping for continuous task verifications. We deliberately un-nested checkpoints from the Master Conditions, ensuring scalable 1:N checking for specific snapshots without causing runtime state collisions.
+- **Timezone Fixes:** Resolved frustrating server-timezone optical illusion bugs where developers saw UTC outputs in localized timestamp strings. Fixed this by explicitly forcing `{ timeZone: 'Asia/Kolkata' }` on backend generators.
+- **Tally Tracking:** Built aggressive client-side missed tally tracking. The UI now visually displays Green, Yellow, or Red indicators accurately derived from both explicit fails and implicit window timeouts vs `allowedMisses`.
+- **Extensive Architectural Specs:** Added highly detailed, production-level architectural comments across `schema.ts` and `verify.ts`.
+- **Default Payload:** Populated the `stay_throughout` default payload with "relaxed intensity" and `1` allowed miss out of the gate, providing a balanced initial user experience.
+
+### 2. Simplified Checkpoint Boundaries
+- **Strict Chunk Alignment:** Changed the `stay_throughout` checkpoint logic to strictly align start and end times exactly with the generated 5-minute chunk boundaries themselves. We removed confusing random sub-offsets and grace periods within these slices.
+- **Logic Simplification:** This drastically simplifies the random verification logic by demanding a single check-in across that exact entire 5-minute slice rather than dealing with micro-windows.
+
+### 3. Local DB Normalization & Native Scheduler UI Recovery
+We brought the finalized structures securely into the native storage layer.
+- **Offline Checkpoint Tracking:** Fully normalized the `task_instances` offline local database schema, directly baking in complete offline checkpoints tracking for disconnected states.
+- **Persistent Checkpoint Alarms:** Implemented persistent native checkpoint alarms so the Android OS wakes up exactly for continuous bounds check-ins.
+- **UI Recovery:** Implemented persistent checkpoint UI recovery for continuous check-in bounds, ensuring users don't lose context after app refreshes or background states.
