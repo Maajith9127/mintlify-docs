@@ -7,7 +7,7 @@ description: "Auto-promoting instance statuses, premium selection sheets, and de
 
 **Autonomous Instance Promotion & Premium UX Fidelity**
 
-Today's focus was bridging the gap between raw functional mechanics and a premium, cohesive user experience. We focused heavily on reactive state promotion, eliminating perceived latency, and bringing visual consistency to every corner of the verification UI.
+Today's focus was bridging the gap between raw functional mechanics and a premium, cohesive user experience. We focused heavily on reactive state promotion, eliminating perceived latency, and bringing visual consistency to every corner of the verification UI. Furthermore, we unified the configuration of verification styles and alarms across the entire stack.
 
 ### 1. Auto-Promoting Instance Statuses
 We drastically reduced the manual state overhead on the client by making the backend smarter and more autonomous.
@@ -31,3 +31,15 @@ The visual feedback language of the app was standardized to react directly to th
 We brought a deeply native, refined touch to the task creation workflows.
 - **Advanced Verification Menus:** Implemented advanced Verification and Alarm logic parameters inside the creation flow.
 - **`SelectionSheet` Integration:** Designed and implemented a custom `SelectionSheet` bottom-sheet UI component. This creates a deeply premium, frictionless interactive experience for selecting granular configuration options such as Grace Periods, substituting janky native OS dropdowns with smooth, sliding drawer interfaces.
+
+### 5. Unified Configuration Schema & Full-Stack Synchronization
+We established a strict, mandatory configuration system that perfectly synchronizes settings across Convex, SQLite, and the Android native alarm module.
+- **Backend Constraints:** Updated the `tasks` and `task_instances` tables to seamlessly include a nested `config` object. We defined a strict `validator` schema to mandate structural validation of verification styles and alarm settings at the database level.
+- **API Propagation:** Updated the `create` and `update` API mutations, synchronizing internal service logic to correctly propagate these configurations from parent tasks down to their generated instances.
+
+### 6. Instance-Specific Persistence & Developer Telemetry
+We supercharged the local device persistence and developer experience logic:
+- **SQLite Migrations & Config Persistence:** Bootstrapped the local SQLite `DATABASE_VERSION` to 6, introducing a `config_json` column into the `task_instances` table to explicitly mirror the backend truth. Rebuilt the SQLite migration chain to enforce sequential, non-skipping schema upgrades automatically.
+- **Sync Logic:** Updated `final.tsx` to take the backend-provided configuration snapshots and instantly persist them directly into the local SQLite instances during task creation routines.
+- **Developer Experience (DX):** Integrated a highly useful `wipeDb` utility tightly bound to a floating developer 🗑️ FAB in the root layout. This guarantees rapid, painless local state resets during debugging sessions.
+- **Instrumentation:** Hugely enhanced the debug inspector payload with pretty-printed JSON telemetry mapping exactly to the local SQLite task instances, and resolved overlapping FAB positioning for a cleaner debugging view.
