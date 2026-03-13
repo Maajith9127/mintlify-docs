@@ -1,0 +1,37 @@
+---
+title: "March 2nd, 2026"
+description: "Implemented the 'Temporal Brain' scheduling architecture, Triple-Write synchronization protocol, and interactive drag-to-edit calendar capabilities."
+---
+
+# March 2nd, 2026
+
+**Resilient 'Temporal Brain' Scheduling & Interactive Interaction**
+
+Today was a major architectural milestone. We successfully shifted our task execution system from a brittle, linked-list "Relay Race" pattern to a centralized, idempotent "Temporal Brain" architecture. This overhaul, combined with the new "Triple-Write" protocol, ensures that our task scheduling remains rock-solid across cloud, local cache, and hardware alarms.
+
+### 1. 'Temporal Brain' Scheduling Architecture
+We refactored the core task execution system to be significantly more resilient and self-healing:
+- **Centralized Scheduler:** Implemented `syncTaskSchedule(taskId)` as the single source of truth for all verification alarms.
+- **Self-Healing Mutations:** Updated Task Create/Update mutations to trigger automatic schedule resets, ensuring all edits (time shifts or recurrence changes) are immediately reflected in pending alarms.
+- **Decoupled Verification:** Removed hardcoded `next_instance_id` chaining. The system now dynamically calculates the next point in time after every check-in, allowing for stateless and derived scheduling directly from database records.
+- **Watchdog Sync:** Added a background Cron job that "heals" any orphaned tasks missing active alarms every hour.
+
+### 2. Interactive Calendar & 'Drag-to-Edit'
+We transformed the Schedules screen into a highly interactive, performance-oriented interface:
+- **High-Performance Dragging:** Enabled dragging in `@howljs/calendar-kit` with 15-minute increments to maintain grid alignment.
+- **Validation Lifecycle:** Introduced a dedicated confirmation layer (`dragConfirm` state) that captures gestures and presents proposed temporal snapshots before committing changes.
+- **Persistent Selection Mode:** Implemented friction-based 'Long Press' to activate event selection handles, which persist until a background tap or commit occurs.
+
+### 3. 'Triple-Write' Synchronization Protocol
+To ensure hardware-level alignment, we established an atomic synchronization lifecycle:
+- **Atomic Operations:** Every event update now follows a strict path: Authoritative Cloud mutation (Convex) -> Local instance synchronization (SQLite) -> Hardware trigger refresh (Native Alarms).
+- **Zero-Stale Data:** Implemented the "Search-Clobber-Spawn" pattern in our local-db repositories to ensure local storage always mirrors the cloud state.
+
+### 4. Backend Modularization & Localization
+- **Rule Decoupling:** Extracted standalone verification rules for 'Stay Throughout' and 'Just Show Up' tasks, separating business logic from persistence.
+- **Centralized Formatters:** Unified all date/time formatting in `convex/lib/formatters.ts` to ensure consistent **IST (Asia/Kolkata)** localization across the entire system.
+- **Conflict Feedback:** Enhanced the UI confirmation modal to provide descriptive conflict feedback, including overlapping event titles and time slots.
+
+### 5. Dev Environment & Tooling
+- **ADB Version Sync:** Resolved "Uncaught TypeError" and hangs by prioritizing modern Android SDK platform-tools in `.bashrc`.
+- **Connection Diagnostics:** Overhauled `connect-phone.ps1` with smarter device sharing (usbipd) and diagnostic coloring for reliable physical device debugging.
