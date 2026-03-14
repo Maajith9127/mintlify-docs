@@ -1,0 +1,44 @@
+---
+title: "March 4th, 2026"
+description: "Refined the Schedules headers, standardized layout components, implemented 'Persistent Selection Mode', and integrated the 'Triple-Write' sync protocol."
+---
+
+# March 4th, 2026
+
+**UI Standardization, Calendar Selection Limits, and Deep Syncing**
+
+Today was characterized by visual polish, fixing the calendar interaction model, and ensuring our hardware alarms and cloud data never fall out of sync.
+
+### 1. Refined Premium Header Aesthetics
+Building on the changes made to the header yesterday, we refined dimensions to create a perfectly balanced Google Calendar-style navbar:
+- **Consistent Scaling:** Standardized `HEADER_ICON_SIZE` to 32px globally across Hamburger, Search, Today, and Avatar icons for consistent visual weight.
+- **Calendar Density Tweaks:** Reduced the multi-day Schedules view to a 3-day (`numberOfDays: 3`) format to make event details easier to read on narrow screens.
+- **Time Axis Polish:** Narrowed the Time marker axis (Y-axis constraints) in the calendar container and increased text prominence by removing opacities.
+
+### 2. Multi-Stage Selection and Triple-Write Protocol
+The core calendar interaction model was refactored significantly to implement safety friction and 3-way synchronization:
+- **Long-Press Protection:** Accidental temporal mutations are prevented by requiring "Long Press" to trigger event selection handles. Handles persist visually until an explicit commit or background tap.
+- **Unified Callbacks:** Merged drag-and-drop operations and resize interactions under a unified `onDragSelectedEventEnd` callback that actively normalizes temporal limits and timestamps.
+- **The 'Triple-Write' Protocol:** We introduced an atomic execution lifecycle via `executeEventUpdate` that guarantees no single layer is ever stale:
+    1.  **Cloud State:** Authoritative mutation execution in Convex.
+    2.  **Local Cache:** Real-time SQLite storage synchronization for fast offline reads.
+    3.  **Hardware Alignment:** Immediate `scheduleNextAlarm` Native Alarm triggering to reset physical OS signals instantly on mobile devices.
+
+### 3. Multi-Stage Deletion Management
+We addressed a pernicious bug ("Phantom Alarms") involving ghost notifications and orphaned hardware triggers.
+- **'Three-Point Consistency' Deletion:** Implemented a new deletion workflow mirroring the Triple-Write updates:
+    - CLOUD: Force standard cleanup in Convex using `.delete`.
+    - CACHE: Add SQLite caching cleanup utilizing `deleteInstance` inside `useTaskActions`.
+    - HARDWARE: Trigger immediate physical Native Alarm refresh.
+- **Event Options Refinement:** Polished the three-dot action menu in the `EventDetailModal` for intuitive "Delete" and "Duplicate" operations.
+
+### 4. Asynchronous Operational Feedback
+Transactions now visually "hold" the user perfectly until they're confirmed, removing the "frozen app" confusion gap:
+- **Global Loading Architecture:** Integrated `isLoading` props across all UI confirmations, swapping modals to high-performance `<ActivityIndicator>` animations to prevent layout shifts.
+- **Thread Safety:** Implemented strict button-disabling policies when asynchronous commits fire, directly preventing destructive double-submission race conditions in SQLite.
+
+### 5. Penalty Component Extensions & Gallery UX
+Work on the "Embarrassing Photo" penalty component was finalized:
+- **Native Gallery Fixes:** Upgraded `expo-image-picker` with the host Expo SDK to squash `NoSuchMethodError` crashes.
+- **Navigational Snap:** Set sub-screen navigation to an optimized 150ms `slide_from_right` transition specifically for the `(penalties)` route group.
+- **Digital Forfeit Options:** Re-tooled the Commit Direct channels and integrated 'Email Preview' components to perfectly resemble Gmail or modern Twitter/X card style previews.

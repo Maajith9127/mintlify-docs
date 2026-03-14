@@ -1,0 +1,39 @@
+---
+title: "March 3rd, 2026"
+description: "Refined the Schedules header to premium standards, implemented exception-aware recurrence, and launched the 'Digital Forfeit' (Embarrassing Photo) penalty flow."
+---
+
+# March 3rd, 2026
+
+**Premium Navigation, Recurrence Sovereignty, and Penalties**
+
+Today's focus was on elevating the user experience to "premium calendar" standards and deep-diving into the accountability engine with the new "Digital Forfeit" system.
+
+### 1. Premium Calendar Header & Layout
+We overhauled the Schedules navigation to match the high-density, functional aesthetic of Google Calendar:
+- **Dynamic Header:** Replaced static strings with a dynamic "Month-only" title (e.g., "March") featuring a chevron toggle for DatePicker interaction.
+- **Icon Standardization:** Unified all header actions (Hamburger, Search, Today) to a sharp **32px** size, perfectly synchronized with the bottom TabBar design system.
+- **Visual Density:** Adjusted the multi-day view to `numberOfDays: 3` and narrowed the time-marker axis to 17% width for a more focused layout.
+- **Dynamic Avatar:** Integrated a prominent session-aware user avatar with intelligent fallback to initials.
+
+### 2. Exception-Aware Recurrence Engine
+We solved the "Stale Template" problem by introducing an **Exception Pattern** for habit instances:
+- **Manual Event Protection:** Introduced the `is_manual_edit` flag. User edits (like moving a 6am Gym session to 5pm) are now "cemented" and protected from being overwritten by automated template updates.
+- **Collision Detection:** The `generateSeries` engine now performs O(1) checks against manual exceptions, ensuring automated slots never clash with user-customized events.
+- **Visual Feedback:** Added a high-vibrancy **'EDITED'** label in the schedules view to distinguish manual commitments from automated ones.
+
+### 3. Multi-Stage Instance Management
+We implemented a robust "Three-Point Consistency" workflow for managing individual task instances:
+- **Delete & Duplicate:** Added a functional options menu to the `EventDetailModal`. Deletion now triggers a surgical cleanup across Cloud (Convex), Cache (SQLite), and Hardware (Native Alarms).
+- **Phantom Alarm Fix:** Standardized the deletion sequence to eliminate "Ghost Notifications" by calculating future alarms only after the local and cloud state are fully cleared.
+
+### 4. Digital Forfeits (Embarrassing Photo Penalty)
+The accountability system now has concrete digital consequences:
+- **Media Integration:** Built the `EmbarrassingPhotoScreen` with native gallery access via `expo-image-picker`.
+- **Square Aspect Lock:** Forced 1:1 editing to maintain UI consistency within modern circular card layouts.
+- **Email Preview:** Created a Gmail-style header and X/Post-style inline image preview for users to see exactly what will be sent if they fail.
+- **Waiver Flow:** Refactored the penalty waiver selection into a dedicated page-based flow with premium `slide_from_right` animations.
+
+### 5. Interaction & Feedback Polish
+- **Loading Architecture:** Integrated high-fidelity loading states across all critical workflows. The `ConfirmationModal` now features an `ActivityIndicator` to eliminate the "app freeze" perception during heavy Triple-Write transactions.
+- **Haptic Intent:** Implemented friction-based selection to prevent accidental shifts. Handles now persist until a background tap is detected.
