@@ -1,0 +1,39 @@
+---
+title: "March 7th, 2026"
+description: "Implemented advanced native observability, surgical task deletion enhancements, server-authoritative event logic, and dynamic waiver synchronization."
+---
+
+# March 7th, 2026
+
+**Native Observability, Server-Authoritative Logic, and Navigation Refinement**
+
+Today was a marathon session focused on stabilizing the core scheduling engine, shifting logic to the server for a thinner client, and standardizing the UI architecture across the entire app.
+
+### 1. Surgical Deletion & Native Observability
+We hardened our scheduling and hardware triggering systems:
+- **Deletion Resilience:** Refactored both SQLite and Convex backend logic to preserve `is_manual_edit` instances. Scheduled events now survive the deletion of their parent task series.
+- **Production-Grade Telemetry:** Integrated granular ADB logging across structural Android modules:
+  - `AlarmScheduler`: Tracing DB paths, trigger mathematics, and "Sticky Note" (DE Storage) synchronization.
+  - `AlarmReceiver`: Tracking hardware drift and raw intent telemetry to monitor wake-up latency.
+  - `AlarmActivity`: Validating audio resources and vibration initialization to diagnose missing signals.
+- **Ghost Instance Resolution:** Closed the data loss gap causing "Ghost Instances" by ensuring complete metadata logging during the JS-to-Native bridge delegation lifecycle.
+
+### 2. Server-Authoritative 'Next Event' Logic
+We fundamentally changed how the app discovers upcoming tasks, making the client lighter and perfectly synced:
+- **Index-Based Lookups:** The backend now relies on an optimized `next` query using database indices, making event discovery instantaneous.
+- **Direct Subscriptions:** Refactored the `useUpcomingVerification` hook to subscribe directly to the server pointer instead of calculating it locally.
+- **Removed Limits:** Eliminated the hardcoded 7-day horizon limits and removed the 30-second heartbeat interval, leaving the "Definition of Next" completely up to the server.
+
+### 3. Waiver Synchronization & Dynamic Previews
+The accountability UI is now entirely reactive and synchronized across the app state:
+- **Global State:** Plumbed `useWaiverSync` and `TaskDraftStore` to manage `penalty_waiver` state centrally.
+- **Dynamic Previews:** The Final Screen now actively maps and displays icons and specific text for any selected waiver (e.g., "Solve 20 high noise captchas..."), instead of using static placeholders.
+- **Conditional Highlighting:** Enforcement cards now dynamically exhibit visual "Glow" states only when active, creating high-contrast `danger/success` visual verification.
+- **Penalty-Waiver Coupling:** Enforced strict logic that mandates penalties and waivers must either be completely coupled or completely empty, preventing invalid database records.
+
+### 4. UI Architecture: ActionScreenLayout
+To bring a premium, consistent feel to the entire app, we standardized layout topologies:
+- **Global Layout Wrapper:** Created `ActionScreenLayout`, a standard component enforcing a 16px horizontal constraint and fixed footers for setup screens.
+- **Screen Unification:** Migrated every screen across the creation flow (`final`, `penaltywaivers`, `setup`, `penalties`, `embarrassing-photo`, `email-setup`) to this new topology.
+- **Performance Adjustments:** Removed the `Modal` based visual transitions for penalty workflows, opting for custom `200ms slide-from-right` stack animations, allowing for unhindered keyboard inputs and snappier navigations.
+- **Navigation Guarding:** Implemented a strong `beforeRemove` interceptor on the Photo setup flow to explicitly wipe discarded configurations and protect against accidental partial data.
