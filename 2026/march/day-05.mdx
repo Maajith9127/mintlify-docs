@@ -1,33 +1,16 @@
 ---
-title: "March 5th & 6th, 2026"
-description: "Architected end-to-end penalty integration, deferred uploads, SQLite migrations for offline waivers, and surgically distinct instance deletion."
+title: "March 5th, 2026"
+description: "Architected end-to-end penalty integration and deferred uploads for the accountability contract pipeline."
 ---
 
-# March 5th & 6th, 2026
+# March 5th, 2026
 
-**The Accountability Contract Pipeline & Surgical Deletion**
+**The Accountability Contract Pipeline**
 
-Over these two days, we established the complete end-to-end pipeline bridging the native frontend draft state with Convex Storage and the backend service layer, finally bringing the full "Accountability Contract" to life.
+Today focused on establishing the core architecture for the Accountability Contract, specifically bridging the frontend draft state with Convex Storage and the backend service layer.
 
 ### 1. Penalty Architecture & Deferred Uploads
 We implemented a robust, bandwidth-saving strategy for media uploads:
 - **Deferred Asset Upload:** Added middleware in the `useCommitTask` orchestrator. Photo assets are kept locally as `file://` URIs during the configuration process to avoid wasting bandwidth. Upload to Convex Storage is triggered *only* upon the final "Commit" button press.
 - **Stateless UI / Stateful Backend:** Zustand now tracks a standard `photoUrl`. Upon submission, our interceptor swaps local URIs for permanent `storageId` references, allowing the backend to synchronously resolve HTTPS URLs.
 - **Centralized File Registry:** Integrated `api.files.record` into the pipeline so all penalty assets are registered with a `penalty_photo` tag, enabling safe garbage collection and ownership tracking.
-
-### 2. Penalty Waiver Capabilities
-We expanded the "escape hatch" mechanisms for commitments:
-- **Waiver Options:** Implemented waiver deadlines configurations (5h, 10h, 24h, 2d).
-- **Early Waivers:** Added an "Allow Early Waiver" toggle, permitting users to attempt the assigned "survival challenge" (e.g., CAPTCHA) prior to actually failing the commitment.
-- **Schema Parity:** Synchronized the `TaskDraft` store to match the backend `PenaltyWaiverSchema`, standardizing discriminators (`captcha` | `paragraph`).
-
-### 3. Comprehensive SQLite Synchronization
-We pushed the accountability data down into the local cache to ensure offline resilience and accurate native scheduler calculations:
-- **Migration 7 -> 8:** Added `penalty_json` and `conditions_json` columns to the local SQLite database. Wrapped legacy schema mutations in try-catches to squash "duplicate column" bugs on fresh installs.
-- **1:1 Parity:** The local repository now faithfully mirrors Convex penalty snapshots, guaranteeing the app knows the exact consequences even offline.
-
-### 4. Surgical Task Deletion (The "Orphan" Instance)
-We refined how task series are deleted to protect user history and completed habits:
-- **Migration 8 -> 9/10:** Synced `is_manual_edit`, `strict_until`, and `strict_duration_days` flags to local storage.
-- **Targeted Removal:** Refactored the `deleteTask` logic. We now use a temporary Foreign Key bypass (`PRAGMA foreign_keys = OFF`) to destroy the parent task definition while *orphaning and preserving* any manually edited/completed instances underneath it. 
-- **DB Debug UI:** Built specific visual treatments in our internal DB Inspector to detect and display these "Preserved Instances" accurately.
