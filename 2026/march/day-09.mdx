@@ -1,0 +1,30 @@
+---
+title: "March 9th, 2026"
+description: "Overhauled CAPTCHA waiver UX with persistent keyboard strategies, optimized input stability, and refined visual feedback for waived instances."
+---
+
+# March 9th, 2026
+
+**High-Performance CAPTCHA UX & Input Stability**
+
+Today was dedicated to refining the user experience in the most stressful part of the app: solving a CAPTCHA penalty waiver under a strict time limit. We ensured the keyboard and input mechanisms are completely rock-solid.
+
+### 1. CAPTCHA UX & Persistent Keyboard Strategy
+We engineered the CAPTCHA flow to allow "rapid-fire" solutions without the OS getting in the way:
+- **Focus Lock Strategy:** Converted the main view to a `ScrollView` with `keyboardShouldPersistTaps="always"` and disabled `blurOnSubmit`. The keyboard now actively re-asserts focus after every submission, meaning users never have to tap the text box repeatedly.
+- **In-Page Error Dialogs:** Replaced OS-level Native Modals with absolute in-page overlays for error messages. This guarantees the keyboard won't be force-dismissed when a user types an incorrect solution.
+- **Responsive SVG Renderer:** Built a custom SVGR renderer for the CAPTCHA puzzle that dynamically scales to fit its container using `onLayout` measurements, keeping the numbers readable on any screen size.
+
+### 2. Keyboard Ergonomics & Input Stability
+We eliminated visual jitter from the input mechanisms:
+- **Unified ForwardRef Input:** Standardized the `Input` component with `forwardRef` to allow programmable focus management directly from the parent view.
+- **Fixed Height Containers:** Set the input bar to a strictly fixed height (`h-14`), totally eliminating layout jumps and flickering while typing rapidly.
+- **Vertical Gap Offset:** Designed a 12px visual gap (translateY animation) above the software keyboard, ensuring the submit bar feels ergonomically correct and never clashes with the system UI bounding boxes.
+- **Persistent Submit Arrow:** The send arrow now stays constantly visible (at 30% disabled opacity when empty), maintaining a consistent target for users.
+
+### 3. Persistence & System Polishing
+We ensured the backend handles edge-cases for tasks updated after creation:
+- **Contract Hydration fixed:** Fixed a packing bug in `useCommitTask` where the penalty parameters were dropped during an "Update" edit.
+- **Photo URL Resolution:** Re-implemented the `photoUrl` resolution so tasks with "Embarrassing Photo" snapshotted instances automatically generate valid public image links after modifying the schedule.
+- **WAIVED OFF State:** The `EventDetailHeader` now explicitly displays a green "WAIVED OFF" theme when a task instance's obligations have been successfully bypassed via a challenge.
+- **Relative Duration Utility:** Built the `formatRelativeDuration` utility to generate intelligent, magnitude-based timestamps (days/hrs vs mins/secs) for upcoming waiver deadlines.

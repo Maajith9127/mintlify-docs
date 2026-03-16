@@ -1,0 +1,34 @@
+---
+title: "March 10th, 2026"
+description: "Architected 'The Steel Vault' Strict Mode, global Zustand Optivault syncing, and immersive configuration layouts."
+---
+
+# March 10th, 2026
+
+**'The Steel Vault' Strict Mode & Global Store Sync**
+
+Today marked the introduction of "Strict Mode" (a locking mechanism for user commitments), a dedicated configuration workflow, and a massive migration to a synchronized Zustand global state for zero-latency screen transitions.
+
+### 1. End-To-End Strict Mode Enforcement
+We implemented "The Steel Vault," an absolute lockdown on a task instance that prevents editing, cheating, or deleting:
+- **Immutable Locks:** Added the `strict_until` timestamp to task instances.
+- **Backend Vault:** Core update, delete, and cleanup mutations will now hard-reject modifications if the task is actively locked.
+- **Collision Restorations:** Enhanced the automated `generateSeries` runner to track Manual Exceptions and perform global collision checks against existing manual locks, so system templates never overwrite a locked slot.
+- **Lock Consequence API:** Shifted our API to return structured errors for violating locked states, routing this feedback cleanly to the UI for explanation rather than noisy crashes.
+
+### 2. Immersive Strict Mode Configuration
+Built a dedicated sequence to allow users to legally lock their tasks:
+- **Dedicated Flow:** Created the `(strict-mode)` routing group using the new `ActionScreenLayout`. It triggers smoothly from the Event options menu.
+- **Selection Mechanics:** The `StrictModeSetup` screen offers 1-Day and 2-Day quick shortcuts, paired alongside a Custom `SelectionSheet` for granular, long-term vaulting.
+- **Visual Branding:** The vault mechanism strongly relies on primary blue (`#4FA0FF`), separating it visually from the punitive red penalty UI. `StrictModeBanner` rows inside `EventDetailModal` now utilize this "VAULT ACTIVE" styling.
+
+### 3. 'Optivault' Zustand Store Sync
+We eliminated the annoying "loading skeleton" flash when jumping between editing screens:
+- **`useTaskStore` Global Cache:** We architected an internal Zustand store to cache all "Live" tasks in memory.
+- **Auto-Hydration:** The `useTasks` hook now subscribes to Convex and continuously force-feeds the new truth into our global store.
+- **Instant Rendering:** Configuration screens (`StrictModeSetup`, etc.) now directly query Zustand synchronously, drawing 60FPS UI changes instantly.
+
+### 4. Navigation & Layout Refinements
+- **Pop-Down Bug Fix:** Fixed a UI glitch in the native SQLite component where failed server-side lock requests still flashed as "Success" locally. SQLite now awaits true backend confirmation.
+- **Stack Navigation Fixes:** Reworked back-gesture logic; screens are completely unmounted with `router.back()` to prevent infinite loops and massive navigation stack bloating during task setup iterations.
+- **Unified Info Cards:** Standardized the Event Detail layout, harmonizing the Penalty and Waiver displays by refactoring them to use the robust `ConditionCard` base component.
