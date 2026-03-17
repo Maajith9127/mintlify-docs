@@ -1,0 +1,25 @@
+---
+title: "March 12th, 2026"
+description: "Refined the Embarrassing Photo email template, refactored backend penalty execution, and optimized AlarmActivity logging."
+---
+
+# March 12th, 2026
+
+**Penalty Refinement & Execution Servicing**
+
+Today we focused heavily on smoothing out the delivery and logging mechanisms for the penalty system, preparing for reliable backend execution.
+
+### 1. 'Embarrassing Photo' Email Refinements
+We overhauled the payload delivery for the visual forfeit system:
+- **Anti-Spam Deliverability:** Refined the `embarrassing_photo` email template to significantly decrease the chances of it triggering spam filters.
+- **Premium Styling:** Upgraded the visual aesthetics of the email itself to match the premium "CommitT" brand standard, so even a penalty email looks highly professional.
+
+### 2. Penalty Execution Refactoring & Brevo Integration
+We fundamentally re-architected how the backend handles executing penalties:
+- **Mutation/Action Parity:** Refactored the core penalty worker logic from a single function into a Mutation/Action pair. This was explicitly done to support Node's `fetch` API directly within Convex actions, which is required for reliable integration with the **Brevo API** (our transactional email provider).
+- **Background `getInstance` Query:** Added an internal `getInstance` query specifically to allow these new background Action tasks to securely access and verify commitment data mid-flight.
+
+### 3. Alarm Diagnostics & Maintenance
+We continued to track down edge-cases in the native scheduler:
+- **"Zombie Dismissals":** Optimized the `AlarmActivity` hardware logging to help diagnose an edge-case where confirmed native alarms successfully fire, but are being automatically dismissed by the Android OS in under 6 seconds.
+- **Codebase Janitoring:** Cleaned up a minor `vimport` typo in `worker.ts` and updated test overrides for the waivers system to keep the pipeline green.
