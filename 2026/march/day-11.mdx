@@ -1,0 +1,33 @@
+---
+title: "March 11th, 2026"
+description: "Implemented Single Accountability Identity, backend enforcement, and reactive photo URL recovery."
+---
+
+# March 11th, 2026
+
+**Accountability Identity, Strict Mode Extensions & Penalty Pre-fills**
+
+Today we unified the Accountability pipeline. We implemented a system that "learns" a user's preferred consequence and automatically prefills it for future commitments, drastically reducing the friction of task creation. We also extended the strict lock mechanisms.
+
+### 1. Single Accountability Identity
+We established a rule where a user's chosen `penalty` + `waiver` combination acts as their unique "Accountability Identity" within the app:
+- **Auto-Learning Profile:** The Convex backend now learns this identity during any task creation or update.
+- **Zero-Friction Setup:** We implemented a background worker that pre-fills new task drafts with the user's latest identity. Users no longer have to manually set up a penalty and waiver for every new habit.
+- **Coupled Accountability Rule:** We strictly enforced the "Two-way Street" validation on both the frontend and backend: a task must have *both* a penalty and a waiver, or *neither*. The `updateInternal` service correctly merges `null` signals to wipe an identity if the user chooses.
+
+### 2. Reactive Photo Recovery
+We resolved issues with the "Embarrassing Photo" URLs expiring or failing to load:
+- **`useFreshPhotoUrl` Hook:** Created a reactive, self-healing hook that ensures image previews across the app are always valid.
+- **On-Demand Resolution:** Added the `getTempUrl` Convex query to generate fresh, signed URLs on the fly from stored `storageId` references.
+- **Server Priority:** We now strictly prioritize server-refreshed URLs over stale local state, cleaning up broken thumbnail previews.
+
+### 3. Strict Mode Extensions & Sovereign Execution
+We deepened the "Steel Vault" locking mechanic and offline verification reliability:
+- **Vault Extensions:** Users can now extend the duration of an active "Steel Vault" lock directly from the UI.
+- **SQL Migration 10:** Added `strict_until`, `strict_duration_days`, and `penalty_waiver_json` to local SQLite. This offline parity ensures that even without an internet connection, the Android hardware scheduler enforces the lock.
+- **Sovereign Orphanhood (Revisited):** We further secured the verification runner. Locked instances now inherit the `is_manual_edit` flag, guaranteeing that active vaults are immune to generic rescheduling purges or parent-task deletion.
+- **Corruption Diagnostics:** Hardened the local DB migration engine with atomic versioning to safely handle storage resets without breaking the native schedulers.
+
+### 4. UX and Loop Fixing
+- **"Loop of Doom" Fixed:** We solved the frustrating "Bounce Back" bug. Explicitly clearing a Penalty in the UI now intentionally sets the draft to `null` (Manual Override), preventing the background `useAccountabilityPrefill` hook from erroneously instantly re-filling it.
+- **Streamlined Navigation:** Removed redundant confirmation modals and navigation interceptors from the Embarrassing Photo screen to combat dialog fatigue.
