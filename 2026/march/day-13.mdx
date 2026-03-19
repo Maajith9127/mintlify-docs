@@ -1,0 +1,35 @@
+---
+title: "March 13th, 2026"
+description: "Surgical Heartbeat Scheduling, Telemetry-First Grading Engine, and Identity optimizations."
+---
+
+# March 13th, 2026
+
+**The Heart-First Shift & Telemetry-First Grading**
+
+Today was a watershed moment. We definitively shifted from an inherently fragile state-based processing engine to the hyper-resilient "Heart-First" and "Telemetry-First" validation standards you see today in CommitT.
+
+### 1. Surgical Heartbeat & The "Heart-First" Shift
+We definitively solved the core "Stalling" bug (where a failing task wouldn't schedule its next iteration).
+- **Heart-First Execution:** Rewrote the `runVerification` logic. Instead of scheduling the *next* occurrence at the bottom of the execution script (which risks failing during penalty setup), we now instantly execute `syncTaskSchedule(ctx, taskId, true)` at the very beginning of the verification tick. We secure the future before evaluating the present.
+- **Surgical Future-Strict Discovery:** Re-architected the `syncTaskSchedule` discovery query. By indexing on `by_task_end` and forcing `gt("end", now)`, we built a temporal firewall. The system only strictly looks into the *future*, avoiding getting stuck in a feedback loop with the currently executing instance.
+- **Idempotency Overrides:** The "Stale Time Stall" issue (dragging a 10am appointment to 11am but the 10am alarm remains) is fixed by defaulting a `force` flag to true on every time shift edit, aggressively replacing old job IDs.
+- **Surgical Cleanup:** The nuclear "wipe everything" cleanup inside the scheduler was creating a self-canceling race condition. We now solely perform surgical cleanup on stray future jobs that exist *beyond* the next scheduled heartbeat.
+
+### 2. Sovereign Grading Engine (Telemetry-First Validation)
+Previously, the waiver and verification loops relied blindly on the root-level `status` field, which caused racing conflicts (`waiver_active` vs `proceeded`, etc.).
+- **Telemetry-First:** Extracted grading entirely into a decoupled `evaluateGradingVerdict()` rules engine.
+- **Style-Aware Logistics:** The engine now deeply analyzes the `checkpoints` DB telemetry directly.
+  - *Stay Throughout*: Dynamically counts missing check-in windows versus the `max_missed_checkins` logic.
+  - *Just Show Up*: Evaluates logic looking for a terminal `verified` check-in during the single window.
+- **Waiver Guards:** `startSession` now uses this telemetry engine as a guard to block "Waiver Sniping." Users can no longer pre-emptively start a waiver for a task they have actually satisfied via their physical telemetry but hasn't finalized processing.
+- **Graceful Rejection:** Replaced server-side thrown exceptions with clean, structured `{ success: false }` outputs, giving users clean frontend UI explanations via `EventDetailModal`.
+
+### 3. Permissions Dashboard & Identity Rotation
+- **Hardware Dashboard:** Overhauled the Profile page into a high-fidelity "System Manifest" dashboard featuring live `usePermissions` probes for OS and hardware authorization status (GPS, Camera, Notifications).
+- **SSO Identity Culling:** Created a deep `handleSignOut` conduit that purges not just app variables, but Google SSO hardware tokens, fully supporting true device identity rotation on shared Gmail structures. 
+- **GoogleSignin Sync:** Migrated the `GoogleSignin` configuration to the root `_layout.tsx` to stop "apiClient is null" race conditions during session persistence.
+
+### 4. Setup Enhancements
+- **Strict Time Editing:** The `time-set.tsx` modal now features `editingSlotIndex` logic and a `pendingTimes` validation cache. This enables direct manipulation editing of existing time windows without suffering UI resets during error loops.
+- **Portrait Lock:** Locked exactly to 'portrait' mode inside `app.config.js` to stabilize the heavy layout grids, forcing a horizontal tilt prohibition.
