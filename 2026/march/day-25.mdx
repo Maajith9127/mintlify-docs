@@ -1,35 +1,37 @@
 ---
 title: "March 25th, 2026"
-description: "Engineered Native App Listing, optimized skeleton loading, and integrated blocklist configuration into the Task Store."
+description: "Mission-Critical Enforcer (M.C.A.E.) Deployment: Direct-to-Vault enforcement, Anti-Tamper protocols, and high-fidelity Blocklist UI."
 ---
 
 # March 25th, 2026
 
-**Digital Commitment: Native App Listing & Blocklist Integration**
+**The Great Enforcer: Native Blocking & Triple-Write Sync**
 
-Today marks a major step in the "Digital Commitment" feature. We bridged the gap between React Native and the Android hardware layer to allow users to select actual installed applications for their blocklist.
+Today was a marathon session focused on building the most resilient app-blocking engine possible on Android. We moved beyond simple UI toggles and implemented a mission-critical enforcement layer that bridges SQLite, Native Kotlin, and React Native.
 
-### 1. Native App Lister (Kotlin/Android)
-We implemented a custom native module, `AppListerModule`, to handle the heavy lifting of enumerating device applications:
-- **PackageManager Integration:** Built a Kotlin bridge to query the Android `PackageManager` for user-launchable applications.
-- **Smart Filtering:** Implemented filtering via `getLaunchIntentForPackage()` to exclude background services and system daemons, ensuring only "consumer" apps (like Instagram, YouTube, etc.) appear in the list.
-- **High-Fidelity Icon Extraction:** Developed a robust icon extraction pipeline supporting `BitmapDrawable`, `AdaptiveIconDrawable`, and `VectorDrawable`.
-- **Memory Safety:** Optimized for performance by explicitly recycling intermediate Bitmaps and Canvas allocations, preventing native heap leaks when processing large numbers of applications.
+### 1. Mission-Critical Accessibility Enforcer (M.C.A.E.)
+We re-engineered our blocking service into a professional-grade enforcement engine:
+- **Direct-to-Vault Enforcement:** To achieve sub-5ms latency, the `BlockerAccessibilityService` now queries the SQLite database directly from the Android UI thread's event loop, bypassing the React Native bridge entirely. This prevents users from "gaming" the blocker via rapid app-swiping.
+- **Protocol A (Anti-Tamper Shield):** Implemented a real-time UI inspection engine that intercepts long-presses on the CommitT icon. This prevents users from accessing "Uninstall" or "App Info" menus during active commitment windows.
+- **Protocol B (Violation Neutralization):** Automated interception of system-level uninstaller packages (e.g., `com.android.packageinstaller`) to ensure the app cannot be removed while a commitment is active.
+- **BlockerOverlayActivity:** Launched a high-performance, pure-Kotlin overlay UI that neutralizes unauthorized apps with a professional CommitT terracotta theme. It bypassing the Android keyguard to ensure deterministic blocking.
 
-### 2. High-Performance Loading (Skeletons)
-To keep the UI feeling premium while the native bridge processes icon data (which can take 1–3 seconds), we implemented a hardware-accelerated loading experience:
-- **AppCardSkeleton:** Created a skeleton component that perfectly mirrors the `SelectableListItem` layout, preventing annoying layout shifts.
-- **Hardware-Accelerated Pulse:** Refactored the skeleton animation to use a high-performance opacity pulse instead of a horizontal slide, significantly reducing frame drops on Android.
-- **`onLayout` Elimination:** Removed complex layout calculations from skeleton instances to maintain a smooth 60FPS list experience during initial loading.
+### 2. Triple-Write Sync & SQLite Architecture
+We implemented a robust data persistence layer to support the hardware enforcer:
+- **SQLite Migrations (v10 & v11):** Established dedicated `blocked_apps` and `blocked_websites` tables for high-performance relational queries.
+- **Relational Projection:** The local repository now "projects" complex JSON conditions into these flat relational tables during the sync process.
+- **Multi-Path Resolution:** Added logic to resolve the SQLite vault path across various Android variants (Expo default vs. Standard vs. Absolute), ensuring the enforcer always finds the "Source of Truth."
+- **Atomic Synchronization:** Guaranteed atomicity across Convex Cloud, the SQLite local cache, and the Android hardware scheduler.
 
-### 3. Blocklist Store Integration
-We unified the blocklist UI with the core application state:
-- **`TaskDraftStore` Extension:** Implemented `setBlocklist` within our global Zustand store to handle the `digital_commitment` metric key.
-- **Real-Time Sync:** Wired `choose.tsx` to handle real-time store updates. Selections are now persisted instantly to the habit draft.
-- **Module-Level Caching:** Implemented session-level caching for native app metadata. This prevents redundant native bridge calls and ensures the loading shimmer only appears once per session.
-- **Schema Standardization:** Adopted a standardized digital commitment schema where `metric_key: "digital_commitment"` maps to an array of packages and website URLs.
+### 3. UI Optimization & 60FPS Fluidity
+To maintain a premium feel despite the heavy native operations, we implemented several performance upgrades:
+- **InteractionManager Deferral:** Wrapped heavy rendering logic in `InteractionManager.runAfterInteractions` to ensure 60FPS navigation transitions.
+- **Virtualized Listing:** Refactored the application selection list to use a virtualized `FlatList` for buttery-smooth scrolling through 300+ apps.
+- **Horizontal Skeleton Shimmers:** Added premium horizontal skeletons to the `DigitalCommitItem` to ensure zero-snap loading states on the Final Summary screen.
+- **Gesture Conflict Resolution:** Decoupled navigation triggers from scrollable items, allowing users to swipe through blocked apps without accidentally triggering a screen transition.
 
-### 4. UI Refinement: ActionScreenLayout
-- **Unification:** Wrapped the blocklist selection screen with our standardized `ActionScreenLayout`.
-- **Sticky Footer:** Moved the "Save" button into the layout's fixed footer prop, ensuring it stays pinned and accessible regardless of list length.
-- **Header Optimization:** Upgraded the layout to support fixed headers containing both the search bar and category tabs.
+### 4. High-Fidelity Summary & Modal Integration
+Integrated the new native data into the user-facing UI:
+- **Dynamic Icon Resolution:** Replaced all static placeholders with real device-installed app icons (Base64) across the entire app.
+- **EventDetailModal Upgrade:** Added a new `BlocklistSection` to the event details, featuring a horizontally scrollable gallery of the blocked apps' icons.
+- **Condition Hierarchy:** Re-organized the modal layout to prioritize a logical flow: Time → Location → Digital Commitment → Penalty → Waiver.
