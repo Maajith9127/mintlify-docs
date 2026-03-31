@@ -1,0 +1,35 @@
+---
+title: "March 25th, 2026"
+description: "Engineered Native App Listing, optimized skeleton loading, and integrated blocklist configuration into the Task Store."
+---
+
+# March 25th, 2026
+
+**Digital Commitment: Native App Listing & Blocklist Integration**
+
+Today marks a major step in the "Digital Commitment" feature. We bridged the gap between React Native and the Android hardware layer to allow users to select actual installed applications for their blocklist.
+
+### 1. Native App Lister (Kotlin/Android)
+We implemented a custom native module, `AppListerModule`, to handle the heavy lifting of enumerating device applications:
+- **PackageManager Integration:** Built a Kotlin bridge to query the Android `PackageManager` for user-launchable applications.
+- **Smart Filtering:** Implemented filtering via `getLaunchIntentForPackage()` to exclude background services and system daemons, ensuring only "consumer" apps (like Instagram, YouTube, etc.) appear in the list.
+- **High-Fidelity Icon Extraction:** Developed a robust icon extraction pipeline supporting `BitmapDrawable`, `AdaptiveIconDrawable`, and `VectorDrawable`.
+- **Memory Safety:** Optimized for performance by explicitly recycling intermediate Bitmaps and Canvas allocations, preventing native heap leaks when processing large numbers of applications.
+
+### 2. High-Performance Loading (Skeletons)
+To keep the UI feeling premium while the native bridge processes icon data (which can take 1–3 seconds), we implemented a hardware-accelerated loading experience:
+- **AppCardSkeleton:** Created a skeleton component that perfectly mirrors the `SelectableListItem` layout, preventing annoying layout shifts.
+- **Hardware-Accelerated Pulse:** Refactored the skeleton animation to use a high-performance opacity pulse instead of a horizontal slide, significantly reducing frame drops on Android.
+- **`onLayout` Elimination:** Removed complex layout calculations from skeleton instances to maintain a smooth 60FPS list experience during initial loading.
+
+### 3. Blocklist Store Integration
+We unified the blocklist UI with the core application state:
+- **`TaskDraftStore` Extension:** Implemented `setBlocklist` within our global Zustand store to handle the `digital_commitment` metric key.
+- **Real-Time Sync:** Wired `choose.tsx` to handle real-time store updates. Selections are now persisted instantly to the habit draft.
+- **Module-Level Caching:** Implemented session-level caching for native app metadata. This prevents redundant native bridge calls and ensures the loading shimmer only appears once per session.
+- **Schema Standardization:** Adopted a standardized digital commitment schema where `metric_key: "digital_commitment"` maps to an array of packages and website URLs.
+
+### 4. UI Refinement: ActionScreenLayout
+- **Unification:** Wrapped the blocklist selection screen with our standardized `ActionScreenLayout`.
+- **Sticky Footer:** Moved the "Save" button into the layout's fixed footer prop, ensuring it stays pinned and accessible regardless of list length.
+- **Header Optimization:** Upgraded the layout to support fixed headers containing both the search bar and category tabs.
