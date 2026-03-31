@@ -1,0 +1,32 @@
+---
+title: "March 24th, 2026"
+description: "Implemented end-of-window alarms, guaranteed MediaPlayer looping, and migrated email infrastructure to Resend."
+---
+
+# March 24th, 2026
+
+**Native Audio Overhaul & Infrastructure Resilience**
+
+Today marking the end of the exam-induced pause, we launched a major update to the native Android scheduler and our backend notification pipeline. This update focused on sensory reliability and infrastructure stability.
+
+### 1. Native Audio Infrastructure Evolution
+We moved away from the unpredictable system-default ringtones into a fully bundled, production-grade audio pipeline:
+- **MediaPlayer Architecture:** Replaced the generic `RingtoneManager` with a robust `MediaPlayer` implementation in `AlarmActivity`. This guarantees seamless, infinite looping of custom audio clips across all Android API levels, bypassing inconsistent OEM behaviors.
+- **Production Bundling:** Directly bundled `alarm_start.mp3` (action pulse) and `alarm_end.mp3` (finality hit) into the native `/res/raw` directory.
+- **DND Piercing:** Forcibly routed all audio streams using `USAGE_ALARM` attributes. This ensures that verification alarms aggressively pierce through "Do-Not-Disturb" (DND) and silent modes.
+
+### 2. 'End-Alarm' Expansion & UI
+We introduced a universal "closure" notification to ensure users know exactly when their opportunity to verify has expired:
+- **`END_ALARM` Evaluation:** Engineered a new temporal branch in the native math engine to fire at the exact millisecond a window closes. 
+- **Time's Up UI:** Designed a distinct red "⏰ Time's Up!" lockscreen layout for these finality alarms.
+- **Sovereign Signaling:** Decoupled this alarm from local database mutations. It acts purely as a frontend sensory cue, while the backend Convex runner handles the authoritative grading and penalty logic in the background.
+
+### 3. Backend Infrastructure: Migration to Resend
+To improve the reliability and deliverability of our accountability reports, we overhauled our email transport layer:
+- **Brevo to Resend:** Fully migrated the critical email transport pipeline away from Brevo. 
+- **HTTP API Integration:** Switched to the robust Resend HTTP API for executing our "Embarrassing Photo" and "Breach" notifications, ensuring faster and more reliable delivery to accountability partners.
+
+### 4. Hardware Security & Verification Fixed
+- **JailMonkey Shield:** Re-secured the root layout with `JailMonkey` interrogation to proactively block access from jailbroken devices, mock location spoofers, and developer-mode users in production.
+- **Waiver Deadline Restoration:** Replaced the temporary 6-second test delays with the actual configured `deadline_minutes` logic in the `armAccountabilityContract` service, restoring production-grade redemption windows.
+- **Ghost Duplicate Fix:** (Commit 7bafded) Expanded the collision search window in `generateSeries` to prevent spawning duplicate task instances over locked occurrences.
