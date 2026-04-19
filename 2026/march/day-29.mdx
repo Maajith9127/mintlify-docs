@@ -1,0 +1,76 @@
+---
+title: "Day 29: The Power of Context — Per-Slot Freedom and the Lightweight Shift"
+description: "Pull the chair even closer today, bro. We didn't just add a feature; we fundamentally changed how CommitT understands your life. Today is the day of the 'Per-Slot' revolution."
+---
+
+## The Big One. The Breakthrough.
+
+Man, oh man. If yesterday was about the app growing a "brain" to remember your habits, today was about the app growing the **sophistication** to understand that your life isn't a single, flat line. Today was the day we broke through the final ceiling of commitment customization. I’m exhausted, my coffee is cold, and my keyboard and I have been through a war together, but seeing the results? Seeing the app adapt to the complexity of a real human day? It was worth every single second of the struggle.
+
+## The Problem: The "One Size Fits All" Trap
+
+Here’s the thing: Up until today, CommitT was a bit... well, let's call it "monolithic." If you set a commitment to "Exercise" and you had two different time slots—say, morning yoga at home and evening weights at the gym—the app assumed you’d be at the same place for both. It assumed you’d want to block the same apps for both. 
+
+But life isn't like that, is it? You might want to block Instagram while you’re at the gym, but maybe you need access to your meditation app while you’re at home. You might be at the park in the morning and a dedicated rock-climbing gym in the afternoon. 
+
+We were trapping our users in a "one size fits all" box. We were forcing them into a rigid structure that didn't reflect their real lives. And if there’s one thing a habit-building app should never do, it’s making your life harder by being too stiff.
+
+## The Solution: The Per-Slot Architecture Revolution
+
+So, we tore up the blueprint. We went deep into the heart of the Convex schema and the native Zustand stores and we implemented what I’m calling the **Per-Slot Contextual Override**. 
+
+Now, when you open the "Time & Context" screen, you’re not just seeing a list of times. You’re seeing a list of **drawers**. Each time slot can now be expanded, revealing its own secret world of configuration. In one tap, you can say, "For this specific 8:00 AM slot, I’m at the Home Preset, and I’m blocking zero apps." Then, for the 5:00 PM slot, you can tap it open and say, "But for this one, I’m at the Gym Preset, and I’m blocking everything that isn't Spotify."
+
+It sounds so simple when I say it like that, but under the hood? It was like rewiring an entire skyscraper while the people were still inside. We had to build a brand-new `mergeConditions` utility in the backend that intelligently prioritizes your slot-level choices over your global defaults. We had to refactor the entire `TimeSlotCard` to be this beautiful, expandable "Context Drawer" that glides open with a buttery-smooth Reanimated transition. 
+
+And the icons! Oh, man, you're going to love this. Inside the drawer, you now have a horizontal scrollable strip of icons showing exactly which apps are blocked for that specific window. We resolve them instantly using our new global `useAppStore`. It’s visual, it’s intuitive, and it feels incredibly premium.
+
+## The "Lightweight Protocol": Speed for the Digital Warrior
+
+While we were rewriting the core architecture, we noticed something else. Some of our users—the "Digital Warriors"—don't care about location. They just want to block TikTok while they’re working. 
+
+Before today, the app was still trying to generate "checkpoints" for them, waiting for them to "check in" at a location they hadn't even set. It was confusing and unnecessary. So, we implemented the **Lightweight Protocol**. 
+
+Now, if a task is digital-only, the backend skips the checkpoint generation entirely. The app realizes, "Hey, this is an auto-verify situation." The runner just watches for violations. If you don't open a blocked app, you pass. Easy as that. We’ve renamed the status to **"Proceeded"** for these tasks. It feels lighter, faster, and much more modern. It’s about not being "Strict" when you don't need to be.
+
+## The Performance Hunt: Waterfall Loading and UI Snappiness
+
+Because we added all this complexity, we had to be ruthless about performance. We implemented what we’re calling **Waterfall Loading** for our Google Maps previews. 
+
+You know how when you open a modal with ten maps, the whole phone skips and stutters while the GPU tries to do everything at once? We fixed that. Now, the maps load in pairs, staggered by 300ms. It’s like a synchronized dance. You don't even notice they’re loading—they just "appear" in a smooth sequence while you're ready to interact. 
+
+We also standardized our typography across the whole app. Labels at 14px, values at 16px. It sounds minor, but the visual rhythm of the `TimeSlotCard` is now perfectly balanced. We even increased the delete icon size to 26px because, let's be real, nobody likes missing a tiny "X" button when they’re in a rush.
+
+## The "Instant Recall" History Modal
+
+And one more thing before I let you go—we finally wired up the **History Modal** in the Blocklist configuration. You know that little clock-check icon in the header? It’s alive now. 
+
+You can tap it, and it pulls up a live subscription to your "Digital Commitments" library. One tap, and your entire favorite blocklist is injected into the current slot. We’ve turned the "Choose" screen into a high-fidelity interaction point where you can recall your most-used setups in seconds. 
+
+## The Wrap Up: A Day of Complexity Made Simple
+
+Man, it's late. My terminal has been spitting out "Success" messages for the last hour, and I'm finally starting to wind down. 
+
+Day 29 was a beast, bro. It was about taking a system that was good and making it **great**. It was about acknowledging that humans are complex, our days are messy, and our app needs to be smart enough to handle that mess without breaking a sweat. 
+
+We’ve fundamentally shifted CommitmentT from a rigid habit tracker to a context-aware accountability partner. The app now understands that *who* you are at 7 AM isn't necessarily who you are at 7 PM. And honestly? I think that’s the most "human" thing we’ve taught the machine so far.
+
+Catch you tomorrow, man. We’re pushing into some serious security territory next. Get some sleep—you’re gonna need it. 
+
+---
+
+> [!IMPORTANT]
+> The move to "Hierarchical Overrides" is more than just a UI change. It’s a total shift in our fulfillment logic. By allowing per-slot configurations, we’ve ensured that the hardware-level enforcer is always contextually aware of exactly what the user committed to for *this specific moment* in time.
+
+### Tech Stack Deep-Dive: The Day 29 Payload
+- **Feature**: Per-Slot Contextual Conditions (Location + Apps)
+- **UI Integration**: `BaseDrawerModal` & `ActionScreenLayout` Optimization
+- **Backend Optimization**: 'Lightweight Protocol' Checkpoint Skipping
+- **Performance**: Waterfall Map Loading & Virtualized Icon Galleries
+- **State Management**: Zustand `usePresetStore` with Live backend sync
+- **UX**: "Instant Recall" Digital Preset History Modal
+- **Fixes**: SQLite `NOT NULL` constraint handling for `assigner_id`
+
+---
+
+Seriously, man, I'm so proud of this one. It feels like a real, professional-grade piece of software now. See you for Day 30!
