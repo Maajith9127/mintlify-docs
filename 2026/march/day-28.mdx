@@ -1,0 +1,74 @@
+---
+title: "Day 28: The Day the App Grew a Brain — The Harvest Engine"
+description: "Pull up a chair, bro, because today we didn't just write code; we actually gave CommitT a memory and a set of eyes. We're talking about the birth of the Autonomous Harvest Engine."
+---
+
+## You’re Not Gonna Believe This One...
+
+Hey man, seriously, pull up a seat. Grab a water, or a coffee, or whatever you’ve got nearby, because I’ve been wrestling with some digital ghosts all day and I finally, *finally* cornered them. You know how we’ve been talking about making CommitT feel less like a rigid tool and more like an extension of your own mind? Well, today was the day we actually injected some "brains" into the operation. 
+
+We didn’t just add a feature today. We added an **Autonomous Harvest Engine**. I know, it sounds like something straight out of a sci-fi movie where the machines take over, but bear with me—it’s actually the coolest thing we’ve built all week. It’s all about the app *learning* who you are, without you having to teach it a single thing.
+
+## The Problem: Training the Human
+
+Think about how most apps work. They’re kind of... needy, right? You want to do something, and the app is like, "Okay, fill out these fifteen forms, tell me exactly where you are, list every app you want to block, and don't forget to name the file." It’s exhausting! It’s like having a personal assistant who asks you how to make a sandwich every single morning. Eventually, you just stop asking for sandwiches because the effort of explaining it isn't worth the lunch.
+
+We realized that our users were spending too much time setting up their "Presets." You know, those recurring locations like your gym, your office, or your favorite quiet library. And don’t even get me started on the digital blocks! Every time you want to focus, you’re picking the same social media apps over and over. It was a friction point, a tiny little pebble in your shoe that eventually makes you want to stop running.
+
+## The Solution: The Silent Harvester
+
+So, we had this "aha!" moment. What if the app just... watched? Not in a creepy way, obviously, but in a "I’m here to help" way. We built this massive backend system that we’re calling the **Autonomous Harvest Engine**. 
+
+Here’s how it works in the real world: Every single time you save a new commitment—whether you’re heading to a new park for a run or blocking a specific set of distracting apps for a deep-work session—the Harvest Engine kicks into gear in the background. It’s like a silent little robot that follows you around and takes notes. 
+
+It looks at the location you just used. It checks the coordinates (we’re talking high-precision `lat` and `lng` synchronization here). It looks at the list of apps you blocked. And then, it asks itself a question: "Have I seen this before?" 
+
+If the answer is no, it doesn't just forget it. It **harvests** it. 
+
+We added two brand-new tables to our Convex database: `locationPresets` and `digitalCommitmentPresets`. The engine takes your new setup, deducts the "essence" of it, and stores it in your personal Preset Library. It’s like a library that builds its own shelves and stocks them with books it knows you’re going to want to read.
+
+## The Genius is in the "Smart Deduplication"
+
+Now, I know what you’re thinking. "Bro, isn't that just going to fill my library with a thousand copies of the same gym location?" That’s the genius part. We didn't just build a harvester; we built a harvester with a **filter**. 
+
+We implemented this "Coordinate Epsilon" logic. Basically, the engine is smart enough to know that if you’re five feet away from where you were yesterday, you’re probably still at the same gym. It doesn't create a new entry; it just updates the existing one and bumps up its "popularity" score. 
+
+And for the apps? We built a sorting-and-matching algorithm that can look at a list of ten blocked apps and know if it’s the same "Social Media Block" you used last Tuesday, even if you added them in a different order. It’s essentially smart deduplication for your habits.
+
+## The Result: The "Discovery" Experience
+
+So, what does this actually look like for you, the user? Well, tomorrow when you go to create a new commitment, you’re going to notice something different. When you click on the location picker, it’s not going to be empty. It’s going to be filled with **Smart Suggestions**. 
+
+The Discovery API we built today queries your library and says, "Hey, you’re usually at this gym on Mondays, and you usually block these three apps when you're there. Want to just do that again?" It’s gone from a minute-long setup to a two-second tap. We’ve turned the app from a tool you have to manage into a partner that anticipates your needs.
+
+## Why This Matters (The Philosophy)
+
+This is about more than just saving a few taps, man. It’s about **Cognitive Load**. Every decision you have to make takes a little bit of your willpower for the day. If CommitT makes you make fifty decisions just to start a focus session, you’ve already used up the willpower you needed *for* the session! 
+
+By harvesting these presets autonomously, we’re protecting your focus. We’re letting the app handle the boring administrative work of your life so you can handle the important stuff. 
+
+## The Late-Night Wrap Up
+
+It was a beast of a day, man. Wrestling with coordinate epsilon math and ensuring the backend sorting was perfectly synced up with the frontend expectations... it was intense. There were definitely moments where I was staring at a screen of raw JSON coordinates, wondering if I was actually going to get the deduplication logic to work. But seeing that first "Recommended Location" pop up on my test device? Knowing that the app had "remembered" me? That was the win.
+
+We’ve now got a system that grows as you grow. The more you use CommitT, the smarter it gets. The more habits you build, the easier it becomes to build the next one. 
+
+I’m exhausted, bro, but I’m so stoked about where this is going. We’re not just building an app; we’re building a brain. 
+
+Catch you tomorrow—we’ve got some big UI changes coming to make this new library look as good as it works. Get some rest, we've got more mountains to climb.
+
+---
+
+> [!IMPORTANT]
+> The "Autonomous Harvest" is a key part of our vision for a "Frictionless Accountability" system. By moving the burden of preset creation from the user to the engine, we ensure that every user has a rich, personalized library without ever having to click a "Save Preset" button.
+
+### Tech Stack Deep-Dive
+- **Backend Architecture**: Autonomous Harvest Engine (Convex Mutations)
+- **Data Modeling**: `locationPresets` & `digitalCommitmentPresets` (Clustered Indexing)
+- **Algorithms**: Coordinate Epsilon Deduplication & App Array Signature Matching
+- **API Surface**: Discovery API for Usage-Ranked Suggestions
+- **Standards**: Synchronized `lat/lng` naming conventions across all stack layers
+
+---
+
+Seriously, man, I can't wait for you to try this. It feels like the app finally *knows* you. See you on Day 29!
