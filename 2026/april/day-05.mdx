@@ -1,0 +1,29 @@
+---
+title: "April 5th, 2026"
+---
+
+## April 5th, 2026: The Age of the Triple-Write Saga
+
+Day 5 represents a major architectural milestone for CommitT. We’ve moved away from standard async calls to a production-grade "Saga" pattern for all critical write paths.
+
+### The Triple-Write Orchestrator
+I built the `TripleWriteOrchestrator` to maintain absolute consistency across three disparate systems: the Convex cloud, the local SQLite `commit.db`, and the Kotlin `AlarmManager`. This sequential transaction engine includes built-in rollback logic (Compensating Transactions) for each layer. If the cloud save succeeds but the local alarm fails, the system now has the power to rollback the cloud state and notify the user.
+
+### Chaos Engineering in `chaos.tsx`
+To test this, I built a dedicated "Chaos Engine" control panel. It allows me to inject faults on-demand—simulating hardware failures, database locks, or network drops. Watching the "Split-Brain Healing" trigger in real-time is incredibly satisfying. If a compensating delete fails, the system now triggers a silent rehydration sync to pull "ghost" records into SQLite, achieving guaranteed eventual consistency.
+
+### SQLite Schema V12: Final Sovereignty
+I also performed a major migration of the local database to V12. This version removes all `FOREIGN KEY` constraints. In CommitT, task instances often outlive their parents, and fighting SQLite's strict relational integrity was causing more corruption than it was preventing. By treating instances as primary entities, we’ve removed the #1 race condition surface area for disk corruption.
+
+### Coverage & Refinement
+By the end of the day, we achieved 100% Saga coverage across all critical paths: Creation, Deletion, and Status updates. Even location pivots and blocklist updates are now secured with atomic Saga logic. I also took a moment to refine the UI labels in the Event Detail menu, changing "Delete Commitment" to a simple, clean "Delete" and adding a new "Help" entry.
+
+CommitT is now running on a truly industrial-strength data pipeline.
+
+---
+
+### Technical Summary
+- **Saga Pattern**: Deployed `TripleWriteOrchestrator` with Compensating Transactions and Context Snapshotting.
+- **Migration**: Schema V12 upgrade (removed Foreign Keys) for orphan support and zero corruption.
+- **Recovery**: Implemented "Base version mismatch" detection in HydrationSync for automated Convex recovery.
+- **Chaos**: Created `chaos.tsx` for manual fault injection and lifecycle auditing.

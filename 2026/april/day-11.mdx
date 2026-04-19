@@ -1,0 +1,28 @@
+---
+title: "April 11th, 2026"
+---
+
+## April 11th, 2026: Stabilizing the Rule Lifecycle
+
+Day 11 was focused on a critical bug: behavioral rules were disappearing after a task was saved. We had the logic, we had the UI, but the "bridge" between the frontend draft and the backend persistence was leaking.
+
+### The `ruleConfig` Persistence Fix
+I Spent the morning stabilizing the full data lifecycle for per-slot behavioral settings. I realized that while the backend `time_windows` table was ready for these settings, the `RecurrenceSchema` validators weren't permitting them during the creation payload.
+
+I updated the validators in `validators.ts` to permit `ruleConfig` and then modified the `useCommitTask` hook to explicitly serialize and send this configuration. This ensures that the specific alarm frequencies and protocols you set for each slot actually reach the Convex database.
+
+### Auto-Hydration Fallback
+To ensure old tasks didn't break, I implemented an auto-hydration fallback in the `useTaskDraftStore`. When loading an existing task from the cloud, the store now attempts to reconstruct the `ruleConfig` from the legacy `config` fields if it finds them. This "backward-compatible bridge" means that transition to the hierarchical model is seamless for the user.
+
+### Backend Handshake
+I also spent time hardening the backend synchronization. Production release builds were seeing occasional `ERR_ACCESS_CLOSED_RESOURCE` failures due to aggressive Android resource reclamation. I started exploring an `AppState` detection logic to automatically trigger a "handshake" reconciliation whenever the user returns to the app.
+
+It wasn't a "glamorous" day of new features, but it was a necessary day of industrial-strength stabilization to ensure that our new hierarchical rules are as reliable as a Swiss watch.
+
+---
+
+### Technical Summary
+- **Bug Fix**: Resolved slot-specific behavioral rule persistence by aligning the `useCommitTask` payload with the backend schema.
+- **Schema**: Updated `RecurrenceSchema` to include the `ruleConfig` object.
+- **Hydration**: Implemented auto-hydration fallback in the Zustand store for legacy task compatibility.
+- **Orchestration**: Fixed serialization logic in the task creation hook to ensure metadata parity.

@@ -1,0 +1,28 @@
+---
+title: "April 15th, 2026"
+---
+
+## April 15th, 2026: The Surgical Swipe-Up
+
+After the success of our Samsung-optimized recent-apps purge, today we focused on making that same "Fail-Closed" security work on non-Samsung devices like Lenovo, Motorola, and Pixel.
+
+### Precision Coordinate Gestures
+Different devices have different ways of handling the recent apps tray. Some use a "Close All" button, while others require a "flick" or "swipe-up" gesture. Today, I implemented a surgical swipe-up fallback in the Kotlin `BlockerAccessibilityService`. 
+
+Using `DisplayMetrics` for precision coordinate calculation, I built the `executeSwipeUpGesture` helper. This allows the enforcer to programmatically "flick" restricted apps out of the recent tray if the button-based purge fails. I had to authorize native gestures in `blocker_config.xml` to make this possible, but the result is a much more universal anti-tamper engine.
+
+### High-Resolution Diagnostics
+Debugging gestures is notoriously difficult. I added high-resolution diagnostic logs—`[GESTURE_DEBUG]` and `[RECENTS_PURGE]`—that allow for real-time enforcement auditing via `adb logcat`. Now, I can see exactly where the enforcer is "clicking" or "swiping" and verify its effectiveness across different device architectures.
+
+### Performance & Safety
+The gesture-based purge is now integrated as Check #1 in our security audit sequence. This ensures that even if a user tries to hide a restricted settings app in the background, it is physically neutralized before the hardware screen lock is applied. I also fixed a scope-related compilation error in the candidates fuzzy scan logic, making the whole enforcement pulse much more stable.
+
+Day 15 has successfully extended our high-security "Vault" to a much wider range of Android devices.
+
+---
+
+### Technical Summary
+- **Native Security**: Implemented `executeSwipeUpGesture` for universal recent-apps purges.
+- **Coordinates**: Used `DisplayMetrics` to ensure precision across different screen resolutions.
+- **Audit**: Refactored `dismissTopRecentApp` to trigger gesture-based flicking if the Samsung-path fails.
+- **Diagnostics**: Integrated `[GESTURE_DEBUG]` and `[RECENTS_PURGE]` logs for real-time enforcement auditing.

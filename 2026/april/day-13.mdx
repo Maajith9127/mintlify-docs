@@ -1,0 +1,29 @@
+---
+title: "April 13th, 2026"
+---
+
+## April 13th, 2026: Total Device Administration
+
+Today, we added the ultimate layer of defense to CommitT: Android Device Administrator status. This was a complex integration that fundamentally changes how the app interacts with the OS.
+
+### The 8-Tier Security Gate
+By integrating Device Administrator privileges, we can now physically prevent unauthorized app removal. This is the 8th tier of our hardware security gate. The implementation involved several layers:
+- **Native Android**: Registered the `BlockerDeviceAdminReceiver` and implemented `isAdminActive` checks in the enforcement module.
+- **Samsung Optimization**: Created a specialized redirect intent using `ComponentName` to take users directly to the "Device Admin Apps" list in OneUI, avoiding the clutter of general settings.
+- **Reactive Auditing**: Updated the `usePermissions` hook to include "Admin Status." The dashboard now reacts in real-time if the user revokes these privileges.
+
+### Hardening the Commitment Gate
+We’ve now hardened the "Commit" button in the final creation screen. The app will strictly block the creation of *any* new commitments unless Device Admin is active. This ensures that once a user is "locked in," the app cannot be uninstalled to escape the accountability contract. 
+
+### UI Integration
+I added a new interactive permission card for Device Admin. Like our other enforcer cards, it syncs its state in real-time and provides a direct path to the system settings. This "Clinical Security" manifest is now the first thing a user sees on their dashboard if their enouncers aren't ready.
+
+By the end of Day 13, CommitT has achieved a level of "Un-installability" that is rare for non-system apps. We are building a truly unbreakable vault for your intentions.
+
+---
+
+### Technical Summary
+- **Security**: Integrated Android Device Administrator enforcement to prevent app uninstallation.
+- **Native**: Registered `BlockerDeviceAdminReceiver` and optimized settings redirects for Samsung devices.
+- **Logic**: Hardened the final "Commit" gate to strictly require Admin activation.
+- **UI**: Added a dynamic interactive permission card for Device Admin status with real-time state synchronization.

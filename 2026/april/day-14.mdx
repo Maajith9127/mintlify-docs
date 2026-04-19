@@ -1,0 +1,27 @@
+---
+title: "April 14th, 2026"
+---
+
+## April 14th, 2026: The Imperial Forward-Heal
+
+Day 14 was a massive architectural expansion of the synchronization engine. We’ve moved beyond simple "Create/Delete" logic to a more sophisticated "Imperial Forward-Heal" strategy.
+
+### Expanding the Imperial Strategy
+Up until today, our healing loops were mostly focused on task creation. Today, I expanded the Forward-Heal strategy to cover all event-level sagas. This includes temporal shifts (schedules), individual instance deletions, and geofence pivots. The core idea is "Cloud-First": we never try to guess the local state; we always rely on the Cloud source-of-truth. If a local change fails, the "Imperial" enforcer now enters an infinite-retry recovery loop until the local state perfectly matches the cloud parity.
+
+### Total Eradication of "Ghosts"
+I implemented a "Total Eradication" logic for deletion paths. This ensures that when a task is deleted, every related local instance and "ghost" record is purged from both the SQLite database and the Android Hardware Alarms. No more orphaned notifications or phantom geofences.
+
+### Standardizing the Alert Aesthetic
+To match our "less is more" philosophy, I refactored all error and success modals to utilize a "single-statement" title layout. We’ve consolidated descriptive messages into the `title` prop and eliminated subtitle clutter. The `HealOverlay` now displays dynamic healing progress as the primary bold title. This "Title-Only" look is much more professional and keeps the user focused on the immediate status.
+
+### Solving the Android 8-12 Crash
+I also surgically patched a critical failure point in the `scheduler-module`. Specific OEM devices (like Lenovo) were crashing at alarm trigger time due to a `NoClassDefFoundError` related to the `VibrationAttributes` API. By correctly targeting the API 33 guard and adding the missing `appcompat` dependency, I’ve extended stable hardware alarm support to all devices from Android Oreo upwards.
+
+---
+
+### Technical Summary
+- **Sync Architecture**: Formalized and expanded "Imperial Forward-Heal" across all 5 core saga files.
+- **Resilience**: Implemented `while(true)` retry loops and manual Delta-Sync ingestion into healing cycles.
+- **Android**: Resolved native crash on Alarm trigger for Android 8-12 and hardened the `VibrationAttributes` guard.
+- **UX**: Standardized "single-statement" title-only aesthetic for all synchronization alerts.

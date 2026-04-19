@@ -1,0 +1,36 @@
+---
+title: "April 3rd, 2026"
+---
+
+## April 3rd, 2026: The Hardware Enforcer's Audit
+
+Today was a "deep engineering" day focused on the bridge between our React Native UI and the raw Android system. We’ve had a "Permissions" screen for a while now, but it was largely hardcoded. Today, I replaced those "true/false" mocks with real-time system audits that actually query the OS.
+
+### The Enforcement Module (Kotlin)
+I architected a centralized `EnforcementModule` in Kotlin to house all hardware and OS permission checks. This module handles everything from checking if "Appear on Top" (Overlay) permissions are granted to auditing the Accessibility Service status. By moving this logic to a dedicated module, I’ve made the auditing engine much more robust and easier to maintain.
+
+### Deep-Link Navigation
+It’s not enough to tell the user a permission is missing; we have to take them exactly where they can fix it. I implemented direct Intent-based navigation for all 7 hardware enforcers:
+- **Camera & Location**: Direct links to the system permission page.
+- **Alarms & Notifications**: Navigating to the specific OS settings for the app.
+- **Battery Optimization**: A critical one—taking the user to the "Ignore Battery Optimizations" list to ensure the app doesn't get killed in the background.
+
+I used fully-qualified `android.provider.Settings` constants to ensure these intents work across different OEM skins (Samsung, Pixel, etc.).
+
+### Real-Time Dashboard Reactivity
+Back in the TypeScript layer, I updated the `usePermissions` hook to consume the live native bridge status. I also added an `AppState` listener, so that as soon as a user returns to the app after changing a setting in the OS, the UI reflects the change immediately.
+
+The dashboard now includes a high-visibility red border and a "Permissions Missing" alert whenever an enforcer is offline. This "Fail-Closed" hardware enforcement ensures that you cannot commit to a new habit unless the app is legally allowed to hold you to it.
+
+### Layout Polish
+While I was in the dashboard code, I refactored the Commits screen from a `FlatList` to a unified `ScrollView`. This might sound simple, but it was necessary to achieve the natural scrolling physics we wanted for the warning cards. I also tuned the spring mechanics in the Reanimated transitions (stiffness=200, low mass) to make the layout feel high-velocity and snappy.
+
+By the end of the day, CommitT feels less like a website and more like a high-security hardware utility.
+
+---
+
+### Technical Summary
+- **Native Bridge**: Created `@modules/enforcement-module` for real-time permission auditing.
+- **Enforcement**: Implemented Hardware Permission Gate in the `FinalScreen` to block commitment creation if enforcers are offline.
+- **Security**: Added Intents for Battery Optimization and "Appear on Top" with `FLAG_ACTIVITY_CLEAR_TOP` to ensure clear back-navigation.
+- **UI**: Standardized permission warning border-thickness (3px) to match the penalty card design system.

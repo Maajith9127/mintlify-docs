@@ -1,0 +1,37 @@
+---
+title: "April 12th, 2026"
+---
+
+## April 12th, 2026: The Day of a Thousand Refinements
+
+Day 12 was an absolute marathon. Looking back at the commit logs, it’s clear this was one of the most productive days in the project’s history, touching everything from native security to design system typography.
+
+### The Samsung 'Purge & Lock' Sequence
+We’ve had issues with users quickly switching apps to bypass the blocker. Today, I implemented a surgical 3-phase security sequence optimized for Samsung devices:
+1.  **Instant Zoom-out**: Triggers `GLOBAL_ACTION_RECENTS`.
+2.  **Programmatic Click**: Uses recursive accessibility node scanning to find and click the "Close all" button.
+3.  **Delayed Lock**: Applies a hardware screen lock after 3500ms to ensure the background purge is complete.
+This makes the "vault" truly inescapable on OneUI devices.
+
+### Neutralizing Bypass Vectors
+I also closed a critical bypass vector where users could Force Stop or Uninstall the app via system settings. I added heuristic detection for management lexicons (like "Clear Data" or "Permissions") within the Accessibility Service. If a user tries to tamper with the app’s management screen, they are instantly escalated to a device lock.
+
+### UI & Iconography Overhaul
+On the visual side, I upscaled our global setting icons from 26px to 30px to match the primary condition cards. I also standardized the left-column alignment with a 42px "Icon Slot," ensuring perfect vertical rhythm across the app. In the `EventDetailModal`, I extracted the commitment "DNA" (Type, Alarms, Grace) into a dedicated `ConfigSection` below the countdown clock. It declutters the hero section while keeping critical rules highly visible.
+
+### Resilience and Self-Healing
+To solve the `ERR_ACCESS_CLOSED_RESOURCE` errors we saw yesterday, I engineered a robust SQLite health-check loop. It now retries connection probes up to 3 times with a 1.5s delay. I also implemented `AppState` foreground detection to automatically trigger state reconciliation whenever the user returns to the app.
+
+### Calibrating the GPS Heartbeat
+Finally, I calibrated the GPS staleness threshold. Android restricts background updates to roughly 20-second intervals, but our threshold was 10s, causing "false positive" blocks. I increased the threshold to 30s to account for the OS polling rate plus a processing buffer. This maintains our "Fail-Closed" security while eliminating service interruptions.
+
+What a day. From "native ripples" to "strict background location auditing," CommitT has taken a massive leap forward in professional polish.
+
+---
+
+### Technical Summary
+- **Security**: Implemented Samsung-specific "Close All" automation and neutralized App Info bypass vectors.
+- **Resilience**: Engineered a 3-retry SQLite health-check loop and `AppState` reconciliation triggers.
+- **UX**: Standardized 30px iconography and implemented native ripples on bottom tab icons.
+- **Logic**: Enforced the "Complete Override Policy" for slot-specific behavioral rules.
+- **Enforcement**: Calibrated `LOCATION_STALENESS_THRESHOLD_MS` to 30s to align with Android background throttling.

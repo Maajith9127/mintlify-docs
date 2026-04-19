@@ -1,0 +1,27 @@
+---
+title: "April 10th, 2026"
+---
+
+## April 10th, 2026: The Hardware Context Break
+
+Today was about security—specifically, stopping the "cat and mouse" game users play with system settings to bypass the app. Up until now, we’ve used overlays to block the Settings app. But today, I implemented something much more definitive: the Hardware Screen Lock.
+
+### Escalating to Device Lock
+I implemented a two-factor neutralization sequence for serious security violations. If the app detects tampering (like trying to disable Accessibility services or changing the system time), it now executes a hardware `GLOBAL_ACTION_LOCK_SCREEN`. This instantly turns off the screen. When the user unlocks the phone, the `BlockerOverlayActivity` is already waiting for them. This "context break" is technically and psychologically much more effective than a simple overlay.
+
+### Granular Security Audits
+While we’re getting tougher on tampering, we’re also getting smarter. I refactored the `BlockerAccessibilityService` to transition from a blanket ban on the Settings app to a granular "Context-Level" block. I implemented a dynamic lexical scanner that allows users to access basic phone utilities like Wi-Fi and Bluetooth, but instantly triggers the lockdown if they navigate toward Time, Developer Options, or App Management. This makes the app much more usable without compromising security.
+
+### Intelligent Map Camera Sync
+On the UI side, I improved the location preset editor with intelligent camera synchronization. Previously, selecting a location via search would sometimes leave the map camera "lost." I added threshold-based sync logic that detects external updates and auto-pans the map with a high-performance 800ms animation. To prevent "camera fighting," the auto-pan only triggers when the user isn't already interacting with the map.
+
+### Transition Performance
+Finally, I disabled `lazy` loading for the Schedules tab. By leveraging background mounting, we’ve achieved instantaneous transitions to the Calendar UI. No more waiting for the calendar to "thaw" when you switch tabs; it’s just there, live and ready.
+
+---
+
+### Technical Summary
+- **Security**: Implemented `escalateToDeviceLock` with `GLOBAL_ACTION_LOCK_SCREEN` integration.
+- **Enforcement**: Migrated to granular Context-Level auditing in the Accessibility Service.
+- **UI Architecture**: Disabled lazy-loading for the Schedules tab to ensure zero-latency transitions.
+- **Map Engine**: Built threshold-based camera synchronization with epsilon-based pan detection.

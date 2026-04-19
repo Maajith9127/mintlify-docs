@@ -1,0 +1,31 @@
+---
+title: "April 8th, 2026"
+---
+
+## April 8th, 2026: The Rule DNA Revolution
+
+Today was one of those breakthrough days where several major features finally converged. The focus was on "Rule DNA"—the behavioral protocols (like arrive/stay check-ins, alarm frequencies, and waiver deadlines) that govern how a commitment is enforced.
+
+### The Behavioral Rule Preset Editor
+I spent a significant portion of the day building the `edit-rule-preset.tsx` screen. Using the `ActionScreenLayout` 3-zone architecture, I created a high-fidelity editor that replicates the visual parity of our main "Final" screen. Users can now define "Protocols" (Arrive vs. Stay), set "Alarms" (Lead-time and Frequency), and configure "Waiver Governance" (Waiver Deadlines). 
+
+The Hero UI for this editor features a centered 75px `format-list-checks` icon inside a standardized Dark Gray capsule. It looks incredibly premium and fits perfectly with our clinical, high-stakes aesthetic.
+
+### Hierarchical Rule Binding
+Remember the hierarchical binding work from yesterday? Today, I integrated it into the `TimeSlotCard`. Now, each expanded time slot has a "Rules" row. Tapping it opens the new `RulePresetPickerModal`. This allows users to apply specific behavioral rules to specific time windows. You can have "Gym Logic" (Arrive protocol, high-frequency alarms) for your morning workout and "Focus Logic" (Passive enforcement, no alarms) for your deep-work block.
+
+### The 3-Tiered Rule Manifest
+To make these complex rules scannable, I redesigned the `RulePresetCard` to use a structured, 3-row manifest. It adopts the obsidian-grey badge style we use in the Event Detail header. By implementing a "Heading -> Badge Grid -> Breathing Space" rhythm, I’ve managed to fit a massive amount of data into a small card without making it feel cluttered.
+
+### Backend Synergy
+On the backend, I implemented the `behavioralRulePresets` table in Convex with optimized multi-indices. This ensures that the Presets Hub is now powered by live backend subscriptions rather than legacy mock data. I also resolved several type-assertion blockers for nested configuration enums to ensure the deployment was perfectly stable.
+
+CommitT’s behavioral engine is now fully modular, persistent, and incredibly powerful.
+
+---
+
+### Technical Summary
+- **UI/UX**: Created the `edit-rule-preset.tsx` and `RulePresetPickerModal` with high-fidelity manifests.
+- **Persistence**: Integrated Rule DNA into the full lifecycle—from draft state to Convex cloud and instance generation.
+- **Hierarchical Binding**: Enabled per-slot behavioral rule overrides in the `TimeSlotCard`.
+- **Infrastructure**: Migrated Presets Hub to live backend subscriptions with optimized index support.

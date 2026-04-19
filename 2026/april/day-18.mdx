@@ -1,0 +1,28 @@
+---
+title: "April 18th, 2026"
+---
+
+## April 18th, 2026: Eradicating the Phantom Tables
+
+Day 18 was a "debugging emergency" day. We discovered a catastrophic crash loop that was trapping the application in an infinite panic state. The cause? Phantom tables from our legacy schema.
+
+### The Infinite Crashing Panic Loop
+Back when we transitioned to SQLite Schema V12, we eliminated the physical `blocked_apps` and `blocked_websites` tables in favor of embedding that data into JSON arrays. However, legacy `INSERT` and `DELETE` queries were still buried deep inside our Triple-Write Saga. 
+
+Any attempt to create or delete a task would trigger an `ERR_INTERNAL_SQLITE_ERROR: no such table: blocked_apps`, which crashed the Main Saga. This triggered the Forward-Heal compensator—but because the heal loop *also* contained these legacy operations inside a `while(true)` retry block, the app became permanently trapped in a crashing loop.
+
+### Surgical Debridement
+I spent the day performing "surgical debridement" on the codebase:
+- **`useTaskActions.ts`**: Removed all deprecated `DELETE` queries from both the Main Saga and the Forward-Heal loops.
+- **`local-db-commits.ts`**: Stripped the deprecated `prepareAsync` insertion statements for the non-existent tables.
+- **`updateTaskInLocalDb`**: Removed legacy purge mechanisms that were still looking for the old schema.
+
+### Aligning the Disk Write Paths
+By the end of the day, all Disk Write paths are now perfectly aligned with the Schema V12 architecture. This guarantees race-free and crash-free task operations. It was a stressful day of "hunting phantoms," but it has made the synchronization engine significantly more stable.
+
+---
+
+### Technical Summary
+- **Bug Fix**: Eliminated infinite crashing panic loops caused by legacy table references in the Saga Orchestrator.
+- **Refinement**: Stripped all deprecated `INSERT`/`DELETE` queries targeting `blocked_apps` and `blocked_websites`.
+- **Sync**: Properly aligned all disk write paths with the JSON-embedded Schema V12 architecture.

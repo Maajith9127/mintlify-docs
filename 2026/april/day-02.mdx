@@ -1,0 +1,30 @@
+---
+title: "April 2nd, 2026"
+---
+
+## April 2nd, 2026: The Fluidity of the Library
+
+If yesterday was about the "what" of presets, today was entirely about the "how." I wanted the interaction of managing your library to feel as fluid as the core app experience. This meant moving away from static screen switches and toward a high-performance horizontal paging system.
+
+### Premium Sliding Transitions
+The first major update of the day was the implementation of a horizontal paging container for the Presets Hub. Using Reanimated’s `withTiming`, I added a snappy blue indicator bar that leads the page transition. It’s not just about sliding; it’s about a 180ms "snap" that feels native. I also had to implement `onLayout` tracking to ensure the indicator width and travel distance are calculated perfectly across different screen sizes. No more "guessing" where the underline should be.
+
+### Routing Reorganization: The `(edit-preset)` Group
+As the number of screens grew, the project structure was becoming a bit of a mess. I decided to isolate all preset management into a dedicated route group: `(edit-preset)`. This decouples the "Library Management" logic from the "Active Creation Flow." I moved the digital editor, location editor, and search screens into this new group and implemented a smooth "quick fade" transition for them. This visual separation helps the user understand they are in "Management Mode" rather than "Commitment Mode."
+
+### AI-Powered Presets
+I also brought the AI tab to the digital preset editor. Now, users can generate blocklist rules using the same AI logic available in the main creation flow. This ensures feature parity across the app. Whether you’re building a commit from scratch or editing a template, the "AI Brain" is there to help categorize apps and websites.
+
+### Keyboard-Aware Ergonomics
+One of the most annoying bugs was the keyboard covering the input fields in the location editor. I solved this by integrating a Reanimated elevation effect—the same one I used for the Captcha Waiver view. Now, the panel slides up perfectly above the keyboard, keeping all inputs interactive. I also added a "close-circle" dismissal button to the name fields to make renaming presets a single-tap action.
+
+### The Digital Blocklist Persistence
+Finally, I completed the backend persistence for digital blocklists. With the new `createDigitalPreset` and `updateDigitalPreset` mutations, the user's favorite sets of apps and websites are now synced to the cloud. I even added a double-confirmation pattern to the save button to prevent accidental overrides. Managing your "Focus Blocks" has never felt this secure or this snappy.
+
+---
+
+### Technical Summary
+- **Nav Architecture**: Established `(edit-preset)` route group with dedicated layout.
+- **UI Logic**: Implemented horizontal paging for the Presets Hub with synchronized indicator animations.
+- **Interactions**: Upgraded `CustomSwitch` to Reanimated 3 with medium-impact haptics.
+- **UX**: Enabled Bangalore City Center as the fallback coordinate for new location presets to provide an immediate visual anchor.

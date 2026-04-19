@@ -1,0 +1,28 @@
+---
+title: "April 9th, 2026"
+---
+
+## April 9th, 2026: Persistence and Simplification
+
+After the massive feature push of Day 8, today was about refinement, persistence, and surprisingly, simplification.
+
+### Vertical Persistence for Rule Names
+One of the "missing links" in our rule system was that while the *logic* of a rule persisted, its name often didn't. When a user selected "Gym Logic," the system remembered the alarms and protocols, but the individual occurrences in the calendar just said "Rule." 
+
+Today, I integrated `ruleName` across the entire commitment lifecycle. It’s now snapshotted from the parent task into individual occurrences during series generation. I updated the `RecurrenceSchema`, the domain types, and the `useCommitTask` hook to ensure that the label you choose ("Gym Logic", "Morning Routine") follows the task through the database and onto the calendar UI.
+
+### Refining the Selection UX
+I spent some time polishing the `RulePresetPickerModal`. I removed the background highlights on selected cards in favor of a flatter, cleaner list aesthetic. I also refactored the interaction model: card taps now intelligently toggle state, and I implemented a context-aware "Action Menu" that offers "Select" vs. "Deselect" options. I also disabled the auto-closing of the modal to allow for a more deliberate browsing workflow—a "drawer-style" persistence that users have been asking for.
+
+### The Penalty Waiver Refactor
+In a bold move toward simplification, I decided to remove the "penalty waiver" system. While technically impressive, it was adding too much cognitive load and UI clutter. CommitT is about accountability, and the waiver system was starting to feel like a "get out of jail free" card that was too easy to reach for.
+
+I spent the afternoon stripping the waiver logic from the frontend and backend, streamlining the behavioral rule UI significantly. This "less is more" approach has made the configuration screen feel much more focused. The accountability contract is now clearer: you commit, you verify, or you face the consequences. There’s no more "waiver governance" to hide behind.
+
+---
+
+### Technical Summary
+- **Data Lifecycle**: Integrated `ruleName` persistence from draft to instance snapshotting.
+- **UX Refinement**: Upgraded `RulePresetPickerModal` with context-aware action menus and improved visual indicators.
+- **Simplification**: Removed the "penalty waiver" system to streamline the accountability engine and reduce UI clutter.
+- **Backend**: Updated `RecurrenceSchema` and `generator.ts` to support the new metadata-rich time window architecture.

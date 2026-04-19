@@ -1,0 +1,27 @@
+---
+title: "April 6th, 2026"
+---
+
+## April 6th, 2026: The Passive Enforcement Protocol
+
+Today was about expanding what "accountability" means in CommitT. Up until now, we’ve focused heavily on active location checks. Today, I enabled "Passive Enforcement"—commitments that focus entirely on digital app-blocking without requiring the user to physically be anywhere.
+
+### Enabling Digital-Only Commitments
+I updated our validation rules to recognize "Digital Commitment" as a valid binding anchor. This allows users to create time-based app blocks that auto-verify. If you say you won’t use Instagram between 9 AM and 5 PM, the app now supports that natively without needing point-in-time check-ins. I refactored the validators on both the frontend and backend to distinguish between "Active Verification" (Location) and "Passive Enforcement" (Digital).
+
+### Identity Unification & SQL Optimization
+A major technical overhaul happened in the synchronization pipeline. I realized that using random local IDs for SQLite records was causing "split-brain" duplication. I’ve now migrated the identity system to use official Convex IDs as the primary key across all persistence layers. I also implemented `INSERT OR REPLACE` logic to ensure single-row consistency during write races. This architectural shift significantly improves the reliability of the local-cloud bridge.
+
+### Hardening the Waiver Flows
+The waiver system is the most high-stakes part of CommitT. Today, I migrated the `handleStartWaiver` logic into the `TripleWriteOrchestrator` Saga. This ensures that starting a waiver is an atomic operation: the cloud knows you’re waiving, the local database is updated, and the hardware alarms are rescheduled—all in one sequence. I also implemented a universal "failed-to-neutral" status conversion. If a verification fails, the task stays in an interactive "Neutral" state rather than failing instantly, giving users a chance to retry.
+
+### Saga Timeouts & Forensics
+To prevent the UI from hanging on bad network connections, I implemented strict Saga timeouts. I also improved the behavioral logging by standardizing failure modals to display error messages exclusively in the title. This "Title-Only" aesthetic is much cleaner for mobile users.
+
+---
+
+### Technical Summary
+- **Protocol**: Enabled "Passive Enforcement" for commitments focused solely on digital app-blocking.
+- **Architecture**: Unified local and cloud identity systems using Convex IDs as primary keys.
+- **Saga**: Migrated waiver starting logic to the `TripleWriteOrchestrator` with foreclosure protection.
+- **Sync**: Implemented `is_manual_edit` shields to preserve user data during automatic schedule re-projections.

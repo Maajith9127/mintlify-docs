@@ -1,0 +1,31 @@
+---
+title: "April 19th, 2026"
+---
+
+## April 19th, 2026: Scorched-Earth Session Management
+
+Today, I reached a critical milestone in the "Session & Data" sovereignty of CommitT. I implemented what we calls the "Scorched-Earth" logout sequence and the "Imperial Wipe" engine.
+
+### Scorched-Earth Logout
+Logging out of a high-security app should be definitive. I’ve wired the `ConfirmationModal` to an aggressive `authClient.signOut()` sequence. Crucially, I added `GoogleSignin.signOut()` to natively zero-out the Google Play Services identity cache. This prevents the "auto-login" bypasses where users could instantly log back into a locked account. I also implemented an async spinner UI block during this termination phase to prevent any race conditions or "dual-routing."
+
+### The Imperial Wipe Engine
+For users who need to completely reset their local data, I added the "Full Resync" option. This isn't just a simple table clear; it’s an "Imperial Wipe." I architected a manual Convex Delta trigger that uses `nukeAndRebuildSchema`. By explicitly using `DROP TABLE IF EXISTS` instead of `DELETE FROM`, we permanently bypass the dreaded `SQLITE_CORRUPT` WAL pointer fragmentation bug. 
+
+This engine also deletes the `sync_token` from SecureStore, forcing an "Amnesia Wipe" that downloads 100% cloud parity state back into SQLite. It’s the ultimate "reset button" for when things get messy.
+
+### Graceful Error Bubbling
+I also improved how we handle failures during these sensitive operations. The `ConfirmationModal` now natively handles `isLoading` tracking, and I’ve attached a dynamic, styled `resyncError` payload to the modal. This ensures that if a background SQLite panic occurs, it’s rendered inline for the user rather than being silently swallowed.
+
+### Structural Polish
+Finally, I restructured the `profile.tsx` visual headers to group "Session & Data" settings together. I also validated our Global Mutex (`syncLock.execute`) bindings to ensure that the `HydrationEngine` cannot trigger concurrency races during AppState transitions.
+
+April 19th has brought a level of data integrity and session security that makes CommitT truly production-ready.
+
+---
+
+### Technical Summary
+- **Session Management**: Implemented "Scorched-Earth" logout with Google identity cache zeroing.
+- **Sync Engine**: Developed the "Imperial Wipe" using `nukeAndRebuildSchema` to bypass SQLite WAL pointer corruption.
+- **UI Architecture**: Refactored `profile.tsx` and added graceful error bubbling to the `ConfirmationModal`.
+- **Concurrency**: Validated Global Mutex bindings to block `HydrationEngine` races during foregrounding.

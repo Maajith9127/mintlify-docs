@@ -1,0 +1,27 @@
+---
+title: "April 7th, 2026"
+---
+
+## April 7th, 2026: The Hierarchy of Binding
+
+Day 7 was dedicated to solving the "Sparse Master" problem. Users want the flexibility to set different rules for different times, but our validation logic was too rigid. It required global rules even if every slot was customized.
+
+### Hierarchical Binding Validation
+I implemented the "Binding Action Protocol." This is a deep architectural shift that allows for "Hierarchical Binding"—per-slot overrides for locations, apps, and protocols. Now, a task can have empty root settings (a "Sparse Master") as long as every individual time slot is "armed" with a valid binding action. This means you can have a single recurring commitment where the morning slot has a gym location and the evening slot has a focus-mode app block.
+
+### The Total Override Strategy
+To keep the enforcer logic simple, I enforced a "Total Override" strategy. A slot-specific condition doesn't merge with the root; it completely supersedes it. This ensures that the enforcer state is always clean and predictable. If a user sets a custom geofence for a specific 1-hour window, the enforcer uses *only* that geofence, ignoring the task's global location.
+
+### UI/UX Validation Decoupling
+Validating these hierarchical rules is complex. I had to decouple the final screen's condition carousel from the granular validation logic. This ensures that the user sees a "Global-Only" view in the carousel to keep things clean, but the "Commit" button becomes active as soon as the hierarchy as a whole is valid. 
+
+### Reliability & Standards
+I also standardized the enforcer registries and resolved some tricky TypeScript `readonly` array mismatches that were causing linting errors in our shared libraries. The codebase is now fully prepared for the "per-slot" features we’ll be building out in the coming days.
+
+---
+
+### Technical Summary
+- **Validation**: Implemented hierarchical binding with support for "Sparse Master" task configurations.
+- **Logic**: Enforced "Total Override" policy for slot-specific condition resolution.
+- **Architecture**: Decoupled UI carousel state from secondary validation layers to maintain design simplicity.
+- **Reliability**: Standardized enforcer registries across the native and backend stacks.

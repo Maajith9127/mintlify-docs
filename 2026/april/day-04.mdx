@@ -1,0 +1,29 @@
+---
+title: "April 4th, 2026"
+---
+
+## April 4th, 2026: The Resilience of the Ghost
+
+Day 4 was dedicated to the core synchronization engine. We’ve been seeing occasional drifts between the Convex cloud and our local SQLite database, especially in spotty network conditions. I needed to build something that was "chaos-hardened."
+
+### The Amnesia Sync Strategy
+I architected a production-grade Hydration Engine that handles two distinct boot modes: "Amnesia" and "Warm Boot." On fresh installs (or after a critical failure), the engine performs an "Amnesia Wipe," downloading full table snapshots. For standard launches, it requests highly-optimized Deltas. To speed up the initial experience, I also upgraded the local-db to execute a single atomic V11 schema rollout for fresh installs, safely bypassing the history of legacy migrations.
+
+### Preserving the "Ghosts"
+One of the trickiest edge cases was handling "Ghost Instances"—manually edited task occurrences that outlived their parent tasks. I implemented a PRAGMA bypass (`foreign_keys = OFF`) during payload ingestion. This allows the sync engine to smoothly ingest orphaned instances from historical deletions without triggering SQLite's aggressive `ON DELETE CASCADE`. This keeps the calendar history perfect even if you delete a recurring series.
+
+### Restoring Native Gestures in `CalendarKit`
+For several days, we’ve been plagued by a bug where dragging events in the calendar would feel broken or "orphaned." I finally found the culprit: React Native's `freezeOnBlur`. When users navigated away from the calendar, the component tree was suspended. Upon returning, the `react-native-gesture-handler` instances severed their native bindings. By explicitly disabling `freezeOnBlur` in the main layout, I’ve restored fluid 60fps drag-and-drop interactions.
+
+### The Reveal-Stack Navigation
+I also tightened up the navigation flow in the creation stack. Instead of always pushing new screens, I implemented a "Reveal-Stack" strategy. Returning from creation steps now uses `router.back()`, which reveals the existing background layout instead of re-instantiating it. This resolved a massive 11-second lag when returning to the calendar.
+
+It was a day of "stripping non-conforming emojis" from logs and tuning spring physics, but the engine is now more resilient than ever.
+
+---
+
+### Technical Summary
+- **Sync Engine**: Implemented Smart Hydration (Amnesia vs Warm Boot) and PRAGMA bypass for orphaned records.
+- **UI Architecture**: Disabled `freezeOnBlur` to maintainPanGesture hierarchy for `CalendarKit`.
+- **Navigation**: Optimized return paths to use `router.back()` with tight skeleton animation timings (250ms).
+- **Performance**: Standardized spring physics (stiffness: 120, damping: 15) for all UI thread animations.

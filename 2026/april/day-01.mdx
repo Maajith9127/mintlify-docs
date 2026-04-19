@@ -1,0 +1,31 @@
+---
+title: "April 1st, 2026"
+---
+
+## April 1st, 2026: The Great Refinement of the Library
+
+The month of April began not with a bang, but with a series of meticulous refinements that would set the tone for the weeks to come. As the developer of CommitT, I realized that the user experience of managing habits and commitments needed reached a state of "functional complexity" – it worked, but it was getting heavy. The goal for Day 1 was to slim down the engine, polish the visuals, and make the Preset system a first-class citizen.
+
+### Scaling the Alarm Typography
+The first task of the morning was purely aesthetic, yet critical for usability. When an alarm triggers, the user is often in a state of disorientation or urgency. I increased the typographic hierarchy in the `AlarmActivity` to ensure that even from a distance, or with half-open eyes, the mission is clear. The task title was scaled up from 28sp to 36sp, and the active status labels were given more breathing room. This "pure-black premium" look is what defines CommitT’s high-stakes nature.
+
+### The Presets Revolution
+The most significant architectural shift today was the renaming of the "Strict Mode" tab to "Presets." While "Strict Mode" sounded cool, it didn't accurately describe the "Library of Intent" we were building. By renaming it and updating the icon to `options-outline`, we signaled to the user that this is where they build their arsenal of accountability templates.
+
+#### Location & Digital Presets
+I spent several hours implementing the full location preset editing flow. This wasn't just about changing a name; it was about ensuring that when a user edits a geofence, it syncs perfectly with the backend. I introduced the `updateLocationPreset` mutation and a dedicated `usePresetEditStore` to keep these modifications isolated from the main creation flow.
+
+For the digital side, I implemented the "Blocks" tab. Now, users can see a horizontal gallery of app icons for each blocklist preset. This visual feedback is instant and rewarding. Using a cached "Waterfall Loading" strategy for the maps and app icons, I managed to reduce RAM usage during preset browsing by nearly 90%. No more laggy scrolling when you have 50+ saved locations.
+
+### Native UI & Metadata Enrichment
+The day ended with a deep dive into the Kotlin layer. I unified the design system across the Blocker and Scheduler modules. The blocker overlay now queries the SQLite vault for real-time metadata, meaning it doesn't just say "Blocked"; it says "Active until 18:00" and shows the specific task title you committed to. 
+
+It was a long day of "removing extra files" and "standardizing DP-based scaling," but April 1st has established the premium foundation the app needs as it moves toward its final production-ready state.
+
+---
+
+### Technical Summary
+- **UI Architecture**: Migrated to `ActionScreenLayout` for all Preset management screens.
+- **Performance**: Replaced heavy map views with cached Static Maps API images in the library cards.
+- **Backend**: Added `incrementUsage` logic to track which presets are the user's favorites.
+- **Design**: Unified typography tokens (sans-serif-light/medium/bold) across all native Kotlin Activities.
