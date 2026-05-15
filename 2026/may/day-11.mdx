@@ -1,0 +1,24 @@
+---
+title: "May 11th, 2026"
+---
+
+## May 11th, 2026: The Geographic Interface & Geofence Glow
+
+The transformation of the "Create Commitment" flow is reaching its final phase. Today, I brought the location-based features into the new design era.
+
+### The Geographic HUD
+The Location Picker and the Geofence UI were the last holdouts of the old "Indigo" theme. I performed a full tokenization of these components. The `LocationPresetPickerModal` now uses the deep **Obsidian Surface** tokens, and I’ve injected our brand **Saffron** (`THEME.colors.primary`) directly into the Google Static Maps API logic. 
+
+Now, when you view a geofence on the map, the path and the markers glow with the same Saffron intensity as the rest of the app. It’s no longer just a map; it’s a "Geographic HUD" that feels integrated into the CommitT security stack.
+
+### Status Indicator Overhaul
+I also overhauled the `VerificationStatusCircle`. I thickened the borders to a "Hardened" 1.5px and restored tactile depth using the `surfaceLight` background token. These status badges now feel like physical instruments. Finally, I tokenized the `ActionMenu` (popover), syncing its destructive actions with our `danger` red and its container with the `surfaceElevated` elevation token.
+
+The app is now visually unified. From the moment you pick a location to the moment you commit a task, every pixel is speaking the same language of Saffron and Obsidian.
+
+---
+
+### Technical Summary
+- **Geospatial UI**: Tokenized the Location Picker and injected brand colors into the Google Maps integration.
+- **HUD Elements**: Overhauled status indicators and popover menus with hardened 1.5px borders and elevation tokens.
+- **Theme Parity**: Replaced all remaining hardcoded grays in the creation flow with `textMain` and `textMuted` tokens.

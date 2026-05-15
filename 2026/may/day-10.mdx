@@ -1,0 +1,22 @@
+---
+title: "May 10th, 2026"
+---
+
+## May 10th, 2026: Hardening the Heartbeat & The Dead-Man's Switch
+
+Today was a "Surgical Strike" day. I focused on the "Zombie" states that were still haunting the Android alarm system and the lifecycle violations that were causing production crashes during task transitions.
+
+### The Phantom Ringing & The Dead-Man's Switch
+I solved the "Phantom Ringing" bug. Occasionally, if an alarm was delivered while another was active, the audio would loop with no visible way to dismiss it. I implemented `onNewIntent()` in the `AlarmActivity` to handle sequential "Hot-Swapping" of alarms. 
+
+More importantly, I added the **"Dead-Man's Switch"**: an `onStop()` override that forcibly terminates all hardware alerts and releases the `is_alarm_active` global mutex if the alarm is ever backgrounded or hidden. This ensures that a user can never "hide" an alarm to bypass the blocker; if the alarm UI disappears, the system immediately restores full enforcement.
+
+### Stabilizing the React Lifecycle
+I also tracked down a critical crash in the `EventDetailTime.tsx` component. It was a classic "React Hook Violation." The `missedCount` hook was being called conditionally based on the task's verification style. This caused the app to explode during task boundary transitions (like the 10:00 PM shift). I moved the logic to the component's top-level scope, stabilizing the render cycle and ensuring that transitions between different commitment styles are zero-latency and crash-free.
+
+---
+
+### Technical Summary
+- **Alarm Lifecycle**: Implemented `onNewIntent()` for alarm hot-swapping and a `onStop()` "Dead-Man's Switch."
+- **React Stability**: Fixed a critical Hook Ordering violation in `EventDetailTime.tsx`.
+- **UI Architecture**: Tokenized the `TimeSet` flow and schedule picker components for design system compliance.

@@ -1,0 +1,22 @@
+---
+title: "May 8th, 2026"
+---
+
+## May 8th, 2026: The Great Resync & The Infinite Heal Loop
+
+Today, the system broke. What began as a routine study session turned into a critical system failure that exposed the deepest architectural flaws in our synchronization engine. It was the day of the "Zombie Loop."
+
+### The Infinite Heal Loop
+The React Native JS thread became trapped in an infinite "Forward-Heal" retry cycle. The app would spin, heat up the device, and effectively lock the user out of their dashboard. The culprit was a stacked failure: the background `BlockerAccessibilityService` was fighting the main React Native process for `READWRITE` access to the SQLite database. This conflict triggered `SQLITE_BUSY` errors, which led to WAL (Write-Ahead Logging) pointer fragmentation and, eventually, a "disk image is malformed" corruption.
+
+### The Nuclear Reset Strategy
+I realized that once the JS memory state is corrupted by a sync loop, a simple app restart isn't enough. I needed a "Surgical Strike." I began architecting the `recovery-module`—a brand new native Expo module. 
+
+The goal for this module is the `nuclearReset()`: an OS-level command that executes `android.os.Process.killProcess()`. This isn't just a close; it’s a purge. It wipes the corrupted memory state and forces the Android system to restart the app with a fresh SQLite handle. I also refactored the Accessibility Service to use a strict `READONLY` connection, ensuring that the background "Watchdog" never again fights the "Brain" for database access.
+
+---
+
+### Technical Summary
+- **Sync Failure**: Identified the "Infinite Heal Loop" caused by SQLite `READWRITE` contention between processes.
+- **Data Integrity**: Diagnosed SQLite WAL corruption and "malformed disk image" triggers.
+- **Architectural Pivot**: Commenced development of the native `recovery-module` and implemented a `READONLY` constraint for background services.
