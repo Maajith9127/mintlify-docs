@@ -1,0 +1,25 @@
+---
+title: "May 1st, 2026"
+---
+
+## May 1st, 2026: The Sentinel's Watch & The 5-Hour Mandate
+
+As May begins, the focus has shifted from "making it work" to "making it un-gameable." For a system built on self-imposed discipline, the greatest threat isn't a crash—it's a user finding a way to bypass their own rules during a moment of weakness.
+
+### The Time-Smart Sentinel
+I realized the previous grading engine was being too "optimistic." It would look at the current time window and try to guess if you were going to pass. This led to jittery status reports and a lack of certainty. Today, I implemented `evaluateGradingVerdictV2`. 
+
+This new engine is a "Time-Smart Sentinel." It strictly ignores any checkpoints that haven't concluded yet. It only judges you on the past—on the windows that have already closed. This ensures that when the History feed says "Verified," it’s a mathematical certainty, not a prediction.
+
+### The 5-Hour Mandate
+To further harden the "Accountability Arm," I’ve enforced a strictly hardened 5-hour (300-minute) minimum window. I noticed that for some tasks, the waiver period was so short that it could be manipulated or accidentally bypassed by the scheduler's own heartbeat. By mandating a 5-hour floor, I’m ensuring that the "Crisis Phase" of a commitment has enough temporal weight to be taken seriously.
+
+### Audit Centralization
+I’ve also expanded the `auditEventTypeEnum` to officially support `penalty_armed` and `waiver_activated` events. These aren't just logs; they are "Signals." In the History feed, these active accountability events now glow with a brand-consistent Yellow (#FACC15), acting as a visual "Caution" sign that the stakes are currently live.
+
+---
+
+### Technical Summary
+- **Grading Logic**: Developed `evaluateGradingVerdictV2` to provide authoritative, conclusion-based status reporting.
+- **Accountability Hardening**: Enforced a 300-minute minimum window to prevent temporal tampering.
+- **Visual Feedback**: Integrated a "Yellow Alert" system in the History feed for active penalty arming.
