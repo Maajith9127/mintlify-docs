@@ -1,0 +1,25 @@
+---
+title: "April 30th, 2026"
+---
+
+## April 30th, 2026: The Global Clock & The End of Temporal Ambiguity
+
+The final day of April brought a realization: CommitT was living in a "Temporal Bubble." The audit logs and history feeds were speaking the language of the server, not the language of the user. For an app built on time-gated commitments, this ambiguity was unacceptable.
+
+### Breaking the Temporal Bubble
+I discovered that our audit logs were using hardcoded backend string formatting. If a user in London triggered a sync, and I viewed it in New York, the timestamp was a confusing mess of server-side offsets. I performed a surgical refactor of the entire `scheduler.ts` and `notifications.tsx` pipeline.
+
+I moved the system to a "UTC-Authoritative / Client-Aware" model. We no longer pass formatted strings through the pipeline; we pass raw UTC milliseconds (`scheduled_for`). The frontend then uses `dayjs` to perform "Late-Binding" formatting—rendering the timestamp in the user's local timezone at the exact moment of display. 
+
+### The Global Standard UI
+To further refine this, I standardized the display format to "D MMM YYYY" (e.g., "30 Apr 2026"). It’s a clean, global standard that leaves no room for regional misinterpretation. Whether you're tracking a sync in Tokyo or a waiver in Berlin, the history feed now speaks the truth of *your* clock.
+
+### April: Closing the Chapter
+As April draws to a close, the system is significantly more "Hardened" than it was at the start of the month. We have resilient lifecycle management, persistent production auditing, guaranteed email deliverability, and now, a globally accurate temporal history. The foundation is solid. May will be about scale and the next frontier of user experience.
+
+---
+
+### Technical Summary
+- **Temporal Sovereignty**: Migrated audit logging to a UTC-based metadata model to eliminate timezone ambiguity.
+- **Client-Side Synthesis**: Implemented `dayjs` formatting in the notifications feed for local-time accuracy.
+- **UI Standardization**: Normalized date displays across the entire app to the Global Standard (D MMM YYYY) format.

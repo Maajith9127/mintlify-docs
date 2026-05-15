@@ -1,0 +1,27 @@
+---
+title: "April 28th, 2026"
+---
+
+## April 28th, 2026: Chasing the Ghost of Jitter & The Deliverability Dragon
+
+With the core stability of the app restored, today was about the "sensory" experience of CommitT. An app designed for high-stakes accountability shouldn't just work; it should feel like a precision instrument. It should be heavy, fast, and unyielding.
+
+### The Black-Out Protocol
+I spent the morning chasing a ghost—a subtle, irritating "black-screen flash" that occurred on Android during the swipe-back transition. It was as if the app was blinking for a millisecond too long. I discovered that the default Android transition background was clashing with our deep Obsidian theme. 
+
+I implemented the "Black-Out Protocol": I set the native `windowBackground` strictly to `#000000` at the manifest level and purged a high-overhead disk-logging polyfill that was creating O(N^2) processing bottlenecks during layout shifts. Now, the navigation is fluid, dark, and instantaneous. The "blink" is gone.
+
+### Taming the Deliverability Dragon
+The most dangerous failure in CommitT isn't a crash; it's a "silent penalty." If a user fails their commitment and the penalty email is swallowed by a spam filter, the entire psychological contract is broken. I realized raw image URLs were a massive red flag for mail servers.
+
+I spent the afternoon hardening the "Accountability Arm." I transitioned from raw links to native MIME attachments using the Resend API. I also personalized the sender identity to "Maajith"—giving the email a human face that spam filters are less likely to ignore. When the dragon breathes fire, I want to make sure the user feels the heat.
+
+### The 5-Second Short-Circuit
+To test this entire machinery without waiting for 24-hour cycles, I implemented a 5-second short-circuit delay in the arming logic. This allows me to trigger a "Failure Loop" in seconds, validating the "Commit -> Failure -> Email -> Attachment" sequence with the speed of a bullet.
+
+---
+
+### Technical Summary
+- **Sensory Refinement**: Eliminated Android navigation jitter by optimizing `windowBackground` and purging logging bottlenecks.
+- **Email Sovereignty**: Hardened penalty delivery using native MIME attachments and Resend API personalization.
+- **Velocity**: Implemented a 5-second short-circuit for rapid, high-speed validation of the accountability loop.
