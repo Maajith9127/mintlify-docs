@@ -1,0 +1,23 @@
+---
+title: "May 12th, 2026"
+---
+
+## May 12th, 2026: The Button Engine & Modal Sovereignty
+
+Today was a day of "Micro-Sovereignty." I realized that the most frequent interaction in the app—the button press—felt slightly disconnected. We were using a high-level HOC that was swallowing the "active" state flashes.
+
+### The Button Interaction Engine
+I performed a surgical refactor of `button.tsx`. I replaced `heroui-native` with a standard `Pressable` implementation, utilizing internal React state (`onPressIn`/`onPressOut`) to drive the visual feedback. I also added a new `primaryLight` token (`#E27E5A`)—a mathematically consistent lighter tint of our Saffron primary. Now, when you press a button, it doesn't just respond; it "glows." It’s a subtle shift that makes the entire UI feel alive and responsive.
+
+### Modal Hardening: The Gatekeepers
+I also brought the `ConfirmationModal` and `EventDetailModal` into the Saffron age. I tokenized their geometry, scaling the action buttons up to `text-xl` for better HUD legibility. The backgrounds are now a deep Charcoal (`surfaceElevated`), providing a high-contrast backdrop for the vibrant Saffron action buttons. These aren't just dialogs anymore; they are the "Gatekeepers" of the application, and they finally look the part.
+
+### The Schedule Grid
+Finally, I overhauled the `Schedules` calendar engine. I implemented `pureBlack` axis headers and time columns, contrasted against a `surface` charcoal event grid. This "Dark HUD" aesthetic makes the user's commitments pop, turning a simple calendar into a strategic dashboard.
+
+---
+
+### Technical Summary
+- **Interaction Design**: Developed a new state-driven button interaction engine for precise visual feedback.
+- **Theme Extension**: Added `primaryLight` and `surfaceElevated` tokens for enhanced tactile depth.
+- **UI Hardening**: Fully tokenized the global Modal system and the Schedules calendar engine.

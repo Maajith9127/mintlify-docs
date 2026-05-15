@@ -1,0 +1,23 @@
+---
+title: "May 14th, 2026"
+---
+
+## May 14th, 2026: The Inheritance Engine & The Deep-Scan Dashboard
+
+Today was about "Logic-Driven UI." I wanted to solve the complexity of managing nested commitment settings without overwhelming the user with duplicate configuration screens.
+
+### The Inheritance & Override Engine
+I implemented what I’m calling the "Inheritance Engine" for the Commitment HUD. This logic allows global settings (like notification preferences or penalty types) to flow down into individual tasks, while still allowing for surgical "Overrides" at the task level. In the UI, these inherited values are marked with a subtle `textMuted` styling, while overrides glow with Saffron. This creates a clear visual hierarchy of "Where this setting came from," reducing cognitive load for the user.
+
+### The Deep-Scan Dashboard
+I overhauled the `CommitCard` to include a "Deep-Scan" enforcement dashboard. This isn't just a status badge; it’s a real-time monitor of the task's enforcement state. It shows the active geofences, the current penalty "armed" status, and the upcoming verification windows. It turns every card in the list into a miniature "Command Center."
+
+### Strict Mode Polish
+Finally, I hardened the "Strict Mode" configuration flow. I synchronized the animations between the toggle state and the background gradients, creating a "Visual Warning" when the user activates the high-stakes enforcement mode. I also standardized the `DigitalCommitment` separators and refined the ADB reset script to ensure a clean development bridge during these heavy UI transitions.
+
+---
+
+### Technical Summary
+- **UI Logic**: Developed the Inheritance & Override engine for hierarchical commitment configuration.
+- **Card Architecture**: Upgraded `CommitCard` with the "Deep-Scan" real-time enforcement dashboard.
+- **Animations**: Synchronized "Strict Mode" transitions with brand-aligned background shifts and haptic-ready animations.
