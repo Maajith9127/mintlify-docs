@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "CommitT",
   "colors": {
-    "primary": "#4B9EFF",
-    "light": "#2D83FF",
-    "dark": "#0D0D0F"
+    "primary": "#C6613F",
+    "light": "#E27E5A",
+    "dark": "#080808"
   },
   "favicon": "/favicon.svg",
   "navigation": {
