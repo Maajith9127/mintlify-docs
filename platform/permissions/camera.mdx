@@ -1,0 +1,38 @@
+---
+title: "Camera"
+description: "Configure Camera permissions for live photo & video proof verification."
+---
+
+# Camera Permission
+
+CommitT requires access to the device's **Camera** (`Manifest.permission.CAMERA`) to facilitate accountability checks. Under a strict commitment model, self-reporting is vulnerable to cheating. Live media captures provide cryptographically signed, real-time proof of task completion.
+
+---
+
+## Why it is Required
+
+When tasks require physical presence or action (e.g. *Gym check-in*, *Out of Bed* wake-up verification, or *Desk Study Setup*), users must submit a live photo or video.
+*   **Anti-Cheating Guardrails:** CommitT prevents users from uploading pre-existing gallery images or photoshopped media. 
+*   **Live Capture Only:** The client bypasses the standard file picker, launching a secure, live camera viewport. The captured image is immediately watermarked, timestamped, hashed, and uploaded to the Convex cloud database for audit verification.
+
+---
+
+## Native Implementation
+
+The permission state is checked using standard Android package manager permission state checks:
+
+```kotlin
+val cameraEnabled = context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+```
+
+---
+
+## Requesting the Permission
+
+If the permission is denied or revoked, CommitT uses the standard Android Application Details settings intent to redirect the user to the app's permission toggle screen:
+
+```kotlin
+"camera" -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+    data = Uri.parse("package:${context.packageName}")
+}
+```

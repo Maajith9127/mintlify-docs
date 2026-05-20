@@ -1,0 +1,45 @@
+---
+title: "Alarms & Reminders"
+description: "Configure exact alarm scheduling to guarantee immediate wake-up checks and verification alerts."
+---
+
+# Alarms & Reminders
+
+CommitT requires the **Schedule Exact Alarms** permission (`Manifest.permission.SCHEDULE_EXACT_ALARM`) to guarantee that wake-up commitments and randomized verification checks are triggered at precise millisecond bounds.
+
+---
+
+## Why it is Required
+
+Android implements battery-saving optimizations that delay or group background alarms (known as *Alarm Batching*).
+*   **The Problem:** Standard alarms can drift or be delayed by up to 15-30 minutes if the device is in a deep sleep state (Doze Mode). In a wake-up commitment where the user has promised to verify at exactly 6:00 AM, a 15-minute delay would fail the task.
+*   **The Solution:** The exact alarm API allows CommitT to bypass OS sleep states and force-wake the device to ring the alarm immediately at the exact second configured.
+
+---
+
+## Native Implementation
+
+The native module audits exact alarm capabilities on Android 12 (API 31) and above using `AlarmManager`:
+
+```kotlin
+val alarmsEnabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    alarmManager.canScheduleExactAlarms()
+} else {
+    true // Autopassed on pre-Android 12 versions
+}
+```
+
+---
+
+## Requesting the Permission
+
+To request the permission, CommitT deep-links the user directly to the system-level "Alarms & Reminders" toggle page for the application:
+
+```kotlin
+"alarms" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+        data = Uri.parse("package:${context.packageName}")
+    }
+} else null
+```

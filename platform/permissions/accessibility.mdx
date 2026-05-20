@@ -1,0 +1,47 @@
+---
+title: "Accessibility"
+description: "Configure Accessibility Service to intercept and block restricted apps & websites."
+---
+
+# Accessibility Service
+
+CommitT requires the **Accessibility Service** permission to power its digital blocklists. By registering a dedicated accessibility background service, CommitT can intercept app launches, monitor window switches, and prevent self-sabotage in real-time.
+
+---
+
+## Why it is Required
+
+Modern Android privacy restrictions prevent background applications from querying which app is currently running in the foreground. 
+*   **The Limitation:** Standard APIs like `getRunningTasks()` or UsageStats Manager have high latency and can be bypassed.
+*   **The Accessibility Solution:** Registering a custom `AccessibilityService` allows CommitT to receive immediate event callbacks (`TYPE_WINDOW_STATE_CHANGED`) whenever a user switches apps. If the user attempts to launch a blocklisted application (e.g., Instagram), the service immediately intercepts the navigation and triggers the full-screen blocking overlay.
+
+---
+
+## Native Implementation
+
+The native module audits the status by checking the secure system settings database to see if `BlockerAccessibilityService` is active:
+
+```kotlin
+private fun isAccessibilityServiceEnabled(context: Context): Boolean {
+    val expectedService = "${context.packageName}/expo.modules.blocker.BlockerAccessibilityService"
+    val enabledServices = Settings.Secure.getString(
+        context.contentResolver,
+        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+    ) ?: ""
+    return enabledServices.contains(expectedService)
+}
+```
+
+---
+
+## Requesting the Permission
+
+To request the permission, CommitT directs the user directly to the Android System Accessibility settings list:
+
+```kotlin
+"accessibility" -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+```
+
+<Note>
+  Due to Android security sandbox restrictions, the user must scroll to "Installed Services" (or "Downloaded Apps"), select **CommitT Blocker Service**, and toggle the switch to **On**.
+</Note>

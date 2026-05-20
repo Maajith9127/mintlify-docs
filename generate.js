@@ -17,15 +17,20 @@ for (let i = 1; i <= 30; i++) { if (i === 16) continue; apr2026Pages.push(`2026/
 const may2026Pages = [];
 for (let i = 1; i <= 15; i++) { if (i === 7) continue; may2026Pages.push(`2026/may/day-${pad(i)}`); }
 
-// --- Trimmed and Shortened Titles ---
+// --- Full 8 Permissions Setup ---
 const platformPages = {
   "Setup & Permissions": {
     groupIcon: "shield-halved",
     pages: [
-      { path: "platform/permissions/audit", title: "OS Permissions", desc: "8-point Android permission prerequisite audit" },
+      { path: "platform/permissions/audit", title: "OS Permissions", desc: "Overview of the 8-point system configuration audit" },
+      { path: "platform/permissions/accessibility", title: "Accessibility", desc: "Accessibility Service needed for app blocking & strict mode" },
       { path: "platform/permissions/admin-lock", title: "Admin Lock", desc: "Uninstall protection via Device Administrator" },
-      { path: "platform/permissions/appear-on-top", title: "Appear On Top", desc: "Full-screen overlay rendering for app blocking" },
-      { path: "platform/permissions/battery-opt", title: "Battery Bypass", desc: "Disable battery-saver restrictions for background persistence" }
+      { path: "platform/permissions/appear-on-top", title: "Appear On Top", desc: "Full-screen overlay rendering for anti-skip overlays" },
+      { path: "platform/permissions/battery-opt", title: "Battery Bypass", desc: "Bypass battery-saver restrictions for background running" },
+      { path: "platform/permissions/camera", title: "Camera", desc: "Required for live photo & video verification" },
+      { path: "platform/permissions/location", title: "Location", desc: "Needed for 5km run and location-based tasks" },
+      { path: "platform/permissions/notifications", title: "Notifications", desc: "For reminders and randomized checks" },
+      { path: "platform/permissions/alarms", title: "Alarms & Reminders", desc: "Needed for wake-up commitments & schedules" }
     ]
   },
   "Core Configuration": {
@@ -133,9 +138,17 @@ Object.values(platformPages).forEach(groupDef => {
     const dir = path.dirname(fullPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     
-    // Write or rewrite frontmatter title
-    fs.writeFileSync(fullPath, `---\ntitle: "${page.title}"\ndescription: "${page.desc}"\n---\n\n# ${page.title}\n\n${page.desc}.\n\n*Detailed documentation coming soon.*\n`);
-    console.log(`Generated/Updated: ${page.path}.mdx (title: ${page.title})`);
+    // Only write a stub if the file does not exist
+    if (!fs.existsSync(fullPath)) {
+      fs.writeFileSync(fullPath, `---\ntitle: "${page.title}"\ndescription: "${page.desc}"\n---\n\n# ${page.title}\n\n${page.desc}.\n\n*Detailed documentation coming soon.*\n`);
+      console.log(`Generated: ${page.path}.mdx (title: ${page.title})`);
+    } else {
+      // Just update frontmatter title of existing files to keep custom written content safe
+      let content = fs.readFileSync(fullPath, 'utf8');
+      const replaced = content.replace(/^title:\s*["']?.*?["']?$/m, `title: "${page.title}"`);
+      fs.writeFileSync(fullPath, replaced, 'utf8');
+      console.log(`Updated title of existing: ${page.path}.mdx`);
+    }
   });
 });
 
@@ -144,12 +157,10 @@ function updateMdxTitle(pagePath, newTitle) {
   const fp = path.join(docsDir, pagePath + '.mdx');
   if (fs.existsSync(fp)) {
     let content = fs.readFileSync(fp, 'utf8');
-    // Replace frontmatter title line
     const replaced = content.replace(/^title:\s*["']?.*?["']?$/m, `title: "${newTitle}"`);
     fs.writeFileSync(fp, replaced, 'utf8');
     console.log(`Updated title for ${pagePath}.mdx to "${newTitle}"`);
   } else {
-    // Generate new stub if it doesn't exist
     const dir = path.dirname(fp);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(fp, `---\ntitle: "${newTitle}"\ndescription: "Documentation for ${newTitle}."\n---\n\n# ${newTitle}\n\n*Detailed documentation coming soon.*\n`);
@@ -157,12 +168,10 @@ function updateMdxTitle(pagePath, newTitle) {
   }
 }
 
-// Update Get Started page titles
 updateMdxTitle("quickstart", "Quick Start");
 updateMdxTitle("setup-env", "Environment Setup");
 updateMdxTitle("start-developing", "Developing");
 
-// Update Guides page titles
 updateMdxTitle("architecture/overview", "Overview");
 updateMdxTitle("architecture/sync-engine", "Sync Engine");
 updateMdxTitle("architecture/local-database", "Local Database");

@@ -1,0 +1,57 @@
+---
+title: "Location"
+description: "Configure background GPS location permissions for geofence enforcement."
+---
+
+# Location Services
+
+CommitT requires high-accuracy **Location** access (`ACCESS_FINE_LOCATION` and `ACCESS_BACKGROUND_LOCATION`) to track physical presence commitments (e.g. library focus windows, gym arrivals, or 5km runs).
+
+---
+
+## Why it is Required
+
+CommitT uses geofencing to audit spatial habits:
+*   **Geofence Enforcement:** To verify you are inside a geofenced area (e.g., a library or office) during a lock-in block, the client monitors your coordinates.
+*   **Dynamic Distance Checks:** For run-based tasks, GPS tracks real-time progress to calculate distance.
+*   **Anti-Spoofing Auditing:** Coordinates are verified against network providers and hardware GPS sensors to detect and prevent mock location apps or virtual coordinates bypasses.
+
+---
+
+## Background Location Requirement
+
+<Important>
+  You must select **"Allow all the time"** in system settings. Selecting "Allow only while using the app" will cause task enforcement to fail.
+</Important>
+
+On Android 10+ (API 29), background processes cannot poll location unless the background permission is explicitly granted. 
+*   **The Risk:** Without background location, the geofencing service will be terminated by the OS when the screen turns off.
+*   **The Fail-Closed Trigger:** If the GPS stream stops during an active commitment session, the client triggers a **fail-closed lock state**, assuming a bypass attempt.
+
+---
+
+## Native Implementation
+
+The native module performs checking based on SDK versions:
+
+```kotlin
+val locationEnabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    val hasFine = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    val hasBackground = context.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+    hasFine && hasBackground
+} else {
+    context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+}
+```
+
+---
+
+## Requesting the Permission
+
+To grant background location, the system requires redirection to the Application Info page, where the user must click **Permissions → Location** and select **Allow all the time**:
+
+```kotlin
+"location" -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+    data = Uri.parse("package:${context.packageName}")
+}
+```

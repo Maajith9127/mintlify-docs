@@ -1,0 +1,50 @@
+---
+title: "Notifications"
+description: "Configure notification channel access for alarms and check-in reminders."
+---
+
+# Notifications Permission
+
+CommitT requires **Notification** access to deliver real-time feedback, scheduling alerts, and critical check-in warnings. In a high-stakes accountability system, missing a check-in lead to immediate penalties; clear, high-priority notifications prevent accidental failures.
+
+---
+
+## Why it is Required
+
+Notifications are critical for three primary enforcement loops:
+1.  **Random Check-in Alerts:** In *Stay Throughout* verification mode, random alarms are sent to the user. The user has a strict 5-minute grace window to tap the notification and complete verification. Without notifications, the user would miss the prompt and fail.
+2.  **Lock-in Warnings:** Alerts inform the user when a restricted slot is about to start, allowing them to close tabs or wrap up work.
+3.  **Active Lock Status:** A persistent notification is displayed while a lock-in block is active to prevent the OS from killing the background service.
+
+---
+
+## Native Implementation
+
+The native module queries the `NotificationManager` system service to audit permissions on modern API levels:
+
+```kotlin
+val notificationsEnabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    notificationManager.areNotificationsEnabled()
+} else {
+    true // Autopassed on legacy versions
+}
+```
+
+---
+
+## Requesting the Permission
+
+To request notifications, CommitT deep-links directly to the dedicated app notification channel settings on Android Oreo (API 26) and above, falling back to details settings on older devices:
+
+```kotlin
+"notifications" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+    }
+} else {
+    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        data = Uri.parse("package:${context.packageName}")
+    }
+}
+```

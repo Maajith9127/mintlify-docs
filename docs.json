@@ -50,9 +50,14 @@
                 "icon": "shield-halved",
                 "pages": [
                   "platform/permissions/audit",
+                  "platform/permissions/accessibility",
                   "platform/permissions/admin-lock",
                   "platform/permissions/appear-on-top",
-                  "platform/permissions/battery-opt"
+                  "platform/permissions/battery-opt",
+                  "platform/permissions/camera",
+                  "platform/permissions/location",
+                  "platform/permissions/notifications",
+                  "platform/permissions/alarms"
                 ]
               },
               {
