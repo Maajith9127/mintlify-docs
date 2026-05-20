@@ -66,67 +66,74 @@ const newDocsJson = {
       "url": "/2026/may/day-15"
     }
   ],
-  "navigation": [
-    {
-      "group": "Get started",
-      "pages": ["index", "quickstart"]
-    },
-    {
-      "group": "Develop",
-      "pages": ["development"]
-    },
-    {
-      "group": "Core Framework",
-      "pages": ["essentials/markdown", "essentials/code"]
-    },
-    {
-      "group": "User Interface",
-      "pages": ["essentials/images"]
-    },
-    {
-      "group": "API Reference",
-      "pages": ["api-reference/introduction"]
-    },
-    {
-      "group": "Journey (Developer Logs)",
-      "pages": [
-        {
-          "group": "2025",
-          "pages": [
-            {
-              "group": "December",
-              "pages": dec2025Pages
-            }
-          ]
-        },
-        {
-          "group": "2026",
-          "pages": [
-            {
-              "group": "January",
-              "pages": jan2026Pages
-            },
-            {
-              "group": "February",
-              "pages": feb2026Pages
-            },
-            {
-              "group": "March",
-              "pages": mar2026Pages
-            },
-            {
-              "group": "April",
-              "pages": apr2026Pages
-            },
-            {
-              "group": "May",
-              "pages": may2026Pages
-            }
-          ]
-        }
-      ]
-    }
-  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Main",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["index", "quickstart"]
+          },
+          {
+            "group": "Develop",
+            "pages": ["development"]
+          },
+          {
+            "group": "Core Framework",
+            "pages": ["essentials/markdown", "essentials/code"]
+          },
+          {
+            "group": "User Interface",
+            "pages": ["essentials/images"]
+          },
+          {
+            "group": "API Reference",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Journey (Developer Logs)",
+            "pages": [
+              {
+                "group": "2025",
+                "pages": [
+                  {
+                    "group": "December",
+                    "pages": dec2025Pages
+                  }
+                ]
+              },
+              {
+                "group": "2026",
+                "pages": [
+                  {
+                    "group": "January",
+                    "pages": jan2026Pages
+                  },
+                  {
+                    "group": "February",
+                    "pages": feb2026Pages
+                  },
+                  {
+                    "group": "March",
+                    "pages": mar2026Pages
+                  },
+                  {
+                    "group": "April",
+                    "pages": apr2026Pages
+                  },
+                  {
+                    "group": "May",
+                    "pages": may2026Pages
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
