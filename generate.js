@@ -55,11 +55,37 @@ const config = {
       {
         "tab": "Documentation",
         "groups": [
-          { "group": "Get started", "pages": ["index", "quickstart"] },
-          { "group": "Develop", "pages": ["development"] },
-          { "group": "Core Framework", "pages": ["essentials/markdown", "essentials/code"] },
-          { "group": "User Interface", "pages": ["essentials/images"] },
-          { "group": "API Reference", "pages": ["api-reference/introduction"] }
+          {
+            "group": "Get Started",
+            "pages": ["index", "quickstart"]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/sync-engine",
+              "architecture/local-database",
+              "architecture/write-gate",
+              "architecture/state-management",
+              "architecture/app-routes"
+            ]
+          },
+          {
+            "group": "Native Modules",
+            "pages": [
+              "native-modules/overview"
+            ]
+          },
+          {
+            "group": "Backend (Convex)",
+            "pages": [
+              "backend/schema"
+            ]
+          },
+          {
+            "group": "Develop",
+            "pages": ["development"]
+          }
         ]
       },
       {
@@ -101,15 +127,15 @@ const config = {
   }
 };
 
-// Write docs.json (the format Mintlify v2 expects)
+// Write docs.json
 const docsJsonPath = path.join(docsDir, 'docs.json');
 fs.writeFileSync(docsJsonPath, JSON.stringify(config, null, 2));
 
-// Remove mint.json if it exists (avoid config conflicts)
+// Remove mint.json if it exists
 const mintJsonPath = path.join(docsDir, 'mint.json');
 if (fs.existsSync(mintJsonPath)) {
   fs.unlinkSync(mintJsonPath);
   console.log('Removed old mint.json');
 }
 
-console.log('Successfully generated docs.json with Documentation + Journey tabs!');
+console.log('Successfully generated docs.json with full Documentation + Journey tabs!');

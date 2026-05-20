@@ -1,0 +1,81 @@
+---
+title: App Routes & Screens
+description: "Complete reference for all Expo Router screens and navigation flows."
+---
+
+# App Routes & Screens
+
+CommitT uses **Expo Router** with file-based routing. Every screen is organized into route groups that map to distinct user flows.
+
+## Route Map
+
+```
+app/
+├── _layout.tsx              # Root layout (Provider tree)
+├── index.tsx                # Entry point / splash
+├── (auth)/                  # Authentication flow
+│   └── signin.tsx           # Email + Google OAuth sign-in
+├── (main)/                  # Primary tab navigator
+│   ├── _layout.tsx          # Bottom tab bar
+│   ├── commits.tsx          # Active commitments feed
+│   ├── schedules.tsx        # Calendar schedule view
+│   ├── presets.tsx           # Accountability preset manager
+│   ├── notifications.tsx    # Audit log & event history
+│   └── profile.tsx          # User profile & settings
+├── (create-commit)/         # Multi-step commitment wizard
+│   ├── choose.tsx           # Select apps/locations/conditions
+│   ├── time-set.tsx         # Configure recurrence & windows
+│   ├── location-set.tsx     # Set geofence location
+│   ├── penalties.tsx        # Configure penalty contract
+│   ├── penaltywaivers.tsx   # Configure waiver challenges
+│   ├── captcha-setup.tsx    # CAPTCHA waiver configuration
+│   ├── searchpac.tsx        # App search & selection
+│   └── final.tsx            # Review & submit (Triple-Write)
+├── (edit-preset)/           # Preset editing flow
+├── (verify-commit)/         # Commitment verification screens
+├── (strict-mode)/           # Strict mode activation flow
+├── (penalties)/             # Penalty review screens
+├── (penaltywaiver)/         # Active waiver challenge screens
+├── (settings)/              # App settings
+└── (dev)/                   # Developer tools (chaos testing)
+```
+
+## Key Screens
+
+### `(main)/commits.tsx` — The Dashboard (16KB)
+The primary screen showing all active and upcoming commitments with real-time status updates from the local SQLite cache.
+
+### `(create-commit)/final.tsx` — The Contract Seal (20KB)
+The final review screen where the user confirms their commitment. This is where the **Triple-Write Orchestrator** executes, writing to Convex, SQLite, and hardware alarms atomically.
+
+### `(main)/presets.tsx` — Preset Manager (31KB)
+The largest screen. Manages accountability presets with full CRUD, drag-to-reorder, and smart pre-fill suggestions.
+
+### `(main)/schedules.tsx` — Calendar View (18KB)
+Calendar visualization of all scheduled commitment instances with day/week views.
+
+## Navigation Transitions
+
+| Route | Presentation | Animation |
+|---|---|---|
+| `(auth)` | Full screen | `fade` |
+| `(create-commit)` | Transparent modal | `slide_from_right` |
+| `(strict-mode)` | Transparent modal | `slide_from_right` |
+| `(penalties)` | Transparent modal | `slide_from_right` |
+| `(dev)/chaos` | Modal sheet | `slide_from_bottom` |
+
+## Component Library
+
+```
+components/
+├── auth/              # AuthForm, social login buttons
+├── calendar/          # Calendar grid, day cells, week headers
+├── dev/               # ChaosFab, DbDebugFab (dev-only)
+├── system/            # SecurityShield, HydrationEngine
+├── ui/
+│   ├── buttons/       # AlarmFab, action buttons
+│   └── modal/         # HealOverlay, bottom sheets
+├── container.tsx      # Reusable screen container
+├── sign-in.tsx        # Sign-in form component
+└── sign-up.tsx        # Sign-up form component
+```

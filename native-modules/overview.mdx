@@ -1,0 +1,115 @@
+---
+title: Native Modules Overview
+description: "7 custom Expo modules written in Kotlin powering the enforcement engine."
+---
+
+# Native Modules
+
+CommitT ships with **7 custom Expo native modules**, all written in Kotlin for the Android platform. These modules bridge the gap between the React Native JavaScript layer and the low-level Android system APIs required for hardware-grade enforcement.
+
+```
+apps/native/modules/
+├── alarm-module/          # Hardware alarm scheduling via AlarmManager
+├── app-lister-module/     # Discovers installed apps for blocking rules
+├── blocker-module/        # Core Accessibility Service enforcement engine
+├── enforcement-module/    # Penalty execution coordinator
+├── logcat-module/         # Native log capture for release debugging
+├── recovery-module/       # System recovery and self-healing utilities
+└── scheduler-module/      # Instance scheduling and alarm synchronization
+```
+
+## blocker-module (The Enforcement Engine)
+
+The most critical module. It runs as an **Android Accessibility Service** — a system-level process that intercepts every app launch, window change, and UI event on the device.
+
+### Key Capabilities
+
+| Feature | Implementation |
+|---|---|
+| **App Blocking** | Intercepts `TYPE_WINDOW_STATE_CHANGED` events and overlays a blocking screen |
+| **Location Enforcement** | 1Hz GPS stream via `LocationManager` with `Location.distanceBetween()` geofence checks |
+| **Fail-Closed Policy** | If GPS is stale (>30s) or DB is unreadable, blocks by default |
+| **Settings Protection** | Detects navigation to Accessibility Settings and redirects back |
+| **Database Access** | Opens a READONLY SQLite connection to `commit.db` |
+
+### Location Tracking
+
+The service registers a continuous location listener at **1Hz frequency** (one update per second):
+
+```kotlin
+locationManager.requestLocationUpdates(
+    LocationManager.GPS_PROVIDER,
+    1000L,    // 1 second minimum interval
+    0f,       // 0 meters minimum distance
+    locationListener
+)
+```
+
+Geofence enforcement uses raw `Location.distanceBetween()` calculations rather than the Google Geofencing API — this provides deterministic, immediate results without the latency and batching behavior of the platform API.
+
+<Warning>
+**LOCATION_STALENESS_THRESHOLD_MS = 30,000** (30 seconds). If the last GPS fix is older than this, the service assumes the user has disabled location services and activates the blocking overlay. Monitor this threshold if users report false-positive blocking during extreme battery-saver states.
+</Warning>
+
+### Database Connection Safety
+
+The Accessibility Service opens its own SQLite connection for reading commitment data:
+
+```kotlin
+val db = SQLiteDatabase.openDatabase(
+    dbPath,
+    null,
+    SQLiteDatabase.OPEN_READONLY  // Critical: prevents WAL writer lock contention
+)
+```
+
+<Info>
+Using `OPEN_READONLY` is essential. If the service opened a read-write connection, it would compete for the WAL writer lock with the JavaScript thread's Expo SQLite connection, causing immediate database corruption on eMMC storage devices (like the Lenovo K12 Note).
+</Info>
+
+## alarm-module
+
+Manages hardware-level alarms via Android's `AlarmManager`. These alarms fire even when the app is killed, ensuring commitment windows are enforced regardless of app state.
+
+### Dual Storage System ("Vault + Sticky Note")
+
+Alarm data is persisted in **two locations** to survive phone reboots:
+
+| Storage | Purpose | Survives Reboot? | Survives PIN Lock? |
+|---|---|---|---|
+| **SharedPreferences** ("Sticky Note") | Quick-access alarm metadata | ✅ | ❌ |
+| **Device Protected Storage** ("Vault") | FBE-bypass alarm recovery | ✅ | ✅ |
+
+Android's **File-Based Encryption (FBE)** locks credential-encrypted storage until the user enters their PIN after a reboot. Device Protected Storage is accessible immediately at boot, allowing the `BOOT_COMPLETED` receiver to re-arm alarms before the user unlocks the device.
+
+## scheduler-module
+
+Coordinates the scheduling of task instances with hardware alarms. Handles the translation between Convex's cloud-scheduled functions and Android's local `AlarmManager` entries.
+
+### Memory Safety
+
+This module previously caused a `java.lang.OutOfMemoryError` (124MB allocation) on devices with limited RAM. The fix involved:
+
+1. **Data-size constraints** on the JSON payload synced to hardware
+2. **Connection lifecycle management** to prevent connection pool exhaustion
+3. **Chunked processing** of large instance datasets
+
+## app-lister-module
+
+Queries the Android `PackageManager` to discover all installed applications. This data powers the "Digital Commitment" feature, which lets users select specific apps to block during commitment windows.
+
+## enforcement-module
+
+Coordinates penalty execution when a commitment fails. Works in tandem with the Convex backend's durable scheduled functions.
+
+## recovery-module
+
+Provides self-healing utilities for the native layer, including:
+
+- Database connection health checks
+- WAL journal integrity verification  
+- Accessibility Service restart triggers
+
+## logcat-module
+
+Captures native Android logcat output and pipes it to the JavaScript layer. Critical for debugging release builds where ADB access is unavailable.

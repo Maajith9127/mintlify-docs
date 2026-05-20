@@ -1,208 +1,56 @@
 ---
-title: "Welcome"
-description: "The story behind CommitT — building in public, one day at a time."
+title: Welcome to CommitT
+description: "A strict, native Android accountability enforcer with real penalties."
 ---
 
-# Hey, I'm Abdul Maajith
+<div style={{ textAlign: 'center', marginBottom: '2rem' }}>
 
-I'm building CommitT — an app that forces you to keep your promises to yourself.
+# Create commitments that actually stick
 
-Here's the problem: I kept saying "I'll wake up at 5 AM" and then waking up at 9. I said "I'll go to the gym" and then watched YouTube for 3 hours. Classic.
+Build self-binding accountability contracts with real-time location enforcement,
+hardware-level app blocking, and penalties you can't escape.
 
-So I built something that makes it genuinely painful to break commitments. Not motivational quotes. Not reminders. Actual consequences.
+</div>
 
----
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="bolt" href="/quickstart">
+    Get up and running with CommitT in under 5 minutes. Set up your development environment, connect to Convex, and deploy your first commitment.
+  </Card>
+  <Card title="Architecture Overview" icon="sitemap" href="/architecture/overview">
+    Understand how the monorepo is structured, how data flows between Convex, SQLite, and the native Kotlin enforcement layer.
+  </Card>
+</CardGroup>
+
+<CardGroup cols={3}>
+  <Card title="Sync Engine" icon="arrows-rotate" href="/architecture/sync-engine">
+    Delta-based ingestion with Freshness Guards, atomic transactions, and automatic corruption recovery.
+  </Card>
+  <Card title="Native Modules" icon="microchip" href="/native-modules/overview">
+    7 custom Expo modules written in Kotlin — from accessibility services to hardware alarm management.
+  </Card>
+  <Card title="Backend (Convex)" icon="server" href="/backend/schema">
+    Domain-driven serverless functions with real-time sync, durable scheduling, and self-healing watchdogs.
+  </Card>
+</CardGroup>
 
 ## What is CommitT?
 
-CommitT is an app where you make a promise, and the app makes sure you keep it using:
-
-- Live photo/video verification
-- Randomised challenges (so you can't fake it)
-- Money penalties (yes, real money)
-- Accountability partners (social pressure works)
-- App blocking (Instagram can wait)
-- AI verification (no screenshots allowed)
-- Strict mode (can't uninstall when things get hard)
-
-Basically: if you say you'll do something, the app MAKES you do it. If you don't, you pay.
-
----
-
-## How it actually works
-
-Let me walk you through a real example.
-
-**The commitment:** Wake up at 5 AM for 30 days.
-
-**Step 1: You create the task**
-
-```
-Habit: Wake up at 5 AM
-Repeat: Daily
-Verification: Live Photo
-Penalty: Rs.300
-Duration: 30 days
-```
-
-You also set "randomised verification" between 5:00 AM and 5:15 AM. The app picks a random minute in that window so you can't game it.
-
-**Step 2: The app schedules everything**
-
-CommitT calculates tomorrow's challenge time (say, 5:07 AM), schedules the job, and your phone now shows: "Next verification: 5:07 AM tomorrow."
-
-**Step 3: 5:07 AM hits**
-
-Your phone vibrates. A modal pops up:
-
-```
-Live Photo Challenge
-Take a picture showing yourself + today's challenge pattern.
-Timer: 60 seconds
-```
-
-A random visual challenge appears — like "Show 2 fingers near your face" or "Hold your water bottle."
-
-You have 60 seconds. Front camera only. No screenshots.
-
-**Step 4: You take the photo**
-
-Image + challenge + timestamp goes to the backend.
-
-**Step 5: Backend verifies**
-
-The system checks:
-- Moire pattern detection (AI) — ensures you didn't photograph another screen
-- Challenge match — ensures your pose/object is correct
-- Time check — ensures it was within the 60 second window
-
-Pass = verified. Fail = penalty.
-
-**Step 6: Results**
-
-If you woke up: green block on your calendar. Nice.
-
-If you slept through it: Rs.300 deducted from your wallet. You wake up annoyed but slightly more disciplined.
-
-**Step 7: Accountability partner gets notified**
-
-If you added a friend, they see when you fail. They see your history. You can't hide.
-
-Social pressure is brutal but effective.
-
-**Step 8: Month summary**
-
-After 30 days you get:
-- Total successful days
-- Total penalties paid
-- Streak data
-- Performance graph
-
-And hopefully, a new habit.
-
----
-
-## The Nuclear Stakes (for when money isn't scary enough)
-
-Sometimes Rs.300 isn't enough motivation. You need something that actually terrifies you.
-
-**Example:** You like a girl. You've been trying to get fit. But you keep skipping gym.
-
-So you set this up:
-
-```
-Habit: Go to gym
-Penalty Type: Custom Message
-If I fail: Send "Hey, just wanted to say I skipped gym again 
-because I'm lazy" to [crush's number]
-```
-
-Now imagine lying in bed at 6 AM thinking "maybe I'll skip today."
-
-Then you remember: if you don't verify at the gym in the next hour, that message goes out automatically.
-
-Suddenly you're putting on your shoes.
-
-**Or the classic:**
-
-```
-Penalty Type: Send Photo
-If I fail: Send [embarrassing childhood photo] to [best friend group chat]
-```
-
-You uploaded that photo yourself. You chose this. And now you have to live with the consequences if you fail.
-
-CommitT doesn't judge. It just executes.
-
-The best part? You can't delete the stake once it's set. You locked yourself in. Past-you made a decision, and present-you has to honor it.
-
-This is accountability with teeth.
-
----
-
-## App Blocking (the nuclear option)
-
-CommitT doesn't just remind you. It removes your ability to cheat.
-
-**Example:** Block Instagram from 5 PM to 8 PM daily.
-
-```
-Task: Study Time
-Time: 5 PM - 8 PM
-App Block: Instagram, YouTube, Snapchat
-Strict Mode: ON
-Penalty: Rs.200
-```
-
-At 5 PM, block mode activates. If you try to open Instagram:
-
-```
-Instagram is blocked for your commitment.
-Time left: 2 hours 58 minutes
-```
-
-You literally cannot open it.
-
-**Strict Mode means:**
-- Can't uninstall CommitT
-- Can't force-stop it
-- Can't disable accessibility
-- Can't change your phone's time/date
-- Can't kill background processes
-
-Try any of that and your accountability partner gets notified. Or penalty triggers immediately.
-
-At 8 PM, apps unlock. You get a message: "Done for today. You stayed disciplined for 3 hours."
-
----
-
-## Why this exists
-
-Because willpower is unreliable. Systems work better.
-
-CommitT is basically support wheels for adults. Use it until you don't need it anymore. Then the habits are just... part of you.
-
----
-
-## What's this doc for?
-
-Proof that I'm actually building this thing.
-
-Every day I'll post updates:
-- What I worked on
-- What broke
-- What I learned
-
-No marketing fluff. Just real progress.
-
----
-
-## Why build in public?
-
-Keeps me honest. If I say I'm building something, this doc shows whether that's true or just talk.
-
-Plus maybe someone finds it useful. Or entertaining. Or learns what not to do.
-
----
-
-That's CommitT. Let's see where this goes.
+CommitT is a **self-binding accountability system** that makes your commitments enforceable through technology. Unlike traditional to-do apps that rely on willpower, CommitT uses:
+
+- **Hardware-Level App Blocking** — A native Android Accessibility Service that intercepts app launches and blocks access to distracting applications during commitment windows.
+- **Real-Time Location Enforcement** — 1Hz GPS streams from the Android LocationManager verify you are physically present at your committed location.
+- **Real Penalties** — Configurable consequences (public photo posting, monetary loss) that execute automatically if you fail your commitment.
+- **Waiver Challenges** — A second-chance system where you can earn forgiveness by completing CAPTCHA challenges before a deadline timer expires.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Mobile** | React Native, Expo, TypeScript, Reanimated, Zustand |
+| **Native Android** | Kotlin, Accessibility Service, WindowManager, AlarmManager |
+| **Backend** | Convex (real-time sync + serverless mutations) |
+| **Local DB** | SQLite via Expo SQLite (WAL journaling, Nuke & Pave migrations) |
+| **Auth** | Better Auth (Email + Google OAuth) |
+| **Desktop** | Tauri + Vite + React |
+| **Browser Extension** | WXT Framework |
+| **Monorepo** | Turborepo + Bun |

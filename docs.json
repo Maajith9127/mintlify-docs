@@ -27,35 +27,39 @@
         "tab": "Documentation",
         "groups": [
           {
-            "group": "Get started",
+            "group": "Get Started",
             "pages": [
               "index",
               "quickstart"
             ]
           },
           {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/sync-engine",
+              "architecture/local-database",
+              "architecture/write-gate",
+              "architecture/state-management",
+              "architecture/app-routes"
+            ]
+          },
+          {
+            "group": "Native Modules",
+            "pages": [
+              "native-modules/overview"
+            ]
+          },
+          {
+            "group": "Backend (Convex)",
+            "pages": [
+              "backend/schema"
+            ]
+          },
+          {
             "group": "Develop",
             "pages": [
               "development"
-            ]
-          },
-          {
-            "group": "Core Framework",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code"
-            ]
-          },
-          {
-            "group": "User Interface",
-            "pages": [
-              "essentials/images"
-            ]
-          },
-          {
-            "group": "API Reference",
-            "pages": [
-              "api-reference/introduction"
             ]
           }
         ]

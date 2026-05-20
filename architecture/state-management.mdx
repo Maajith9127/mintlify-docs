@@ -1,0 +1,41 @@
+---
+title: State Management
+description: "Zustand stores, React contexts, and the Resurrection Provider."
+---
+
+# State Management
+
+CommitT uses **Zustand** for global client state and **React Context** for scoped provider state.
+
+## Zustand Stores
+
+| Store | Purpose |
+|---|---|
+| `useTaskDraftStore` | Multi-step commitment creation wizard (26KB) |
+| `useCalendarStore` | Calendar view state and date selection |
+| `usePresetStore` | Accountability preset management |
+| `useCommitStore` | Active commitment display and filtering |
+| `useChaosStore` | Dev-only chaos testing controls |
+| `useHealStore` | Recovery overlay state |
+
+## React Contexts
+
+### ResurrectionProvider
+Top-level provider enabling complete system reset. Increments an `iteration` counter that forces the `ConvexReactClient` to be destroyed and re-instantiated with explicit `.close()` cleanup.
+
+### TabContext
+Bottom tab navigation state and tab-switching animations.
+
+### AppThemeProvider
+Hardened Saffron theme palette and dark mode defaults.
+
+## Custom Hooks
+
+| Hook | Purpose |
+|---|---|
+| `useHydrationSync` | Background delta sync with Convex (10.8KB) |
+| `useCommitTask` | Full CRUD lifecycle with Triple-Write Orchestrator |
+| `useLocation` | GPS location management |
+| `usePermissions` | Android permission orchestration |
+| `useAppDiscovery` | Installed app discovery via native module |
+| `usePresetHydration` | Preset loading and caching |
