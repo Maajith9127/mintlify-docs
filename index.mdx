@@ -28,12 +28,12 @@ You configure a commitment named **"Gym Workout"** with the following rules:
 
 ```mermaid
 flowchart TD
-    Alarm[5:45 AM: Alarms Fire] --> Window[6:00 AM: Gym Window Opens]
-    Window --> Arrived{User Arrives at Gym by 6:10 AM?}
-    Arrived -->|Yes| Verified[Verified ✅ - Task Passed]
-    Arrived -->|No| Waiver{1-Hour Waiver Active}
+    Alarm[5:45 AM:<br/>Alarms Fire] --> Window[6:00 AM:<br/>Gym Window Opens]
+    Window --> Arrived{User Arrives at Gym<br/>by 6:10 AM?}
+    Arrived -->|Yes| Verified[Verified ✅<br/>Task Passed]
+    Arrived -->|No| Waiver{1-Hour Waiver<br/>Active}
     Waiver -->|Solves 50 CAPTCHAs| Passed[Waiver Passed ✅]
-    Waiver -->|Deadline Expires| Penalty[Penalty Fired ❌ - Stakes Lost]
+    Waiver -->|Deadline Expires| Penalty[Penalty Fired ❌<br/>Stakes Lost]
 ```
 
 ---
@@ -55,17 +55,17 @@ You configure a commitment named **"Library Focus"** with the following rules:
 
 ```mermaid
 flowchart TD
-    Start[8:00 PM: Focus Window Starts] --> AppBlocking[Accessibility Service blocks Instagram/Twitter]
-    AppBlocking --> RandomAlarm{Random Check-In Alarm Sounds}
-    RandomAlarm -->|Check GPS Location| LocationCheck{Inside Library Geofence?}
-    LocationCheck -->|Yes| RecordSuccess[Check-In Logged ✅]
-    LocationCheck -->|No / Stale GPS| RecordMiss[Miss Count + 1 ❌]
-    RecordSuccess --> SessionEndCheck{Is it 10:00 PM?}
-    RecordMiss --> MissLimit{Miss Count > 3?}
-    MissLimit -->|Yes| Penalty[Trigger Penalty / Waiver]
+    Start[8:00 PM:<br/>Focus Window Starts] --> AppBlocking[Accessibility Service<br/>blocks target apps]
+    AppBlocking --> RandomAlarm{Random Check-In<br/>Alarm Sounds}
+    RandomAlarm -->|Check GPS Location| LocationCheck{Inside Library<br/>Geofence?}
+    LocationCheck -->|Yes| RecordSuccess[Check-In<br/>Logged ✅]
+    LocationCheck -->|No / Stale GPS| RecordMiss[Miss Count<br/>+ 1 ❌]
+    RecordSuccess --> SessionEndCheck{Is it<br/>10:00 PM?}
+    RecordMiss --> MissLimit{Miss Count<br/>> 3?}
+    MissLimit -->|Yes| Penalty[Trigger Penalty<br/>or Waiver]
     MissLimit -->|No| SessionEndCheck
     SessionEndCheck -->|No| AppBlocking
-    SessionEndCheck -->|Yes| End[Session Complete: Apps Unblocked]
+    SessionEndCheck -->|Yes| End[Session Complete:<br/>Apps Unblocked]
 ```
 
 ---
@@ -86,11 +86,11 @@ You configure a high-stakes, non-repeating sprint named **"Finals Lock-in"**:
 
 ```mermaid
 flowchart TD
-    Commit[User Commits Task with Strict Mode Enabled] --> Sync[Convex Locks Task Constraints on Server]
-    Sync --> LocalDB[Task Synced to Local SQLite Cache]
-    LocalDB --> Block[App Blocker Activated]
-    Block --> Attempt{User tries to delete Task on Day 3?}
-    Attempt -->|Server Checks Lock| Rejected[Convex Backend Rejects Deletion 🔒]
+    Commit[User Commits Task<br/>with Strict Mode] --> Sync[Convex Locks Task<br/>Constraints on Server]
+    Sync --> LocalDB[Task Synced to<br/>Local SQLite Cache]
+    LocalDB --> Block[App Blocker<br/>Activated]
+    Block --> Attempt{User tries to<br/>delete Task?}
+    Attempt -->|Server Checks Lock| Rejected[Convex Backend<br/>Rejects Deletion 🔒]
     Rejected --> Block
 ```
 
