@@ -27,16 +27,13 @@ You configure a commitment named **"Gym Workout"** with the following rules:
 *   **Waiver:** Solve `50 CAPTCHAs` within a 1-hour deadline to defuse the penalty if you fail.
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Alarming : 5:45 AM (Hardware Alarms Fire)
-    Alarming --> CheckInWindow : 6:00 AM (Gym Window Opens)
-    CheckInWindow --> Verified : User arrives at Gym before 6:10 AM (Grace Period)
-    CheckInWindow --> GraceExpired : User not at Gym by 6:10 AM
-    GraceExpired --> WaiverActive : 1-Hour Waiver Window Opens
-    WaiverActive --> Passed : User solves 50 CAPTCHAs
-    WaiverActive --> Failed : Waiver deadline expires
-    Verified --> Passed : Verification Successful ✅
-    Failed --> PenaltyFired : Stakes Lost / Photo Emailed ❌
+flowchart TD
+    Alarm[5:45 AM: Alarms Fire] --> Window[6:00 AM: Gym Window Opens]
+    Window --> Arrived{User Arrives at Gym by 6:10 AM?}
+    Arrived -->|Yes| Verified[Verified ✅ - Task Passed]
+    Arrived -->|No| Waiver{1-Hour Waiver Active}
+    Waiver -->|Solves 50 CAPTCHAs| Passed[Waiver Passed ✅]
+    Waiver -->|Deadline Expires| Penalty[Penalty Fired ❌ - Stakes Lost]
 ```
 
 ---
@@ -88,21 +85,13 @@ You configure a high-stakes, non-repeating sprint named **"Finals Lock-in"**:
 *   **Waiver:** Solve `200 CAPTCHAs` to waive.
 
 ```mermaid
-sequenceDiagram
-    actor User
-    participant App as React Native App
-    participant DB as SQLite Cache
-    participant Cloud as Convex Backend
-
-    User->>App: Enable Strict Mode & Commit "Finals Lock-in"
-    App->>Cloud: Write Task (strict_until = End of Week)
-    Cloud->>Cloud: Lock Task Constraints (Read-Only State)
-    Cloud->>DB: Sync Task & Instances
-    Note over User, App: Day 3: User feels overwhelmed and tries to delete task
-    User->>App: Tap "Delete Commitment"
-    App->>Cloud: Mutation: deleteTask(taskId)
-    Cloud-->>App: ERROR: Task is locked under Strict Mode until End of Week!
-    Note over App: Delete option is blocked. Rules remain active.
+flowchart TD
+    Commit[User Commits Task with Strict Mode Enabled] --> Sync[Convex Locks Task Constraints on Server]
+    Sync --> LocalDB[Task Synced to Local SQLite Cache]
+    LocalDB --> Block[App Blocker Activated]
+    Block --> Attempt{User tries to delete Task on Day 3?}
+    Attempt -->|Server Checks Lock| Rejected[Convex Backend Rejects Deletion 🔒]
+    Rejected --> Block
 ```
 
 
