@@ -29,7 +29,7 @@ for (let i = 1; i <= 15; i++) {
   may2026Pages.push(`2026/may/day-${pad(i)}`);
 }
 
-// --- Build docs.json ---
+// --- Build docs.json with 5 vertical tabs mapping directly to Expo style ---
 const config = {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
@@ -53,8 +53,8 @@ const config = {
   "navigation": {
     "tabs": [
       {
-        "tab": "Documentation",
-        "icon": "book-open",
+        "tab": "Home",
+        "icon": "house",
         "groups": [
           {
             "group": "Get Started",
@@ -65,7 +65,13 @@ const config = {
               "setup-env",
               "start-developing"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "icon": "book-open",
+        "groups": [
           {
             "group": "Architecture",
             "icon": "sitemap",
@@ -77,16 +83,32 @@ const config = {
               "architecture/state-management",
               "architecture/app-routes"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Convex",
+        "icon": "server",
+        "groups": [
+          {
+            "group": "Backend",
+            "icon": "cloud",
+            "pages": [
+              "backend/schema"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "icon": "cube",
+        "groups": [
           {
             "group": "Native Modules",
             "icon": "microchip",
-            "pages": ["native-modules/overview"]
-          },
-          {
-            "group": "Backend (Convex)",
-            "icon": "server",
-            "pages": ["backend/schema"]
+            "pages": [
+              "native-modules/overview"
+            ]
           }
         ]
       },
@@ -95,14 +117,14 @@ const config = {
         "icon": "route",
         "groups": [
           {
-            "group": "2025",
+            "group": "2025 Logs",
             "icon": "calendar",
             "pages": [
               { "group": "December", "pages": dec2025Pages }
             ]
           },
           {
-            "group": "2026",
+            "group": "2026 Logs",
             "icon": "calendar-days",
             "pages": [
               { "group": "January", "pages": jan2026Pages },
@@ -143,4 +165,4 @@ if (fs.existsSync(mintJsonPath)) {
   console.log('Removed old mint.json');
 }
 
-console.log('docs.json successfully rebuilt with custom setup guides!');
+console.log('Successfully generated docs.json with 5 vertical tabs!');

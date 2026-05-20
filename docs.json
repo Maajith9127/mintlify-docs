@@ -24,8 +24,8 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Documentation",
-        "icon": "book-open",
+        "tab": "Home",
+        "icon": "house",
         "groups": [
           {
             "group": "Get Started",
@@ -36,7 +36,13 @@
               "setup-env",
               "start-developing"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "icon": "book-open",
+        "groups": [
           {
             "group": "Architecture",
             "icon": "sitemap",
@@ -48,19 +54,31 @@
               "architecture/state-management",
               "architecture/app-routes"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Convex",
+        "icon": "server",
+        "groups": [
+          {
+            "group": "Backend",
+            "icon": "cloud",
+            "pages": [
+              "backend/schema"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "icon": "cube",
+        "groups": [
           {
             "group": "Native Modules",
             "icon": "microchip",
             "pages": [
               "native-modules/overview"
-            ]
-          },
-          {
-            "group": "Backend (Convex)",
-            "icon": "server",
-            "pages": [
-              "backend/schema"
             ]
           }
         ]
@@ -70,7 +88,7 @@
         "icon": "route",
         "groups": [
           {
-            "group": "2025",
+            "group": "2025 Logs",
             "icon": "calendar",
             "pages": [
               {
@@ -109,7 +127,7 @@
             ]
           },
           {
-            "group": "2026",
+            "group": "2026 Logs",
             "icon": "calendar-days",
             "pages": [
               {
