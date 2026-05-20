@@ -38,14 +38,57 @@
             ]
           },
           {
-            "group": "Platform",
-            "icon": "cubes",
+            "group": "Setup & Permissions",
+            "icon": "shield-halved",
             "pages": [
-              "platform/permissions",
-              "platform/config",
-              "platform/enforcement",
-              "platform/penalties",
-              "platform/security"
+              "platform/permissions/audit",
+              "platform/permissions/admin-lock",
+              "platform/permissions/appear-on-top",
+              "platform/permissions/battery-opt"
+            ]
+          },
+          {
+            "group": "Core Configuration",
+            "icon": "calendar-days",
+            "pages": [
+              "platform/config/task-instances",
+              "platform/config/time-slots",
+              "platform/config/attachments",
+              "platform/config/presets",
+              "platform/config/day-planning"
+            ]
+          },
+          {
+            "group": "Verification & Enforcement",
+            "icon": "mobile-screen",
+            "pages": [
+              "platform/enforcement/app-blocker",
+              "platform/enforcement/web-filter",
+              "platform/enforcement/ai-rules",
+              "platform/enforcement/gps-geofencing",
+              "platform/enforcement/just-show-up",
+              "platform/enforcement/stay-throughout"
+            ]
+          },
+          {
+            "group": "Penalties & Waivers",
+            "icon": "envelope",
+            "pages": [
+              "platform/penalties/durable-cloud",
+              "platform/penalties/stake-money",
+              "platform/penalties/social-accountability",
+              "platform/penalties/captcha-defusal",
+              "platform/penalties/text-transcription",
+              "platform/penalties/intensity-redo"
+            ]
+          },
+          {
+            "group": "Security & Integrity",
+            "icon": "lock",
+            "pages": [
+              "platform/security/strict-mode",
+              "platform/security/device-marriage",
+              "platform/security/nuke-pave"
             ]
           },
           {

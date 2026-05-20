@@ -29,7 +29,7 @@ for (let i = 1; i <= 15; i++) {
   may2026Pages.push(`2026/may/day-${pad(i)}`);
 }
 
-// --- Build docs.json with 5 vertical tabs mapping directly to Expo style ---
+// --- Configure Navigation ---
 const config = {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
@@ -67,14 +67,57 @@ const config = {
             ]
           },
           {
-            "group": "Platform",
-            "icon": "cubes",
+            "group": "Setup & Permissions",
+            "icon": "shield-halved",
             "pages": [
-              "platform/permissions",
-              "platform/config",
-              "platform/enforcement",
-              "platform/penalties",
-              "platform/security"
+              "platform/permissions/audit",
+              "platform/permissions/admin-lock",
+              "platform/permissions/appear-on-top",
+              "platform/permissions/battery-opt"
+            ]
+          },
+          {
+            "group": "Core Configuration",
+            "icon": "calendar-days",
+            "pages": [
+              "platform/config/task-instances",
+              "platform/config/time-slots",
+              "platform/config/attachments",
+              "platform/config/presets",
+              "platform/config/day-planning"
+            ]
+          },
+          {
+            "group": "Verification & Enforcement",
+            "icon": "mobile-screen",
+            "pages": [
+              "platform/enforcement/app-blocker",
+              "platform/enforcement/web-filter",
+              "platform/enforcement/ai-rules",
+              "platform/enforcement/gps-geofencing",
+              "platform/enforcement/just-show-up",
+              "platform/enforcement/stay-throughout"
+            ]
+          },
+          {
+            "group": "Penalties & Waivers",
+            "icon": "envelope",
+            "pages": [
+              "platform/penalties/durable-cloud",
+              "platform/penalties/stake-money",
+              "platform/penalties/social-accountability",
+              "platform/penalties/captcha-defusal",
+              "platform/penalties/text-transcription",
+              "platform/penalties/intensity-redo"
+            ]
+          },
+          {
+            "group": "Security & Integrity",
+            "icon": "lock",
+            "pages": [
+              "platform/security/strict-mode",
+              "platform/security/device-marriage",
+              "platform/security/nuke-pave"
             ]
           },
           {
@@ -147,6 +190,61 @@ const config = {
   }
 };
 
+// --- Auto-generate stubs for defined pages ---
+function ensurePageExists(pagePath) {
+  const fullPath = path.join(docsDir, pagePath + '.mdx');
+  if (!fs.existsSync(fullPath)) {
+    const dir = path.dirname(fullPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    // Generate clean stub content based on path
+    const pathParts = pagePath.split('/');
+    const filename = pathParts[pathParts.length - 1];
+    const category = pathParts[pathParts.length - 2] || '';
+    
+    const title = filename
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+      
+    const desc = `Detailed documentation for the ${title} capability under the ${category.toUpperCase()} category.`;
+    
+    const content = `---
+title: "${title}"
+description: "${desc}"
+---
+
+# ${title}
+
+This section documents the configuration and execution parameters of the ${title} capability.
+
+*Detailed documentation coming soon.*
+`;
+    fs.writeFileSync(fullPath, content);
+    console.log(`Auto-generated stub: ${pagePath}.mdx`);
+  }
+}
+
+// Traverse tabs to check page existence
+config.navigation.tabs.forEach(tab => {
+  tab.groups.forEach(group => {
+    group.pages.forEach(page => {
+      if (typeof page === 'string') {
+        ensurePageExists(page);
+      } else if (page.pages && Array.isArray(page.pages)) {
+        // Nested groups (e.g., December journey logs)
+        page.pages.forEach(nestedPage => {
+          if (typeof nestedPage === 'string') {
+            ensurePageExists(nestedPage);
+          }
+        });
+      }
+    });
+  });
+});
+
 // Write docs.json
 const docsJsonPath = path.join(docsDir, 'docs.json');
 fs.writeFileSync(docsJsonPath, JSON.stringify(config, null, 2));
@@ -158,4 +256,4 @@ if (fs.existsSync(mintJsonPath)) {
   console.log('Removed old mint.json');
 }
 
-console.log('Successfully generated docs.json with 5 vertical tabs!');
+console.log('Successfully generated docs.json and verified all page stubs!');
