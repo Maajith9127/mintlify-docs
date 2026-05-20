@@ -31,7 +31,10 @@
             "group": "Get Started",
             "icon": "play",
             "pages": [
-              "index"
+              "index",
+              "quickstart",
+              "setup-env",
+              "start-developing"
             ]
           },
           {
@@ -58,13 +61,6 @@
             "icon": "server",
             "pages": [
               "backend/schema"
-            ]
-          },
-          {
-            "group": "Develop",
-            "icon": "code",
-            "pages": [
-              "development"
             ]
           }
         ]

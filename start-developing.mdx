@@ -1,0 +1,50 @@
+---
+title: "Start Developing"
+description: "Understand the local development workflow, logs, and making builds."
+---
+
+# Start Developing
+
+Now that your environment is set up and your devices are bridged, learn how to navigate the day-to-day development workflow for CommitT.
+
+## Project Launch Commands
+
+From the monorepo root, you can control the entire stack:
+
+| Command | Workspace | Purpose |
+|---|---|---|
+| `bun run dev` | Root | Launch all dev processes in parallel |
+| `bun --filter native start` | `apps/native` | Start the Expo CLI metro packager |
+| `bun --filter backend dev` | `packages/backend` | Start local Convex cloud compiler |
+
+---
+
+## Modifying the Data Model
+
+If you are modifying the database schema or creating new backend APIs:
+
+1. Open `packages/backend/convex/db/schema.ts` and modify your table definitions.
+2. The Convex compiler will immediately compile the new schema in your terminal.
+3. To update your TypeScript types, run this inside `apps/native`:
+   ```bash
+   bun run convex dev
+   ```
+   This generates types in `apps/native/convex/_generated/` so you have complete autocompletion on the client.
+
+---
+
+## Native Debugging
+
+### Accessing Logcat Logs
+
+Because the Accessibility Service runs outside the standard Expo React Native thread, standard `console.log()` statements will not show up in the Metro server console.
+
+To view native Android logs:
+```bash
+adb logcat *:S CommitTService:V
+```
+This filters logs specifically for the custom `CommitTService` Accessibility class in Kotlin.
+
+### The Developer Chaos Panel
+
+The client application includes a hidden **Chaos Fab** (`(dev)/chaos` screen) that allows you to simulate network dropouts, SQLite write timeouts, and mock geofence breaches to test self-healing and recovery paths.

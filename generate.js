@@ -59,7 +59,12 @@ const config = {
           {
             "group": "Get Started",
             "icon": "play",
-            "pages": ["index"]
+            "pages": [
+              "index",
+              "quickstart",
+              "setup-env",
+              "start-developing"
+            ]
           },
           {
             "group": "Architecture",
@@ -82,11 +87,6 @@ const config = {
             "group": "Backend (Convex)",
             "icon": "server",
             "pages": ["backend/schema"]
-          },
-          {
-            "group": "Develop",
-            "icon": "code",
-            "pages": ["development"]
           }
         ]
       },
@@ -143,4 +143,4 @@ if (fs.existsSync(mintJsonPath)) {
   console.log('Removed old mint.json');
 }
 
-console.log('docs.json generated with icons on groups and tabs!');
+console.log('docs.json successfully rebuilt with custom setup guides!');
