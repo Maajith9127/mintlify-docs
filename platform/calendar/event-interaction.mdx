@@ -1,10 +1,52 @@
 ---
 title: "Event Interaction"
-description: "Tap an event to open verification modal with instance details"
+description: "Tap any calendar event to open the verification modal with instance-specific details."
 ---
 
 # Event Interaction
 
-Tap an event to open verification modal with instance details.
+Every event block on the calendar is interactive. Tapping an event opens the same **Verification Modal** used on the Dashboard, but populated with the specific details of that particular instance.
 
-*Detailed documentation coming soon.*
+---
+
+## Instance-Specific Context
+
+Unlike the Dashboard's Upcoming Card (which always shows the *next* pending event), the Calendar allows direct access to **any** instance — past, present, or future.
+
+When an event is tapped, the modal loads:
+
+| Field | Source | Example |
+| :--- | :--- | :--- |
+| **Task Name** | Parent commitment title | "Library Focus Block" |
+| **Instance Date** | This specific occurrence | Wednesday, May 21, 2026 |
+| **Time Window** | Start and end time | 2:00 PM — 6:00 PM |
+| **Status** | Instance-level status | `PENDING` / `VERIFIED` / `FAILED` |
+| **Location** | Inherited from slot attachment | "University Library — Within 100m" |
+| **Penalty** | Inherited from parent task | "Embarrassing Photo" |
+| **Waiver** | Inherited from parent task | "Solve 5 CAPTCHAs" |
+
+---
+
+## Status-Dependent Behavior
+
+The modal adapts its available actions based on the instance status:
+
+| Instance Status | Modal Behavior |
+| :--- | :--- |
+| **Pending (future)** | Shows countdown, "Verify Now" button disabled until window opens |
+| **Pending (active)** | "Verify Now" button enabled, GPS and camera checks available |
+| **Verified** | Read-only view with proof timestamp and verification method |
+| **Failed** | Shows failure reason, "Start Waiver" button if waiver configured |
+
+---
+
+## Example
+
+> A user taps last Tuesday's "Morning Gym" event on the calendar. The modal opens showing:
+>
+> **Morning Gym** — Tuesday, May 20
+> Status: `VERIFIED`
+> Verified at: 6:12 AM
+> Location: Fitty Gym VIT — Within 50m (confirmed)
+>
+> This provides a historical audit trail proving the commitment was honored on that specific day.

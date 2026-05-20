@@ -1,10 +1,61 @@
 ---
 title: "Rule Presets"
-description: "Save complete verification configurations for reuse"
+description: "Save complete verification configurations for reuse across commitments."
 ---
 
 # Rule Presets
 
-Save complete verification configurations for reuse.
+Rule Presets encapsulate a complete verification configuration — the verification mode, alarm timing, intensity, and failure thresholds — into a single reusable template. This eliminates the need to reconfigure verification settings from scratch for every new commitment.
 
-*Detailed documentation coming soon.*
+---
+
+## Preset Data Structure
+
+Each rule preset stores the full behavioral configuration:
+
+| Field | Description | Example |
+| :--- | :--- | :--- |
+| **Name** | Preset label | "Strict Library Rules" |
+| **Verification Style** | Just Show Up or Stay Throughout | `stay_throughout` |
+| **Grace Window** | Response time for Just Show Up | 10 minutes |
+| **Intensity** | Alarm frequency for Stay Throughout | `strict` |
+| **Max Missed** | Failure threshold for Stay Throughout | 1 |
+| **Alarm Start** | Pre-slot alarm lead time | 15 minutes before |
+| **Alarm Frequency** | Repeat interval during active slot | Every 5 minutes |
+
+---
+
+## Creating a Preset
+
+From the **Presets Tab**, tap the "+" button in the Rules section. The creation flow provides all the same configuration options available on the FinalScreen's "Commitment Type" and "Alarms" settings sections, packaged into a saveable template.
+
+---
+
+## Using a Preset
+
+In the time slot configuration screen, each slot has a rules attachment button. Tapping it opens the `RulePresetPickerModal`, which lists all saved rule presets with a summary of their configuration. Selecting a preset applies its complete verification profile to that specific slot.
+
+```typescript
+function handleRuleSelected(preset: any) {
+  setSlotRule(contextSlotIndex, {
+    id: preset._id,
+    name: preset.title || preset.name,
+    config: preset.config,
+  });
+}
+```
+
+---
+
+## Example
+
+> **Saved rule presets:**
+>
+> | Preset Name | Mode | Alarm | Details |
+> | :--- | :--- | :--- | :--- |
+> | Relaxed Arrival | Just Show Up | 10 min before | 15-min grace window |
+> | Standard Check-in | Just Show Up | 15 min before | 10-min grace window |
+> | Strict Session | Stay Throughout | 15 min before | High intensity, max 2 missed |
+> | Maximum Lockdown | Stay Throughout | 60 min before | Strict intensity, max 1 missed |
+>
+> A morning gym commitment uses "Relaxed Arrival" (just show up, arrive within 15 minutes). An evening library session uses "Strict Session" (random alarms throughout, fail after 2 missed check-ins).

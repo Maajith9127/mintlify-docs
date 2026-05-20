@@ -1,10 +1,80 @@
 ---
 title: "Verification Modal"
-description: "Popup with task details, map embed, penalty, and waiver info"
+description: "The full-detail popup showing task status, geofence map, penalty, and waiver information."
 ---
 
 # Verification Modal
 
-Popup with task details, map embed, penalty, and waiver info.
+When a user taps "Start Verification" on the Upcoming Card or selects a calendar event, a full-screen modal appears with every detail needed to understand, verify, and act on the commitment.
 
-*Detailed documentation coming soon.*
+---
+
+## Modal Sections
+
+The verification modal is divided into clearly separated information blocks:
+
+### Task Identity
+
+| Field | Example |
+| :--- | :--- |
+| **Task Name** | Library Focus Block |
+| **Status Badge** | `PENDING`, `VERIFIED`, or `FAILED` |
+| **Scheduled Window** | 2:00 PM — 6:00 PM |
+
+### Location Block
+
+When a location condition is attached, the modal displays:
+
+- **Address:** The full human-readable address (e.g., "Fitty Gym VIT, Katpadi, Vellore")
+- **Radius:** The geofence tolerance (e.g., "Within 50m")
+- **Satellite Map Embed:** A Google Maps satellite view centered on the commitment location, with a blue translucent circle representing the geofence radius
+
+The map provides immediate spatial context — the user can see exactly where they need to be and how large the acceptable zone is.
+
+### Penalty Block
+
+If a penalty is configured, the modal surfaces the consequence directly:
+
+> **Penalty:** Embarrassing Photo
+> **Recipient:** maajithanas@gmail.com
+> **Trigger:** Activates automatically if verification fails
+
+This ensures the user is fully aware of the stakes before the verification window opens.
+
+### Waiver Block
+
+If a penalty waiver is configured, the escape hatch is also displayed:
+
+> **Waiver:** Solve 5 CAPTCHAs
+> **Deadline:** Within 30 minutes of failure
+> **Condition:** Complete all CAPTCHAs before the deadline to cancel the penalty
+
+---
+
+## Verification Actions
+
+The modal footer presents context-appropriate action buttons:
+
+| Status | Primary Action | Description |
+| :--- | :--- | :--- |
+| `PENDING` | **Verify Now** | Triggers GPS check, photo capture, or check-in depending on conditions |
+| `VERIFIED` | *View Details* | Read-only review of completed verification with proof |
+| `FAILED` | **Start Waiver** | Navigates to the configured waiver challenge |
+
+---
+
+## Example
+
+> A user opens the verification modal for their "Morning Gym" commitment:
+>
+> **Morning Gym** — Status: `PENDING`
+>
+> **Location:** Fitty Gym VIT, Katpadi, Vellore — Within 50m
+> *[Satellite map showing gym location with blue geofence circle]*
+>
+> **Penalty:** Embarrassing Photo sent to maajithanas@gmail.com
+> **Waiver:** Solve 5 CAPTCHAs within 30 minutes
+>
+> `[ Verify Now ]`
+>
+> The user taps "Verify Now". The system checks their GPS coordinates against the geofence. If they are within 50 meters of the gym, the status transitions to `VERIFIED`. If they are outside the radius, the status remains `PENDING` until the grace window expires.

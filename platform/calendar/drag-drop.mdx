@@ -1,10 +1,51 @@
 ---
 title: "Drag & Drop"
-description: "Directly manipulate, resize, and delete events on the calendar"
+description: "Directly manipulate, resize, and delete calendar events with touch gestures."
 ---
 
-# Drag & Drop
+# Drag and Drop
 
-Directly manipulate, resize, and delete events on the calendar.
+The calendar grid supports direct manipulation of event blocks through native touch gestures. This allows rapid rescheduling without navigating through the commitment wizard.
 
-*Detailed documentation coming soon.*
+---
+
+## Supported Gestures
+
+### Move (Drag)
+Press and hold an event block, then drag it to a new time position or a different day. The event snaps to the nearest time grid increment when released. The underlying task instance is updated in both the local SQLite database and the Convex cloud backend.
+
+### Resize
+Grab the top or bottom edge of an event block and drag to extend or shorten the time window. This adjusts the `start` or `end` time of that specific instance without affecting the parent commitment definition.
+
+### Delete
+Swipe an event off the grid or use the context menu to remove a specific instance. A confirmation modal prevents accidental deletions.
+
+---
+
+## Constraints
+
+Not all events can be freely manipulated. The system enforces guardrails:
+
+| Constraint | Behavior |
+| :--- | :--- |
+| **Verified events** | Cannot be moved, resized, or deleted (immutable historical record) |
+| **Failed events** | Cannot be moved (failure is permanent for that instance) |
+| **Strict Mode events** | Locked completely — no manipulation allowed until the commitment period ends |
+| **Overlap prevention** | Dragging into a time slot occupied by another event is rejected |
+
+---
+
+## Sync Behavior
+
+When an event is moved or resized:
+
+1. **Optimistic UI update** — The calendar reflects the change immediately
+2. **SQLite write** — The local database is updated within the same frame
+3. **Convex sync** — The change is pushed to the cloud backend asynchronously
+4. **Alarm reschedule** — If the event has associated alarms, the Kotlin AlarmScheduler rebinds the hardware alarm to the new time
+
+---
+
+## Example
+
+> A user realizes their Wednesday library session conflicts with a meeting. They press and hold the "Library Focus" event block on Wednesday's column and drag it from 2:00 PM down to 4:00 PM. The event snaps to the new position, and the alarm automatically reschedules to fire at 3:45 PM (15 minutes before the new start time).

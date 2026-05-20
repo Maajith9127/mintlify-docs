@@ -1,10 +1,59 @@
 ---
 title: "Upcoming Card"
-description: "Top card showing next commitment with countdown timer"
+description: "A top-level countdown card showing the next pending commitment with one-tap verification."
 ---
 
-# Upcoming Card
+# Upcoming Verification Card
 
-Top card showing next commitment with countdown timer.
+At the top of the Commits Tab, a prominent `VerificationCard` component displays the user's **next pending commitment** with a live countdown timer and a one-tap entry point to begin verification.
 
-*Detailed documentation coming soon.*
+---
+
+## Card Layout
+
+The Upcoming Verification Card surfaces the most time-critical information at a glance:
+
+| Element | Description |
+| :--- | :--- |
+| **Task Name** | The commitment title (e.g., "Library Focus Block") |
+| **Countdown Timer** | Live-updating relative time (e.g., "In 25h 36m", "In 12 min", "Now") |
+| **Start Time** | The absolute scheduled start time |
+| **Action Button** | "Start Verification" — navigates to the verification flow |
+
+---
+
+## Data Source
+
+The card queries the local SQLite database for the chronologically nearest `PENDING` task instance. The component subscribes reactively to the event store, so the card automatically updates when:
+
+- A new commitment is created
+- An existing commitment is verified or expires
+- The countdown reaches zero and transitions to "Now"
+
+```typescript
+<VerificationCard
+  className="mt-0"
+  onPress={() => router.push("/verify")}
+/>
+```
+
+---
+
+## Behavioral Rules
+
+- **No pending events:** The card displays a neutral state indicating no upcoming commitments
+- **Multiple pending events:** Only the chronologically nearest event is shown; subsequent events queue behind it
+- **Event in progress:** The card switches from countdown mode to an active verification prompt, urging immediate action
+- **Grace window expiring:** As the verification grace window narrows, the card's urgency level increases visually
+
+---
+
+## Example
+
+> A user has a "Gym Session" commitment scheduled for tomorrow at 6:00 AM. When they open the app at 4:24 AM the day before, the card displays:
+>
+> **Gym Session**
+> In 25h 36m — Tomorrow, 6:00 AM
+> `[ Start Verification ]`
+>
+> When the clock hits 6:00 AM, the countdown reaches zero and the card transitions to an active state prompting immediate verification.

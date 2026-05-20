@@ -1,10 +1,51 @@
 ---
 title: "Verified"
-description: "History of completed verifications with proof"
+description: "Historical record of all completed verifications with proof and timestamps."
 ---
 
-# Verified
+# Verified History
 
-History of completed verifications with proof.
+The **Verified** sub-tab provides a complete audit trail of past commitment instances. Every verification — whether successful or failed — is recorded here with timestamps, proof data, and outcome details.
 
-*Detailed documentation coming soon.*
+---
+
+## Record Structure
+
+Each historical entry contains:
+
+| Field | Description |
+| :--- | :--- |
+| **Task Name** | The parent commitment title |
+| **Instance Date** | The specific day this instance was scheduled |
+| **Scheduled Window** | Original start and end time |
+| **Outcome** | `VERIFIED` or `FAILED` |
+| **Verification Time** | Exact timestamp when verification occurred (if successful) |
+| **Method** | How verification was confirmed (GPS, photo, check-in, partner) |
+| **Failure Reason** | Why the instance failed (if applicable) |
+
+---
+
+## Audit Purpose
+
+This tab serves as an immutable accountability record. Users can review their own history to:
+
+- Confirm that a past event was genuinely verified (not fabricated)
+- Identify patterns in missed commitments
+- Provide evidence to accountability partners that commitments were honored
+- Track streaks and consistency over time
+
+---
+
+## Example
+
+> The Verified tab shows the last week of a "Morning Gym" commitment:
+>
+> | Day | Outcome | Time | Method |
+> | :--- | :--- | :--- | :--- |
+> | Monday | `VERIFIED` | 6:12 AM | GPS — Within 50m of Fitty Gym VIT |
+> | Tuesday | `VERIFIED` | 6:08 AM | GPS — Within 50m of Fitty Gym VIT |
+> | Wednesday | `FAILED` | — | Grace window expired (no verification attempt) |
+> | Thursday | `VERIFIED` | 6:23 AM | GPS — Within 50m of Fitty Gym VIT |
+> | Friday | `VERIFIED` | 6:15 AM | GPS — Within 50m of Fitty Gym VIT |
+>
+> Wednesday's failure triggered the embarrassing photo penalty. The waiver was not completed in time.

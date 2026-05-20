@@ -1,10 +1,41 @@
 ---
 title: "Accounts"
-description: "Switch accounts, log out, or delete your account"
+description: "Switch accounts, log out, or permanently delete your account."
 ---
 
-# Accounts
+# Account Management
 
-Switch accounts, log out, or delete your account.
+The Accounts section in the Profile tab provides standard identity management operations alongside CommitT-specific safeguards that prevent abuse of the account system.
 
-*Detailed documentation coming soon.*
+---
+
+## Available Actions
+
+### Switch Account
+Log out of the current account and sign in with a different one. This is subject to the Device Marriage Protocol — if the current account has active commitments bound to this device, switching accounts is blocked until those commitments are completed or expired.
+
+### Log Out
+Signs the user out of the application. Local SQLite data is preserved on the device so that re-authentication is fast (no full resync required). Active commitments continue to enforce via the background Accessibility Service and AlarmScheduler even while logged out.
+
+### Delete Account
+Permanently removes the user's account and all associated data from the Convex cloud backend. This action:
+
+- Deletes all tasks, instances, presets, and configuration
+- Cancels all pending penalties and waivers
+- Removes the device marriage binding
+- Wipes the local SQLite database
+- Requires a confirmation modal with explicit acknowledgment
+
+<Warning>
+  Account deletion is permanent and irreversible. All commitment history, presets, and verification records are destroyed.
+</Warning>
+
+---
+
+## Example
+
+> A user wants to switch from their personal account to a shared family account. They tap "Switch Account" but receive a warning:
+>
+> "You have 3 active commitments bound to this device. Complete or delete them before switching accounts."
+>
+> This prevents the user from logging into a different account on the same phone to circumvent their active commitments.

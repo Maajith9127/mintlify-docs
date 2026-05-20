@@ -1,10 +1,39 @@
 ---
 title: "Notifications"
-description: "Notification preferences and channel configuration"
+description: "Configure notification channels, priorities, and delivery preferences."
 ---
 
-# Notifications
+# Notification Preferences
 
-Notification preferences and channel configuration.
+The Notifications settings screen allows the user to control how CommitT delivers alerts, reminders, and status updates through the Android notification system.
 
-*Detailed documentation coming soon.*
+---
+
+## Notification Categories
+
+CommitT uses distinct notification channels for different event types:
+
+| Channel | Priority | Description |
+| :--- | :--- | :--- |
+| **Verification Alarms** | Critical | Check-in prompts during Stay Throughout sessions. These must be answered within 5 minutes. |
+| **Pre-Slot Reminders** | High | Alerts fired before a commitment window opens (5/10/15/60 min before) |
+| **Lock-in Warnings** | High | Notifications when a restricted slot is about to start |
+| **Active Lock Status** | Low (persistent) | Ongoing notification while a block is active, preventing OS service kill |
+| **Penalty Notifications** | High | Alerts when a penalty has been triggered or a waiver deadline is approaching |
+
+---
+
+## Persistent Foreground Notification
+
+While any commitment block is actively enforcing, CommitT maintains a persistent foreground notification. This is not optional — Android requires foreground services to display an ongoing notification. Dismissing this notification does not stop the enforcement; it is re-created automatically.
+
+---
+
+## Example
+
+> A user's notification preferences:
+>
+> - Verification Alarms: Sound + Vibration (cannot be silenced during active sessions)
+> - Pre-Slot Reminders: Sound only, 15 minutes before
+> - Active Lock Status: Silent, persistent in notification shade
+> - Penalty Notifications: Sound + Vibration + LED

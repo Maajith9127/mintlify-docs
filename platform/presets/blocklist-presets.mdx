@@ -1,10 +1,62 @@
 ---
 title: "Blocklist Presets"
-description: "Save groups of apps you always block together"
+description: "Save reusable groups of blocked apps and websites for rapid attachment."
 ---
 
 # Blocklist Presets
 
-Save groups of apps you always block together.
+Blocklist Presets let you save curated groups of applications and websites that you frequently block together. Instead of manually selecting the same 15 apps every time you create a study commitment, you save them once as a preset and apply it with a single tap.
 
-*Detailed documentation coming soon.*
+---
+
+## Preset Data Structure
+
+Each blocklist preset stores:
+
+| Field | Type | Example |
+| :--- | :--- | :--- |
+| **Name** | String | "Social Media" |
+| **Apps** | String array (package names) | `["com.instagram.android", "com.twitter.android", ...]` |
+| **Websites** | String array (domains) | `["youtube.com", "reddit.com", ...]` |
+
+---
+
+## Creating a Preset
+
+From the **Presets Tab**, tap the "+" button in the Blocklist section. The creation flow mirrors the Blocklist screen in the wizard:
+
+1. **Apps tab** — Select from all installed applications on the device
+2. **Webs tab** — Manually enter website domains to block
+3. **Name the preset** (e.g., "Social Media", "Entertainment", "Gaming")
+4. **Save** — the preset is stored in the Convex cloud and synced locally
+
+---
+
+## Using a Preset
+
+Presets are accessible in two locations:
+
+1. **Per-Slot Attachment** — In the time slot configuration, tapping the app block button on any slot opens the `DigitalPresetPickerModal`. Selecting a preset applies its entire app and website list to that specific slot.
+
+2. **Blocklist Screen** — In the main blocklist configuration (choose.tsx), a clock icon in the header opens the preset picker. Applying a preset replaces the current selection entirely.
+
+```typescript
+const handlePresetSelect = (preset: DigitalPreset | null) => {
+  setBlocklist({ apps: preset.apps, websites: preset.websites });
+};
+```
+
+---
+
+## Example
+
+> **Saved blocklist presets:**
+>
+> | Preset Name | Apps | Websites |
+> | :--- | :--- | :--- |
+> | Social Media | Instagram, Twitter, TikTok, Snapchat | facebook.com |
+> | Entertainment | YouTube, Netflix, Prime Video, Twitch | reddit.com, 9gag.com |
+> | Gaming | PUBG Mobile, Call of Duty, Clash Royale | — |
+> | Full Focus | All of the above combined | All of the above combined |
+>
+> A "Library Focus" commitment attaches the "Social Media" preset to its 2–6 PM slot, while a "Deep Work" commitment uses "Full Focus" on its 9 AM – 12 PM slot.

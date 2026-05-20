@@ -1,10 +1,77 @@
 ---
 title: "Strict Mode"
-description: "Make tasks un-deletable and un-editable until completion"
+description: "Make commitments un-deletable and un-editable until the commitment period ends."
 ---
 
 # Strict Mode
 
-Make tasks un-deletable and un-editable until completion.
+Strict Mode is CommitT's highest level of self-binding enforcement. When activated on a commitment, the task becomes **completely immutable** — it cannot be edited, deleted, paused, or weakened in any way until its commitment period naturally expires.
 
-*Detailed documentation coming soon.*
+---
+
+## The Problem Strict Mode Solves
+
+Standard commitments can be deleted or modified during moments of weakness. A user who promised to study from 2–6 PM can simply delete the commitment at 1:55 PM when the urge to procrastinate strikes. Strict Mode eliminates this escape hatch entirely.
+
+---
+
+## Activation Flow
+
+1. On the Commits Tab, long-press a commitment card to open the context menu
+2. Select **"Lock (Strict Mode)"**
+3. The system navigates to the Strict Mode setup screen
+4. The user confirms the lock with a final confirmation modal
+5. Once confirmed, the commitment is permanently locked
+
+```typescript
+{
+  icon: "lock-outline",
+  label: "Lock (Strict Mode)",
+  onPress: () => {
+    router.push({
+      pathname: "/(strict-mode)/setup",
+      params: { taskId: selectedTask._id, title: selectedTask.title }
+    });
+    closeMenu();
+  },
+}
+```
+
+---
+
+## What Gets Locked
+
+Once Strict Mode is active, the following actions are blocked at the database layer:
+
+| Action | Result |
+| :--- | :--- |
+| **Delete commitment** | Rejected — mutation returns error |
+| **Edit time slots** | Rejected — schedule is frozen |
+| **Change location** | Rejected — geofence is locked |
+| **Modify blocklist** | Rejected — app blocks are permanent |
+| **Remove penalty** | Rejected — consequences cannot be softened |
+| **Disable Strict Mode** | Rejected — there is no unlock mechanism |
+| **Uninstall the app** | Blocked by Device Admin protection |
+
+---
+
+## Duration
+
+Strict Mode remains active until the commitment's **natural end condition** is met:
+
+- **One-week commitments:** Strict Mode expires when the final scheduled day passes
+- **Recurring commitments:** Strict Mode remains active indefinitely until the recurrence is manually ended (which itself requires all pending instances to be completed)
+
+---
+
+## Example
+
+> A user activates Strict Mode on their "No Social Media" commitment configured for Mon–Fri, 9 AM – 5 PM, with Instagram, Twitter, and TikTok blocked. Once locked:
+>
+> - They cannot delete the commitment
+> - They cannot remove Instagram from the blocklist
+> - They cannot shorten the 9–5 window
+> - They cannot uninstall CommitT (Device Admin blocks it)
+> - Every weekday from 9 AM to 5 PM, those apps are blocked with no override
+>
+> The only way out is to wait for the commitment period to end naturally.

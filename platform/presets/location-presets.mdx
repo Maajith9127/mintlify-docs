@@ -1,10 +1,57 @@
 ---
 title: "Location Presets"
-description: "Save frequently used places: Gym, Library, Office, etc."
+description: "Save frequently used places for rapid attachment to time slots."
 ---
 
 # Location Presets
 
-Save frequently used places: Gym, Library, Office, etc..
+Location Presets allow you to save physical places that you visit regularly — your gym, university library, office, swimming pool, or home — so they can be attached to any time slot with a single tap instead of re-entering coordinates every time.
 
-*Detailed documentation coming soon.*
+---
+
+## Preset Data Structure
+
+Each location preset stores the following fields:
+
+| Field | Type | Example |
+| :--- | :--- | :--- |
+| **Name** | String | "Fitty Gym VIT" |
+| **Address** | String | "Katpadi, Vellore, Tamil Nadu 632014" |
+| **Latitude** | Float | 12.9692 |
+| **Longitude** | Float | 79.1559 |
+| **Radius** | Integer (meters) | 50 |
+
+The radius defines the **geofence tolerance** — how close the user must be to the preset coordinates during verification. A smaller radius (e.g., 30m) demands precise presence, while a larger radius (e.g., 200m) allows more flexibility.
+
+---
+
+## Creating a Preset
+
+From the **Presets Tab**, tap the "+" button in the Location section. The creation flow includes:
+
+1. **Search or pin a location** on an interactive map
+2. **Adjust the geofence radius** using a slider
+3. **Name the preset** (e.g., "Annexe Building", "Swimming Pool")
+4. **Save** — the preset is stored in the Convex cloud and hydrated locally via the PresetStore
+
+---
+
+## Using a Preset
+
+When configuring time slots in the commitment wizard, each slot has a location attachment button. Tapping it opens the `LocationPresetPickerModal` — a bottom sheet listing all saved location presets. Select one and it is immediately attached to that slot.
+
+---
+
+## Example
+
+> **Saved presets for a university student:**
+>
+> | Preset Name | Address | Radius |
+> | :--- | :--- | :--- |
+> | Fitty Gym VIT | Katpadi, Vellore | 50m |
+> | University Library | VIT Main Campus | 100m |
+> | Swimming Pool | VIT Sports Complex | 80m |
+> | Annexe Building | Block A, VIT | 40m |
+> | Home | Katpadi Residential | 150m |
+>
+> When creating a "Morning Gym" commitment, the user taps the location button on their 6–8 AM slot, selects "Fitty Gym VIT", and the geofence is instantly configured.

@@ -1,10 +1,41 @@
 ---
 title: "Block Screen"
-description: "Configure the blocking overlay appearance"
+description: "Configure the appearance and behavior of the full-screen blocking overlay."
 ---
 
-# Block Screen
+# Block Screen Configuration
 
-Configure the blocking overlay appearance.
+When a blocklisted application is launched during an active commitment window, CommitT renders a full-screen overlay that prevents the user from accessing the app. The Block Screen settings allow customization of this overlay's appearance.
 
-*Detailed documentation coming soon.*
+---
+
+## How the Overlay Works
+
+The blocking overlay is rendered using the `SYSTEM_ALERT_WINDOW` permission (Appear On Top). When the Accessibility Service detects a blocklisted app entering the foreground:
+
+1. The service queries the local SQLite database for active block rules
+2. If the app is in the blocklist for the current time slot, an overlay is spawned via `WindowManager`
+3. The overlay intercepts all touch events, preventing interaction with the underlying app
+4. The user must navigate away (press Back or Home) to dismiss the overlay
+
+---
+
+## Customization Options
+
+The Block Screen settings allow the user to personalize the overlay experience:
+
+| Setting | Description |
+| :--- | :--- |
+| **Message** | Custom text displayed on the overlay (e.g., "Stay focused. You committed to this.") |
+| **Background Style** | Color or gradient of the overlay background |
+| **Opacity** | Transparency level of the overlay |
+
+---
+
+## Example
+
+> A user has Instagram blocked from 9 AM – 5 PM. At 2:30 PM, they instinctively tap the Instagram icon. Instead of the app opening, a full-screen dark overlay appears with the message:
+>
+> "You committed to no social media until 5:00 PM. Stay focused."
+>
+> The user presses the Back button and returns to their previous activity. The overlay disappears, and CommitT logs the block event.

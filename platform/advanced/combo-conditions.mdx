@@ -1,10 +1,59 @@
 ---
 title: "Combo Conditions"
-description: "Mix and match Time + Location + App Block conditions"
+description: "Mix and match Time, Location, and App Block conditions for flexible enforcement."
 ---
 
 # Combo Conditions
 
-Mix and match Time + Location + App Block conditions.
+CommitT does not force a fixed enforcement template. Instead, it provides a modular condition system where Time, Location, and App Blocking can be mixed and matched in any combination to suit different commitment types.
 
-*Detailed documentation coming soon.*
+---
+
+## Condition Matrix
+
+| Configuration | Time | Location | App Block | Use Case |
+| :--- | :--- | :--- | :--- | :--- |
+| **Time Only** | Active | — | — | Block nothing, just track schedule adherence |
+| **Time + App Block** | Active | — | Active | Block distracting apps during study hours at any location |
+| **Time + Location** | Active | Active | — | Verify physical presence (gym, office) without blocking apps |
+| **Time + Location + App Block** | Active | Active | Active | Full enforcement: be at the right place with apps blocked |
+| **App Block Only** | — | — | Active | Permanent app blocking independent of schedule |
+
+Time is required for all scheduled commitments, but Location and App Block are independently optional.
+
+---
+
+## Penalties Are Optional
+
+Any combination above can be created with or without a penalty attached. A commitment without a penalty functions as a self-tracking tool — the user can see whether they honored their schedule, but no consequence triggers on failure.
+
+Adding a penalty transforms a soft commitment into a binding contract with real stakes.
+
+---
+
+## Per-Slot Granularity
+
+Within a single commitment, different time slots can use different condition combinations. This means a single "Weekday Routine" commitment can model an entire daily schedule where each activity has its own enforcement profile:
+
+| Slot | Time | Location | App Block | Penalty |
+| :--- | :--- | :--- | :--- | :--- |
+| 6:00 – 8:00 AM | Gym Window | Fitty Gym VIT | *None* | Embarrassing Photo |
+| 9:00 AM – 12:00 PM | Study Session | University Library | Social Media blocked | Same |
+| 2:00 – 5:00 PM | Deep Work | Annexe Building | Full Focus blocklist | Same |
+| 7:00 – 9:00 PM | Evening Review | Home | Entertainment blocked | *None* |
+
+The morning gym slot does not block any apps because the user needs their phone for workout music. The afternoon deep work slot blocks everything. The evening review slot has no penalty — it is a soft commitment.
+
+---
+
+## Example
+
+> A user wants to ensure they study at the library every afternoon but does not care about app blocking (they use their laptop, not their phone). They create:
+>
+> - **Time:** Mon–Fri, 2:00 PM – 6:00 PM
+> - **Location:** University Library
+> - **App Block:** *None*
+> - **Verification:** Just Show Up, 10-min grace
+> - **Penalty:** Embarrassing Photo
+>
+> This is a Time + Location combo without App Blocking. The user must physically be at the library within 10 minutes of 2:00 PM, but their phone is unrestricted.

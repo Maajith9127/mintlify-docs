@@ -1,10 +1,60 @@
 ---
 title: "Device Marriage"
-description: "One account = one device while commitments are active"
+description: "Bind one account to one physical device while commitments are active."
 ---
 
-# Device Marriage
+# Device Marriage Protocol
 
-One account = one device while commitments are active.
+Device Marriage is an anti-circumvention security mechanism that binds a CommitT account to a single physical device for the duration of active commitments. This prevents users from logging into their account on a friend's phone and asking them to verify on their behalf.
 
-*Detailed documentation coming soon.*
+---
+
+## The Problem
+
+Without device binding, the following exploit is trivial:
+
+1. User creates a "Morning Gym" commitment with location verification at their gym
+2. User gives their credentials to a friend who lives near the gym
+3. Friend logs in on their own phone and verifies the commitment without the user ever going to the gym
+4. The system records a successful verification — the user cheats without consequence
+
+Device Marriage eliminates this attack vector entirely.
+
+---
+
+## How It Works
+
+When a user signs in and creates their first commitment, the system records a **device fingerprint** consisting of:
+
+| Signal | Description |
+| :--- | :--- |
+| **Device ID** | Android hardware identifier |
+| **Installation ID** | Unique per-install identifier generated at first launch |
+| **Device Model** | Manufacturer and model string |
+
+This fingerprint is stored in the Convex cloud backend alongside the user's account.
+
+---
+
+## Enforcement Rules
+
+| Scenario | Behavior |
+| :--- | :--- |
+| **Login on same device** | Allowed — fingerprint matches |
+| **Login on new device, no active commitments** | Allowed — fingerprint is updated to the new device |
+| **Login on new device, active commitments exist** | Blocked — error message explaining the device is married |
+| **All commitments completed** | Marriage is released — user can log in on any device |
+
+---
+
+## Example
+
+> A user has active commitments on their Samsung Galaxy (Phone A). They try to log into CommitT on their friend's Pixel (Phone B). The system checks the Convex backend and finds that:
+>
+> - Account has 3 active commitments
+> - Device fingerprint is bound to Phone A
+> - Phone B's fingerprint does not match
+>
+> Login is rejected with the message: "This account is currently bound to another device. Complete or delete your active commitments before switching devices."
+>
+> Once all three commitments are completed or expired, the device marriage is released, and the user can log in on Phone B freely.

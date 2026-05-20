@@ -1,10 +1,67 @@
 ---
 title: "Day Planning"
-description: "Configure your entire day in one screen using presets"
+description: "Configure your entire day in a single screen using preset combinations."
 ---
 
-# Day Planning
+# One-Screen Day Planning
 
-Configure your entire day in one screen using presets.
+Day Planning is the culmination of the preset system. By combining location presets, blocklist presets, and rule presets, you can configure an entire day's worth of commitments in the time slot view without navigating away from a single screen.
 
-*Detailed documentation coming soon.*
+---
+
+## The Workflow
+
+1. **Select your days** (e.g., Mon–Fri)
+2. **Add time slots** for each activity block in your day
+3. **Attach presets to each slot** with a single tap per category
+
+The time slot screen displays each slot as an expandable card with three attachment buttons: Location, App Block, and Rules. Each button opens a preset picker modal.
+
+---
+
+## Example: A Full Day Configured in Under 2 Minutes
+
+| Time Slot | Location Preset | Blocklist Preset | Rule Preset |
+| :--- | :--- | :--- | :--- |
+| 6:00 AM – 8:00 AM | Fitty Gym VIT | *None* | Relaxed Arrival |
+| 9:00 AM – 12:00 PM | University Library | Social Media | Strict Session |
+| 2:00 PM – 5:00 PM | Annexe Building | Full Focus | Maximum Lockdown |
+| 7:00 PM – 9:00 PM | Home | Entertainment | Standard Check-in |
+
+Each row in the table above represents a single time slot configured with three preset taps. The entire day is built in under two minutes because no manual configuration is required — every location, blocklist, and verification rule was saved beforehand.
+
+---
+
+## Slot Independence
+
+The critical architectural principle is that each slot operates as an **independent enforcement container**. The morning gym slot has no app blocking because you need your phone for music. The library session blocks social media with strict verification. The home study slot blocks entertainment apps with a lighter check-in requirement.
+
+This granularity means a single commitment can model complex daily routines that would otherwise require creating multiple separate commitments.
+
+---
+
+## Preset Hydration
+
+When the commitment wizard mounts, the `usePresetHydration()` hook fires at the layout level, fetching all saved presets from the Convex backend and populating the local Zustand PresetStore. This ensures that by the time the user reaches the time slot screen, all preset picker modals are pre-loaded with zero loading spinners.
+
+```typescript
+export default function CreateCommitLayout() {
+  usePresetHydration(); // One-shot hydration at layout mount
+  return <Stack screenOptions={{ ... }}> ... </Stack>;
+}
+```
+
+---
+
+## Example
+
+> A university student plans their weekday schedule:
+>
+> - Opens CommitT, taps "+" to create a new commitment
+> - Names it "Weekday Routine"
+> - Selects Mon–Fri, enables Repeat
+> - Adds four time slots
+> - Attaches presets to each slot in rapid succession
+> - Taps "CommitT" to lock it in
+>
+> From that point forward, every weekday is automatically enforced: gym attendance is verified at 6 AM, social media is blocked during library hours, full device lockdown activates during afternoon study, and entertainment apps are blocked during evening revision.

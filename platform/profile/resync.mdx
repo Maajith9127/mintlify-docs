@@ -1,10 +1,44 @@
 ---
 title: "Full Resync"
-description: "Wipe local data, fetch fresh from Convex, rebuild SQLite"
+description: "Wipe all local data and rebuild from the Convex cloud backend."
 ---
 
-# Full Resync
+# Full Resync (Nuke and Pave)
 
-Wipe local data, fetch fresh from Convex, rebuild SQLite.
+Full Resync is CommitT's corruption recovery mechanism. It completely destroys the local SQLite database and rebuilds it from scratch using the authoritative data stored in the Convex cloud backend.
 
-*Detailed documentation coming soon.*
+---
+
+## When to Use Full Resync
+
+This operation is designed for recovery scenarios:
+
+- **Database corruption** — SQLite file becomes unreadable after a crash or unexpected shutdown
+- **Sync desynchronization** — Local data diverges from the cloud state due to interrupted writes
+- **Migration failure** — A schema upgrade fails mid-transaction, leaving the database in an inconsistent state
+- **Device transfer** — Setting up the app on a new device after logging in
+
+---
+
+## The Resync Pipeline
+
+1. **Local Wipe** — All tables in the SQLite database are dropped. The database file is deleted and recreated with the current schema.
+2. **Cloud Fetch** — The client queries the Convex backend for all active tasks, instances, presets, and configuration data belonging to the authenticated user.
+3. **Local Rebuild** — The fetched data is written to the fresh SQLite database in a single atomic transaction.
+4. **Alarm Re-registration** — The Kotlin AlarmScheduler re-reads the rebuilt database and registers all active alarms with the hardware AlarmManager.
+
+---
+
+## Safety Guarantees
+
+- **No data loss** — The Convex cloud backend is the authoritative source of truth. All committed data exists in the cloud before it exists locally.
+- **Atomic rebuild** — The local write uses a single SQL transaction. If any row fails, the entire rebuild rolls back cleanly.
+- **Immediate consistency** — After resync, the dashboard, calendar, and alerts tabs all reflect the cloud state within a single frame.
+
+---
+
+## Example
+
+> A user experiences a sync issue where their calendar shows tasks that do not match the dashboard. They navigate to Profile, tap "Full Resync", and confirm the action.
+>
+> The app displays a loading indicator for 3–5 seconds while the pipeline executes. When complete, all tabs reload with consistent data pulled directly from the Convex backend. Hardware alarms are re-registered for upcoming commitments.

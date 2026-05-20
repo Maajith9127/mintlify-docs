@@ -1,10 +1,42 @@
 ---
 title: "Waivers"
-description: "Active waiver sessions if any penalty waivers are in progress"
+description: "Track active waiver sessions when penalty waivers are in progress."
 ---
 
-# Waivers
+# Active Waivers
 
-Active waiver sessions if any penalty waivers are in progress.
+The **Waivers** sub-tab displays any penalty waiver challenges that are currently in progress. When a user fails a commitment but has a waiver configured, the waiver session activates and appears here with a live countdown to the deadline.
 
-*Detailed documentation coming soon.*
+---
+
+## Waiver Session Lifecycle
+
+1. **Commitment fails** — The verification window closes without successful verification
+2. **Waiver activates** — Instead of the penalty firing immediately, a waiver session begins
+3. **Challenge appears here** — The user sees the waiver type, progress, and remaining time
+4. **Completion or expiry** — If completed in time, the penalty is cancelled; if the deadline passes, the penalty fires
+
+---
+
+## Session Card Details
+
+| Field | Description |
+| :--- | :--- |
+| **Task Name** | Which commitment triggered this waiver |
+| **Waiver Type** | CAPTCHAs, Paragraph Transcription, Intensity Redo, or 5 KM Run |
+| **Progress** | How much of the challenge is complete (e.g., "3 of 5 CAPTCHAs solved") |
+| **Deadline** | Countdown to when the penalty activates if the waiver is not completed |
+| **Penalty at Stake** | What happens if the waiver expires (e.g., "Embarrassing Photo sent") |
+
+---
+
+## Example
+
+> A user missed their 6:00 AM gym check-in. Their waiver configuration is "Solve 5 CAPTCHAs within 30 minutes." The Waivers tab shows:
+>
+> **Morning Gym — Waiver Active**
+> Type: Solve CAPTCHAs (3 of 5 completed)
+> Deadline: 18 minutes remaining
+> At stake: Embarrassing Photo to maajithanas@gmail.com
+>
+> The user solves the remaining 2 CAPTCHAs within the deadline. The waiver completes, the penalty is cancelled, and the card disappears from this tab.

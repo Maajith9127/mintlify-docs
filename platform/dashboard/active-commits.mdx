@@ -1,10 +1,72 @@
 ---
 title: "Active CommitTs"
-description: "Shows all commitments with status icons"
+description: "The primary commitment list showing all active tasks with real-time status indicators."
 ---
 
-# Active CommitTs
+# Active CommitTs List
 
-Shows all commitments with status icons.
+The **Commits Tab** (`commits.tsx`) is the primary landing screen of the application. It renders a real-time list of every active commitment the user has created, each displayed as a rich card with condition indicators, recurrence metadata, and a context menu for management actions.
 
-*Detailed documentation coming soon.*
+---
+
+## List Architecture
+
+To maintain 60fps scrolling performance on low-end Android devices, the list employs a strict Container/Presentational hybrid architecture built on a **heterogeneous virtualized list**. Rather than rendering a `ScrollView` with nested `.map()` loops (which destroys memory on long lists), all UI elements — the permission warning, the verification card, the section header, and each task card — are flattened into a single one-dimensional array of `ListItem` objects.
+
+```typescript
+type ListItemType =
+  | "permission_missing"   // Red warning card when permissions are revoked
+  | "quick"                // Upcoming verification countdown card
+  | "schedules_title"      // "CommitTs" section header with + button
+  | "task_item"            // Individual commitment card
+  | "schedules_empty";     // Loading skeleton placeholder
+```
+
+Each card is wrapped in `Animated.View` with Reanimated `LinearTransition` springs for smooth insertion and deletion animations.
+
+---
+
+## CommitCard Anatomy
+
+Each commitment renders as a `CommitCard` component displaying:
+
+| Element | Source | Description |
+| :--- | :--- | :--- |
+| **Title** | `task.title` | The commitment name (e.g., "Morning Gym") |
+| **Status Badge** | `task.status` | `Active` or `Done` |
+| **Condition Icons** | `task.conditions` | Visual indicators for time, location, app block, camera, partner |
+| **Recurrence Info** | `task.recurrence` | Days of the week and repeat status |
+| **Penalty Indicator** | `task.penalty` | Shows if a penalty is attached |
+
+---
+
+## Context Menu Actions
+
+Long-pressing a card opens a floating `ActionMenu` anchored to the press position. Available actions include:
+
+- **Delete** — Removes the commitment after a confirmation modal
+- **Lock (Strict Mode)** — Navigates to the Strict Mode setup screen, making the task immutable
+- **Duplicate** — Creates a copy of the commitment configuration
+- **Copy to...** — Copies the commitment to another account or device
+
+---
+
+## Permission Warning Card
+
+If any of the eight required system permissions are revoked while commitments are active, a red-bordered warning card animates into view at the top of the list. Tapping it navigates directly to the permissions audit screen.
+
+The warning uses a 3-second warmup delay to prevent UI flashing during the initial boot sequence when permissions are still being audited.
+
+---
+
+## Default Templates
+
+When the user has no commitments yet, the list automatically populates with pre-configured example templates (e.g., "Study Session", "Gym Workout"). Tapping a template pre-fills the commitment wizard with its configuration, allowing rapid first-time setup.
+
+```typescript
+if (!hasTasks) {
+  DEFAULT_TASKS.forEach((task) => {
+    items.push({ type: "task_item", subId: task._id, data: task });
+  });
+}
+```

@@ -1,10 +1,61 @@
 ---
 title: "Calendar View"
-description: "Shows all task instances as events on a calendar grid"
+description: "A full calendar grid displaying all task instances as visual event blocks."
 ---
 
 # Calendar View
 
-Shows all task instances as events on a calendar grid.
+The **Schedules Tab** (`schedules.tsx`) renders a traditional calendar grid where every generated task instance appears as a colored event block. This provides a bird's-eye view of the user's entire commitment landscape across days, weeks, and months.
 
-*Detailed documentation coming soon.*
+---
+
+## Instance Generation
+
+When a commitment is created with a recurrence pattern (e.g., Mon–Fri, 6:00 AM – 8:00 AM, Repeat), the system generates **concrete task instances** for each matching day. These instances are stored in the local SQLite database and rendered directly on the calendar grid.
+
+Each instance carries its own:
+
+| Field | Description |
+| :--- | :--- |
+| **Start Time** | Exact start timestamp for this occurrence |
+| **End Time** | Exact end timestamp for this occurrence |
+| **Status** | `PENDING`, `VERIFIED`, or `FAILED` |
+| **Parent Task ID** | Reference to the originating commitment definition |
+| **Conditions** | Inherited location, blocklist, and rule attachments |
+
+---
+
+## Visual Encoding
+
+Events are color-coded by status to provide instant visual feedback:
+
+| Status | Color | Meaning |
+| :--- | :--- | :--- |
+| `PENDING` | Blue | Upcoming, not yet verified |
+| `VERIFIED` | Green | Successfully completed |
+| `FAILED` | Red | Missed or failed verification |
+
+Events span their full time range on the grid, so a 6:00 AM – 8:00 AM commitment appears as a two-hour block on the calendar.
+
+---
+
+## Navigation
+
+The calendar supports standard navigation gestures:
+
+- **Horizontal swipe** to move between days and weeks
+- **Pinch to zoom** to adjust the time scale granularity
+- **Tap today** to snap back to the current date
+- **Scroll vertically** to view earlier or later hours in the day
+
+---
+
+## Example
+
+> A user with three active commitments sees their week at a glance:
+>
+> - **Mon–Fri, 6–8 AM:** "Morning Gym" (blue blocks, pending)
+> - **Mon–Fri, 2–6 PM:** "Library Focus" (green blocks for verified days, blue for upcoming)
+> - **Sat, 9–11 AM:** "Swimming" (single blue block)
+>
+> Past events that were missed appear as red blocks, making it immediately obvious which commitments were honored and which were not.
