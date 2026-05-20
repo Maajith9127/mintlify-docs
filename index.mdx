@@ -111,28 +111,102 @@ sequenceDiagram
 
 ## Feature Index
 
-CommitT's full feature set is organized into the following areas:
+Here is the complete list of capabilities you can configure with CommitT:
+
+### Setup & Permissions
+
+<CardGroup cols={2}>
+  <Card title="OS Permissions Audit" icon="shield-halved">
+    Prerequisite checks for all 8 Android system permissions before activation to guarantee background persistence.
+  </Card>
+  <Card title="Device Admin Lock" icon="gavel">
+    Enables Device Administrator access to block any attempts to uninstall the application to escape active commitments.
+  </Card>
+  <Card title="Appear On Top" icon="window-restore">
+    Draws full-screen overlay block screens directly over target applications before their first frame renders.
+  </Card>
+  <Card title="Battery Optimization Bypass" icon="battery-empty">
+    Disables system battery-saver restrictions so background tasks and verification services stay alive.
+  </Card>
+</CardGroup>
 
 ### Core Configuration
-*   **Task & Instances:** Commitments generate independent, immutable task instances so historic records cannot be retrospectively altered.
-*   **Flexible Time Slots:** Configure custom days with repeat toggles (monthly recurring or one-week sprint) and multiple focus windows.
-*   **Per-Time-Slot Customization:** Attach specific locations, app blocklists, and verification rules to individual time slots within a single commitment.
-*   **Presets:** Save frequently used Locations, Blocklists, and Verification Rules for rapid commitment creation.
+
+<CardGroup cols={2}>
+  <Card title="Task & Instances" icon="copy">
+    Commitments spawn independent, immutable instances so history records cannot be retroactively modified.
+  </Card>
+  <Card title="Flexible Time Slots" icon="calendar-days">
+    Configure multiple target windows per day with custom repetition settings (weekly or one-off sprints).
+  </Card>
+  <Card title="Per-Time-Slot Attachments" icon="sliders">
+    Assign unique locations, app blocklists, and rules to individual slots within the same task.
+  </Card>
+  <Card title="Configuration Presets" icon="bookmark">
+    Save frequently used Locations, Blocklists, and Rules for one-tap commitment planning.
+  </Card>
+  <Card title="One-Screen Day Planning" icon="list-timeline">
+    Configure your entire day's routine—from morning gym to evening study—within a single task calendar.
+  </Card>
+</CardGroup>
 
 ### Verification & Enforcement
-*   **Digital Blocker:** Block installed packages, specific web domains, or use AI description inputs to auto-generate block rules.
-*   **Location Geofencing:** Real-time geofence checks via a 1Hz GPS location stream.
-*   **Just Show Up Mode:** Verifies your presence once during a configurable grace window.
-*   **Stay Throughout Mode:** Sound unpredictable check-in alarms throughout the focus window with customizable frequency and miss allowances.
+
+<CardGroup cols={2}>
+  <Card title="Digital App Blocker" icon="mobile-screen">
+    Select individual Android applications to block when a commitment window is active.
+  </Card>
+  <Card title="Web Domain Filter" icon="globe">
+    Enter specific web domains (e.g., youtube.com) to restrict access during study windows.
+  </Card>
+  <Card title="AI-Powered Rules" icon="sparkles">
+    Describe what to block in natural language (e.g., "Restrict all shopping and gaming sites") to auto-configure filters.
+  </Card>
+  <Card title="1Hz GPS Geofencing" icon="location-dot">
+    Real-time location checks via a 1Hz GPS stream for sub-second arrival detection.
+  </Card>
+  <Card title="Just Show Up Mode" icon="shoe-prints">
+    Verifies your presence once within a custom grace period at the beginning of a window.
+  </Card>
+  <Card title="Stay Throughout Mode" icon="repeat">
+    Ensures you remain in place by triggering randomized check-in alarms throughout the session.
+  </Card>
+</CardGroup>
 
 ### Penalties & Waivers
-*   **Durable Penalties:** Missed check-ins schedule serverless cloud "time bombs" that execute automatically.
-*   **Stake Penalties:** Tie commitments to real financial stakes.
-*   **Social Accountability:** Send proof photos or videos to accountability email addresses on failure.
-*   **Waiver Challenges:** Defuse scheduled penalties by completing countdown challenges (solving up to 400 CAPTCHAs, transcribing long texts, or redoing tasks).
+
+<CardGroup cols={2}>
+  <Card title="Durable Cloud Penalties" icon="cloud">
+    Missed verifications arm serverless cloud triggers that execute consequences automatically.
+  </Card>
+  <Card title="Stake Money" icon="money-bill">
+    Attach real financial stakes to your commitments to increase the cost of failure.
+  </Card>
+  <Card title="Social Accountability" icon="envelope">
+    E-mail proof photos or video challenges to friends or partners if you default on a task.
+  </Card>
+  <Card title="CAPTCHA Defusal" icon="brain">
+    Waive scheduled penalties by solving custom batches of CAPTCHAs (configurable from 1 to 400).
+  </Card>
+  <Card title="Text Transcription Waiver" icon="keyboard">
+    Transcribe a lengthy, complex paragraph of text before the deadline to defuse penalties.
+  </Card>
+  <Card title="Intensity Redo" icon="bolt">
+    Commit to re-performing the task at a higher difficulty setting to waive the current penalty.
+  </Card>
+</CardGroup>
 
 ### Security & Integrity
-*   **Strict Mode:** Lock commitments to make them completely un-editable and un-deletable.
-*   **Uninstall Protection:** Require Device Admin permissions to prevent the app from being uninstalled.
-*   **Device Marriage:** Authenticate and bind account sessions to unique hardware signatures to prevent remote cheating.
-*   **Nuke & Pave Recovery:** Automatically rebuild, verify, and re-sync the local database cache in the event of I/O failures.
+
+<CardGroup cols={2}>
+  <Card title="Strict Mode" icon="lock">
+    Renders active commitments completely immutable at the database layer to prevent panic-edits.
+  </Card>
+  <Card title="Device Marriage Protocol" icon="mobile">
+    Binds account sessions to a physical device signature, stopping users from remote-verifying on another phone.
+  </Card>
+  <Card title="Nuke & Pave Recovery" icon="arrows-rotate">
+    Automatically wipes local SQLite cache, regenerates schema, and pulls fresh database records on I/O errors.
+  </Card>
+</CardGroup>
+
