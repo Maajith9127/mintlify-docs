@@ -105,50 +105,9 @@ sequenceDiagram
     Note over App: Delete option is blocked. Rules remain active.
 ```
 
----
-
-## Technical Architecture Overview
-
-CommitT uses a three-tier architecture designed around a **zero-trust local client**. Because the user is considered the adversary, every layer is built to fail closed and resist tampering.
-
-```mermaid
-graph TB
-    subgraph Device["Android Device"]
-        subgraph JS["React Native Client"]
-            UI["App UI (Screens & Wizard)"]
-            SE["Sync Engine (Delta Sync)"]
-            TWO["Triple-Write Orchestrator"]
-        end
-        subgraph Native["Kotlin Layer"]
-            ACC["Accessibility Service (App Blocker)"]
-            LOC["LocationManager (1Hz GPS)"]
-            ALM["AlarmManager (Hardware Wake)"]
-        end
-        DB["SQLite Cache (WAL Mode)"]
-    end
-    subgraph Cloud["Convex Cloud"]
-        API["API Mutations & Queries"]
-        SCHED["Durable Scheduler (Jobs)"]
-        CDB["Convex Database"]
-    end
-
-    UI --> TWO
-    TWO --> API
-    TWO --> DB
-    TWO --> ALM
-    SE --> CDB
-    SE --> DB
-    ACC --> DB
-    LOC --> ACC
-    API --> CDB
-    SCHED --> API
-```
-
-*   **Triple-Write Orchestrator:** Every commitment write utilizes a saga pattern that must complete successfully across the Convex Cloud, the local SQLite database, and the native hardware alarm scheduler.
-*   **Fail-Closed Access:** The system-level Accessibility Service queries SQLite directly. If the database is locked, unreadable, or if location tracking is disabled, the system defaults to blocking target applications.
-*   **FBE Bypass:** Hardware alarms are registered with Android's `AlarmManager` and a `BOOT_COMPLETED` receiver. If the device restarts, alarms are re-armed before the user inputs their lock screen PIN.
 
 ---
+
 
 ## Feature Index
 
