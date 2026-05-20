@@ -17,46 +17,46 @@ for (let i = 1; i <= 30; i++) { if (i === 16) continue; apr2026Pages.push(`2026/
 const may2026Pages = [];
 for (let i = 1; i <= 15; i++) { if (i === 7) continue; may2026Pages.push(`2026/may/day-${pad(i)}`); }
 
-// --- Page definitions (NO icon on individual pages) ---
+// --- Trimmed and Shortened Titles ---
 const platformPages = {
   "Setup & Permissions": {
     groupIcon: "shield-halved",
     pages: [
-      { path: "platform/permissions/audit", title: "OS Permissions Audit", desc: "8-point Android permission prerequisite audit" },
-      { path: "platform/permissions/admin-lock", title: "Device Admin Lock", desc: "Uninstall protection via Device Administrator" },
+      { path: "platform/permissions/audit", title: "OS Permissions", desc: "8-point Android permission prerequisite audit" },
+      { path: "platform/permissions/admin-lock", title: "Admin Lock", desc: "Uninstall protection via Device Administrator" },
       { path: "platform/permissions/appear-on-top", title: "Appear On Top", desc: "Full-screen overlay rendering for app blocking" },
-      { path: "platform/permissions/battery-opt", title: "Battery Optimization Bypass", desc: "Disable battery-saver restrictions for background persistence" }
+      { path: "platform/permissions/battery-opt", title: "Battery Bypass", desc: "Disable battery-saver restrictions for background persistence" }
     ]
   },
   "Core Configuration": {
     groupIcon: "calendar-days",
     pages: [
-      { path: "platform/config/task-instances", title: "Task & Instances", desc: "Immutable task instance generation" },
-      { path: "platform/config/time-slots", title: "Flexible Time Slots", desc: "Multi-window daily scheduling with repeat toggles" },
-      { path: "platform/config/attachments", title: "Per-Time-Slot Attachments", desc: "Assign locations, blocklists, and rules per slot" },
-      { path: "platform/config/presets", title: "Configuration Presets", desc: "Save and reuse locations, blocklists, and rules" },
-      { path: "platform/config/day-planning", title: "One-Screen Day Planning", desc: "Full-day routine configuration in a single view" }
+      { path: "platform/config/task-instances", title: "Task Instances", desc: "Immutable task instance generation" },
+      { path: "platform/config/time-slots", title: "Time Slots", desc: "Multi-window daily scheduling with repeat toggles" },
+      { path: "platform/config/attachments", title: "Attachments", desc: "Assign locations, blocklists, and rules per slot" },
+      { path: "platform/config/presets", title: "Presets", desc: "Save and reuse locations, blocklists, and rules" },
+      { path: "platform/config/day-planning", title: "Day Planning", desc: "Full-day routine configuration in a single view" }
     ]
   },
   "Verification & Enforcement": {
     groupIcon: "shield-check",
     pages: [
-      { path: "platform/enforcement/app-blocker", title: "Digital App Blocker", desc: "Block installed Android applications" },
-      { path: "platform/enforcement/web-filter", title: "Web Domain Filter", desc: "Restrict access to specific web domains" },
-      { path: "platform/enforcement/ai-rules", title: "AI-Powered Rules", desc: "Natural-language block rule generation" },
-      { path: "platform/enforcement/gps-geofencing", title: "1Hz GPS Geofencing", desc: "Real-time geofence checks via 1Hz GPS stream" },
-      { path: "platform/enforcement/just-show-up", title: "Just Show Up Mode", desc: "Single-check grace-window verification" },
-      { path: "platform/enforcement/stay-throughout", title: "Stay Throughout Mode", desc: "Randomized check-in alarms during session" }
+      { path: "platform/enforcement/app-blocker", title: "App Blocker", desc: "Block installed Android applications" },
+      { path: "platform/enforcement/web-filter", title: "Web Filter", desc: "Restrict access to specific web domains" },
+      { path: "platform/enforcement/ai-rules", title: "AI Rules", desc: "Natural-language block rule generation" },
+      { path: "platform/enforcement/gps-geofencing", title: "GPS Geofencing", desc: "Real-time geofence checks via 1Hz GPS stream" },
+      { path: "platform/enforcement/just-show-up", title: "Just Show Up", desc: "Single-check grace-window verification" },
+      { path: "platform/enforcement/stay-throughout", title: "Stay Throughout", desc: "Randomized check-in alarms during session" }
     ]
   },
   "Penalties & Waivers": {
     groupIcon: "triangle-exclamation",
     pages: [
-      { path: "platform/penalties/durable-cloud", title: "Durable Cloud Penalties", desc: "Serverless cloud penalty triggers" },
+      { path: "platform/penalties/durable-cloud", title: "Durable Cloud", desc: "Serverless cloud penalty triggers" },
       { path: "platform/penalties/stake-money", title: "Stake Money", desc: "Financial stakes on commitments" },
-      { path: "platform/penalties/social-accountability", title: "Social Accountability", desc: "Email proof photos on failure" },
+      { path: "platform/penalties/social-accountability", title: "Social Proof", desc: "Email proof photos on failure" },
       { path: "platform/penalties/captcha-defusal", title: "CAPTCHA Defusal", desc: "Solve 1-400 CAPTCHAs to waive penalties" },
-      { path: "platform/penalties/text-transcription", title: "Text Transcription Waiver", desc: "Transcribe long text to defuse penalties" },
+      { path: "platform/penalties/text-transcription", title: "Text Transcription", desc: "Transcribe long text to defuse penalties" },
       { path: "platform/penalties/intensity-redo", title: "Intensity Redo", desc: "Re-perform task at higher difficulty" }
     ]
   },
@@ -64,8 +64,8 @@ const platformPages = {
     groupIcon: "lock",
     pages: [
       { path: "platform/security/strict-mode", title: "Strict Mode", desc: "Immutable commitment locking at database layer" },
-      { path: "platform/security/device-marriage", title: "Device Marriage Protocol", desc: "Bind sessions to physical device signatures" },
-      { path: "platform/security/nuke-pave", title: "Nuke & Pave Recovery", desc: "Automatic SQLite wipe and cloud re-sync" }
+      { path: "platform/security/device-marriage", title: "Device Marriage", desc: "Bind sessions to physical device signatures" },
+      { path: "platform/security/nuke-pave", title: "Nuke & Pave", desc: "Automatic SQLite wipe and cloud re-sync" }
     ]
   }
 };
@@ -126,28 +126,51 @@ const config = {
   "footer": { "socials": { "x": "https://x.com/Maajith_cmt", "linkedin": "https://www.linkedin.com/in/abdul-maajith-99165026b", "github": "https://github.com/Maajith9127" } }
 };
 
-// --- Generate stubs WITHOUT page-level icons ---
+// --- Generate stubs and overwrite titles ---
 Object.values(platformPages).forEach(groupDef => {
   groupDef.pages.forEach(page => {
     const fullPath = path.join(docsDir, page.path + '.mdx');
     const dir = path.dirname(fullPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    
+    // Write or rewrite frontmatter title
     fs.writeFileSync(fullPath, `---\ntitle: "${page.title}"\ndescription: "${page.desc}"\n---\n\n# ${page.title}\n\n${page.desc}.\n\n*Detailed documentation coming soon.*\n`);
-    console.log(`Generated: ${page.path}.mdx`);
+    console.log(`Generated/Updated: ${page.path}.mdx (title: ${page.title})`);
   });
 });
 
-function ensurePageExists(p) {
-  const fp = path.join(docsDir, p + '.mdx');
-  if (!fs.existsSync(fp)) {
-    const dir = path.dirname(fp); if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const t = p.split('/').pop().split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    fs.writeFileSync(fp, `---\ntitle: "${t}"\ndescription: "Documentation for ${t}."\n---\n\n# ${t}\n\n*Detailed documentation coming soon.*\n`);
-    console.log(`Auto-generated: ${p}.mdx`);
+// --- Helper to update existing non-platform MDX titles ---
+function updateMdxTitle(pagePath, newTitle) {
+  const fp = path.join(docsDir, pagePath + '.mdx');
+  if (fs.existsSync(fp)) {
+    let content = fs.readFileSync(fp, 'utf8');
+    // Replace frontmatter title line
+    const replaced = content.replace(/^title:\s*["']?.*?["']?$/m, `title: "${newTitle}"`);
+    fs.writeFileSync(fp, replaced, 'utf8');
+    console.log(`Updated title for ${pagePath}.mdx to "${newTitle}"`);
+  } else {
+    // Generate new stub if it doesn't exist
+    const dir = path.dirname(fp);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(fp, `---\ntitle: "${newTitle}"\ndescription: "Documentation for ${newTitle}."\n---\n\n# ${newTitle}\n\n*Detailed documentation coming soon.*\n`);
+    console.log(`Generated missing stub: ${pagePath}.mdx`);
   }
 }
-["architecture/overview","architecture/sync-engine","architecture/local-database","architecture/write-gate","architecture/state-management","architecture/app-routes","backend/schema","native-modules/overview"].forEach(ensurePageExists);
+
+// Update Get Started page titles
+updateMdxTitle("quickstart", "Quick Start");
+updateMdxTitle("setup-env", "Environment Setup");
+updateMdxTitle("start-developing", "Developing");
+
+// Update Guides page titles
+updateMdxTitle("architecture/overview", "Overview");
+updateMdxTitle("architecture/sync-engine", "Sync Engine");
+updateMdxTitle("architecture/local-database", "Local Database");
+updateMdxTitle("architecture/write-gate", "Write Gate");
+updateMdxTitle("architecture/state-management", "State Management");
+updateMdxTitle("architecture/app-routes", "App Routes");
+updateMdxTitle("backend/schema", "Schema");
+updateMdxTitle("native-modules/overview", "Overview");
 
 fs.writeFileSync(path.join(docsDir, 'docs.json'), JSON.stringify(config, null, 2));
-const mint = path.join(docsDir, 'mint.json'); if (fs.existsSync(mint)) { fs.unlinkSync(mint); console.log('Removed mint.json'); }
-console.log('Done! Collapsible groups with section headers generated.');
+console.log('Done! Collapsible groups with trimmed page titles generated.');
