@@ -65,15 +65,20 @@ const config = {
               "setup-env",
               "start-developing"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "Guides",
-        "icon": "book-open",
-        "groups": [
+          },
           {
-            "group": "Architecture",
+            "group": "Platform",
+            "icon": "cubes",
+            "pages": [
+              "platform/permissions",
+              "platform/config",
+              "platform/enforcement",
+              "platform/penalties",
+              "platform/security"
+            ]
+          },
+          {
+            "group": "Architecture & Guides",
             "icon": "sitemap",
             "pages": [
               "architecture/overview",
@@ -83,26 +88,14 @@ const config = {
               "architecture/state-management",
               "architecture/app-routes"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "Convex",
-        "icon": "server",
-        "groups": [
+          },
           {
-            "group": "Backend",
-            "icon": "cloud",
+            "group": "Convex Backend",
+            "icon": "server",
             "pages": [
               "backend/schema"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "Reference",
-        "icon": "cube",
-        "groups": [
+          },
           {
             "group": "Native Modules",
             "icon": "microchip",
