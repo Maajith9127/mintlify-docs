@@ -1,16 +1,33 @@
 /* Invisible Scrollbar - Still Scrollable */
-
-/* Chrome, Safari and newer Edge */
 ::-webkit-scrollbar {
   display: none;
 }
-
-/* Firefox */
 * {
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* Internet Explorer and Old Edge */
-* {
-  -ms-overflow-style: none;
+/* Force visible layout borders (Expo Style) */
+:root {
+  --color-border: rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark {
+  --color-border: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Ensure the main sidebar and right TOC have visible border lines */
+aside {
+  border-color: var(--color-border) !important;
+  border-right-width: 1px !important;
+}
+
+/* Target the right TOC border */
+main > div:last-child {
+  border-left: 1px solid var(--color-border) !important;
+}
+
+/* Header border */
+header, nav {
+  border-bottom: 1px solid var(--color-border) !important;
 }
