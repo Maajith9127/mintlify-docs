@@ -1,10 +1,51 @@
 ---
 title: "Alarm Config"
-description: "When to start, frequency, and persistence across reboots"
+description: "Configure when alarms start, their frequency, and persistence across reboots."
 ---
 
-# Alarm Config
+# Alarm Configuration
 
-When to start, frequency, and persistence across reboots.
+The alarm system is the heartbeat of CommitT's enforcement loop. Alarms are configured on the **FinalScreen** under the "Alarms" settings section and are dispatched through the native Kotlin `AlarmScheduler` module.
 
-*Detailed documentation coming soon.*
+---
+
+## Configuration Options
+
+| Setting | Options | Description |
+| :--- | :--- | :--- |
+| **When to Start** | 5 / 10 / 15 / 60 min before | How early the first alarm fires before the slot begins |
+| **Frequency** | Every 2 / 5 / 10 min | How often alarms repeat during Stay Throughout mode |
+
+---
+
+## Persistence Guarantees
+
+CommitT alarms are **not** standard Android notifications that can be silenced or snoozed. They are hardware-level alarms registered through the `AlarmManager` exact scheduling API:
+
+- **Survives App Kill:** Alarms are bound to `PendingIntent` objects in the Android system. Even if the user force-stops CommitT, the OS still fires the alarm.
+- **Survives Phone Restart:** A `BOOT_COMPLETED` broadcast receiver re-registers all active alarms after device reboot.
+- **Locked Screen Bypass:** Alarms use `WakeLock` to force the screen on and display the verification prompt, even when the phone is locked.
+
+---
+
+## The Alarm Pipeline
+
+```mermaid
+flowchart LR
+    A[User taps Commit] --> B[Convex Cloud Write]
+    B --> C[SQLite Local Write]
+    C --> D[Kotlin AlarmScheduler]
+    D --> E[PendingIntent Registered]
+    E --> F[Hardware Alarm Fires ⏰]
+```
+
+The alarm is the **third and final step** of the Triple-Write Protocol. It is only registered after both the cloud and local writes succeed.
+
+---
+
+## Example
+
+> **Wake-up commitment alarm config:**
+> - When to Start: 5 minutes before (alarm at 5:55 AM for a 6:00 AM slot)
+> - Frequency: Every 2 minutes (if Stay Throughout mode)
+> - Persistence: Survives overnight charging, phone restart, and app kill

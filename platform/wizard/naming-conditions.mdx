@@ -1,10 +1,52 @@
 ---
 title: "Naming & Conditions"
-description: "Enter a name and attach conditions: Time, Location, Partner"
+description: "Enter a commitment name and attach enforcement conditions."
 ---
 
 # Naming & Conditions
 
-Enter a name and attach conditions: Time, Location, Partner.
+The commitment creation flow begins at the **FinalScreen** (`final.tsx`), where the user names their commitment and selects which enforcement conditions to activate.
 
-*Detailed documentation coming soon.*
+---
+
+## Commitment Name
+
+At the top of the screen, a text input accepts the commitment title (e.g., *"Morning Gym"*, *"Library Focus Block"*, *"No Social Media"*). This title is stored in the Zustand draft store and becomes the permanent label across the dashboard, calendar, and notification system.
+
+```typescript
+const setTitle = useTaskDraftStore((state) => state.setTitle);
+
+<Input
+  placeholder="Commitment Name"
+  value={draft.title}
+  onChangeText={setTitle}
+/>
+```
+
+---
+
+## Condition Carousel
+
+Below the name input, a horizontal scrollable carousel displays all available condition types. Each card is independently toggleable:
+
+| Condition | Icon | What it Controls |
+| :--- | :--- | :--- |
+| **Time** | `clock-outline` | When the commitment is active (days + time windows) |
+| **Location** | `map-marker-outline` | Where you must physically be |
+| **Partner** | `account-check-outline` | Accountability partner who verifies you |
+| **Picture** | `camera-outline` | Live photo proof required |
+| **Video** | `video-outline` | Live video proof required |
+
+Tapping a condition card navigates to its dedicated configuration screen. A green selection indicator appears when a condition is configured.
+
+---
+
+## Example
+
+> **"Morning Gym" commitment:**
+> - Name: `Morning Gym`
+> - Time: Mon–Fri, 6:00 AM – 8:00 AM, Repeat ✓
+> - Location: Fitty Gym VIT (from preset)
+> - No Partner, No Picture/Video
+
+Each condition is independently clearable via a small "✕" button on the card, which tears down that condition's state from the draft store without affecting others.

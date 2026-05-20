@@ -1,10 +1,60 @@
 ---
 title: "App & Web Blocking"
-description: "Block apps, websites, or use AI to generate block rules"
+description: "Block apps, websites, or use AI to generate block rules."
 ---
 
-# App & Web Blocking
+# Digital Commitment (App & Web Blocking)
 
-Block apps, websites, or use AI to generate block rules.
+The **ChooseScreen** (`choose.tsx`) provides a three-tab interface for configuring which applications and websites are blocked during a commitment's active time slots.
 
-*Detailed documentation coming soon.*
+---
+
+## Three Blocking Modes
+
+### Apps Tab
+Displays a scrollable, searchable list of **every installed application** on the device. Apps are fetched from the native Kotlin `AppListerModule` which queries the Android `PackageManager` for real app names and icons.
+
+- Apps are sorted with **selected items first**, then alphabetically
+- Search filters apps in real-time by name
+- Each toggle immediately updates the Zustand draft store
+
+```typescript
+const toggleApp = (id: string) => {
+  const nextSelected = storeApps.includes(id)
+    ? storeApps.filter(pkg => pkg !== id)
+    : [...storeApps, id];
+  setBlocklist({ apps: nextSelected });
+};
+```
+
+### Webs Tab
+A manual entry system where users type website URLs (e.g., `youtube.com`, `instagram.com`). Each URL is added via the `InlineAddBar` component and immediately appears in the selectable list below.
+
+### AI Tab
+A natural language input where users describe what to block in plain English:
+> *"Block all social media"*
+> *"Restrict 18+ content"*
+> *"Block entertainment apps"*
+
+The AI engine processes the description and generates matching block rules automatically.
+
+---
+
+## Preset Integration
+
+A clock icon in the header opens the **Digital Preset Picker Modal**, allowing users to apply a previously saved blocklist preset (e.g., "Social Media" = Instagram + Twitter + TikTok + YouTube). Applying a preset replaces the current selection entirely.
+
+```typescript
+const handlePresetSelect = (preset: DigitalPreset | null) => {
+  setBlocklist({ apps: preset.apps, websites: preset.websites });
+};
+```
+
+---
+
+## Example
+
+> **Blocking configuration for a study session:**
+> - Apps: Instagram, Twitter, TikTok, YouTube, Reddit (manually selected)
+> - Webs: `facebook.com`, `netflix.com` (manually typed)
+> - AI: *"Block all gaming apps"* (auto-generated)

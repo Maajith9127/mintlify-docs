@@ -1,10 +1,61 @@
 ---
 title: "Penalty Waivers"
-description: "CAPTCHAs, text transcription, or redo with more intensity"
+description: "Earn a second chance by completing a challenge before the deadline."
 ---
 
 # Penalty Waivers
 
-CAPTCHAs, text transcription, or redo with more intensity.
+The **PenaltyWaiversScreen** (`penaltywaivers.tsx`) provides a second-chance mechanism. Instead of immediately suffering the penalty, the user can choose to complete a challenging waiver task within a configurable deadline.
 
-*Detailed documentation coming soon.*
+---
+
+## Waiver Types
+
+### 1. Solve CAPTCHAs 🛡️
+Solve between **1 and 400 CAPTCHAs** to waive the penalty. The count is configured during setup on a dedicated CAPTCHA configuration screen.
+
+```typescript
+selectedWaiverType === "captcha"
+// Routes to: /(penaltywaiver)/setup
+```
+
+### 2. Write a Long Paragraph ✍️
+Type a **3,000-word paragraph** exactly as shown on screen. This forces deliberate friction — the user must invest significant time and effort to earn the waiver. No copy-paste allowed.
+
+```typescript
+selectedWaiverType === "paragraph"
+// Routes to: /(create-commit)/waiver-paragraph
+```
+
+### 3. Redo With More Intensity 🔥
+Repeat the failed commitment the next day at a harder difficulty level. This escalation mechanism ensures the user takes the original commitment more seriously.
+
+```typescript
+selectedWaiverType === "intense"
+// Routes to: /(create-commit)/waiver-intense
+```
+
+### 4. Run 5 KM 🏃
+Complete a verified 5-kilometer run at a chosen location. GPS tracking confirms the distance. This physical challenge acts as both punishment and positive reinforcement.
+
+```typescript
+selectedWaiverType === "run"
+// Routes to: /(create-commit)/waiver-run
+```
+
+---
+
+## Waiver Deadline
+
+Each waiver comes with a **time deadline** — a window during which the user must complete the challenge. If the deadline passes without completion, the original penalty activates automatically.
+
+---
+
+## Example
+
+> **Library study commitment with waiver:**
+> - Penalty: Embarrassing Photo → `maajithanas@gmail.com`
+> - Waiver: Solve 5 CAPTCHAs within 30 minutes
+> - If you miss the study session, you have 30 minutes to solve 5 CAPTCHAs
+> - If you solve them in time, the embarrassing photo is NOT sent
+> - If the 30 minutes expire, the photo is dispatched

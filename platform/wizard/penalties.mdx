@@ -1,10 +1,63 @@
 ---
 title: "Penalties"
-description: "Stake money, embarrassing photo, or block favourite apps"
+description: "Configure consequences that activate when you fail a commitment."
 ---
 
 # Penalties
 
-Stake money, embarrassing photo, or block favourite apps.
+The **PenaltiesScreen** (`penalties.tsx`) lets users attach a real consequence to their commitment. If they fail to verify during their active slot, the selected penalty triggers automatically via the Convex cloud backend.
 
-*Detailed documentation coming soon.*
+Penalties are **optional** — a commitment can exist without any penalty.
+
+---
+
+## Penalty Types
+
+### 1. Money Penalty 💰
+Lose a fixed monetary amount when you miss a commitment. The amount is configured on a sub-screen.
+
+```typescript
+draft.penalty?.type === "money"
+```
+
+### 2. Embarrassing Photo 📸
+A pre-selected cringe or embarrassing photo is automatically emailed to a contact you choose (e.g., `maajithanas@gmail.com`). The email is dispatched by the Convex cloud backend using server-side functions — **it cannot be intercepted or cancelled by the client**.
+
+```typescript
+draft.penalty?.type === "embarrassing_photo"
+```
+
+### 3. Cringe Message 💬
+A shameful text message is sent to a contact of your choosing. The message content is pre-configured during commitment creation.
+
+```typescript
+draft.penalty?.type === "cringe_message"
+```
+
+### 4. Block Favourite App 📵
+Your most-used application gets temporarily blocked as punishment. The blocking duration is configurable.
+
+```typescript
+draft.penalty?.type === "block_app"
+```
+
+---
+
+## How Penalties Trigger
+
+Penalties are not enforced on the client — they are **durable cloud functions** on the Convex backend. When a commitment verification window closes with a `FAILED` status:
+
+1. The backend scheduled function detects the failure
+2. The penalty payload is read from the task document
+3. The appropriate action fires (email dispatch, app block injection, etc.)
+4. The client cannot prevent or undo the penalty execution
+
+---
+
+## Example
+
+> **Gym commitment with penalty:**
+> - Penalty: Embarrassing Photo
+> - Recipient: `maajithanas@gmail.com`
+> - Photo: Pre-selected from camera roll during setup
+> - If you miss your 6:00 AM gym check-in, the photo is emailed automatically

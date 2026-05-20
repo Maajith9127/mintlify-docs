@@ -1,10 +1,72 @@
 ---
 title: "Slot Attachments"
-description: "Attach location, app blocks, and rules to each time slot independently"
+description: "Attach location, app blocks, and verification rules to each time slot independently."
 ---
 
-# Slot Attachments
+# Per-Time-Slot Attachments
 
-Attach location, app blocks, and rules to each time slot independently.
+Each time slot in a commitment is not just a time range — it's an independent enforcement container. You can attach different **locations**, **app blocklists**, and **verification rules** to each slot.
 
-*Detailed documentation coming soon.*
+---
+
+## How Attachments Work
+
+Each `TimeSlotCard` displays three attachment buttons:
+
+| Attachment | Icon | What it Does |
+| :--- | :--- | :--- |
+| **Location** | 📍 | Sets where you must be during this slot |
+| **App Block** | 📱 | Sets which apps/websites are blocked during this slot |
+| **Rules** | ⚙️ | Sets verification behavior (Just Show Up vs Stay Throughout) |
+
+Tapping an attachment button opens a **Preset Picker Modal** — a bottom sheet that lists your saved presets for that category.
+
+---
+
+## Attachment Independence
+
+The critical design principle is **slot-level independence**. Within the same commitment:
+
+> **Morning Gym Slot (6:00 AM – 8:00 AM):**
+> - Location: Fitty Gym VIT
+> - App Block: *None*
+> - Rule: Just Show Up, 10-min grace
+
+> **Evening Library Slot (5:00 PM – 9:00 PM):**
+> - Location: University Library
+> - App Block: Instagram, YouTube, Twitter (from "Social Media" preset)
+> - Rule: Stay Throughout, strict intensity, max 1 missed
+
+---
+
+## State Management
+
+Attachments are stored directly on the time slot object inside the Zustand draft store, keyed by slot index:
+
+```typescript
+// Attaching a location preset to slot 0
+setSlotLocation(0, {
+  id: preset._id,
+  latitude: preset.lat,
+  longitude: preset.lng,
+  radius: preset.radius,
+  address: preset.address,
+  isInverse: false,
+});
+
+// Attaching a digital blocklist preset to slot 1
+setSlotBlocklist(1, {
+  id: preset._id,
+  apps: preset.apps,
+  websites: preset.websites,
+});
+
+// Attaching a behavioral rule preset to slot 0
+setSlotRule(0, {
+  id: preset._id,
+  name: preset.title || preset.name,
+  config: preset.config,
+});
+```
+
+Detaching a preset is done by passing `null`, which clears the attachment without affecting other slots.

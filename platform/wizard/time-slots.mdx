@@ -1,10 +1,69 @@
 ---
 title: "Time Slots"
-description: "Pick days, toggle repeat, add multiple time windows per day"
+description: "Pick days, toggle repeat, and add multiple time windows per day."
 ---
 
-# Time Slots
+# Time Slot Configuration
 
-Pick days, toggle repeat, add multiple time windows per day.
+The **TimeSetScreen** (`time-set.tsx`) is the scheduling engine of a commitment. It controls *when* your commitment is active — which days of the week, which hours of the day, and whether the schedule repeats indefinitely.
 
-*Detailed documentation coming soon.*
+---
+
+## Day Selection
+
+A row of seven toggle buttons represents each day of the week (Mo, Tu, We, Th, Fr, Sa, Su). Tapping a day toggles it on/off. At least one day must be selected before time windows can be added.
+
+```
+[ Mo ] [ Tu ] [ We ] [ Th ] [ Fr ] [ Sa ] [ Su ]
+```
+
+---
+
+## Repeat Toggle
+
+Next to the "Days" header, a **Repeat** checkbox controls recurrence:
+- **Checked (Repeat ✓):** The commitment repeats indefinitely (`ends.type = "never"`). It will generate instances every matching day, forever.
+- **Unchecked (Repeat ✗):** The commitment runs for **one week only** (`ends.type = "after", count: 1`), then expires automatically.
+
+```typescript
+function handleToggleRepeat() {
+  const isRecurring = draft.recurrence.ends?.type === "never";
+  if (isRecurring) {
+    setRecurrence({ ends: { type: "after", count: 1 } });
+  } else {
+    setRecurrence({ ends: { type: "never" } });
+  }
+}
+```
+
+---
+
+## Multiple Time Windows
+
+You can add **multiple time windows per day** by tapping the "+" button. Each window defines a start and end time (e.g., 6:00 AM – 8:00 AM, then 5:00 PM – 7:00 PM).
+
+**Validation rules** prevent invalid configurations:
+- End time must be after start time
+- Time windows cannot overlap with each other
+- If validation fails, a modal appears with the error and an option to adjust
+
+```typescript
+const validation = validateTimeSlot(start, end, otherSlots);
+if (!validation.valid) {
+  setErrorModal({ visible: true, message: validation.error });
+  return;
+}
+```
+
+Time slots are sorted chronologically after each addition.
+
+---
+
+## Example
+
+> **Study commitment with two daily windows:**
+> - Days: Mon, Tue, Wed, Thu, Fri
+> - Repeat: ✓ (monthly recurring)
+> - Window 1: 9:00 AM – 12:00 PM (morning session)
+> - Window 2: 2:00 PM – 5:00 PM (afternoon session)
+> - Each window can have its own location, app blocks, and rules attached independently

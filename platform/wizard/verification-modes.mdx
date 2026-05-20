@@ -1,10 +1,67 @@
 ---
 title: "Verification Modes"
-description: "Just Show Up vs Stay Throughout — two enforcement paradigms"
+description: "Just Show Up vs Stay Throughout — two enforcement paradigms."
 ---
 
 # Verification Modes
 
-Just Show Up vs Stay Throughout — two enforcement paradigms.
+CommitT offers two distinct verification paradigms that control how the system confirms you've honored your commitment. The mode is configured on the **FinalScreen** under the "Commitment Type" settings section.
 
-*Detailed documentation coming soon.*
+---
+
+## Just Show Up
+
+The simplest verification model. The user only needs to verify their presence **once** during a configurable **grace window** at the start of their commitment slot.
+
+**How it works:**
+1. Your slot starts at 6:00 AM
+2. A grace window of 10 minutes opens (configurable: 5 / 10 / 15 / 30 min)
+3. You tap "Verify" within the window
+4. If location is attached, GPS is checked once at that moment
+5. ✅ Verified — you're done for this slot
+
+**Best for:** Quick check-ins like gym arrivals, class attendance, or meeting punctuality.
+
+---
+
+## Stay Throughout
+
+The strictest verification model. The system generates **random, unpredictable check-in alarms** throughout the entire duration of your commitment slot. You must respond to each alarm within a strict time window.
+
+**How it works:**
+1. Your slot runs from 6:00 AM – 8:00 AM
+2. Random alarms fire at unpredictable intervals during those 2 hours
+3. Each alarm gives you a **5-minute response window**
+4. If location is attached, GPS is checked at each alarm
+5. Configurable **intensity** controls how many alarms fire
+6. Configurable **Max Missed** threshold (e.g., miss 3 out of 10 = pass, miss 4+ = penalty)
+
+**Best for:** Extended sessions like library study blocks, deep work, or any commitment requiring sustained presence.
+
+---
+
+## Configuration Options
+
+These settings are exposed via the `SettingsToggleCard` component on the FinalScreen:
+
+| Setting | Options | Description |
+| :--- | :--- | :--- |
+| **Verification Style** | Just Show Up / Stay Throughout | Core verification paradigm |
+| **Grace Window** | 5 / 10 / 15 / 30 min | Just Show Up response window |
+| **Intensity** | Low / Medium / High / Strict | Stay Throughout alarm frequency |
+| **Max Missed** | 1 / 2 / 3 / 5 | Stay Throughout failure threshold |
+
+---
+
+## Example
+
+> **Morning gym (Just Show Up):**
+> - Mode: Just Show Up
+> - Grace: 10 minutes
+> - Result: Arrive at gym, verify once within 10 min of 6:00 AM
+
+> **Evening library (Stay Throughout):**
+> - Mode: Stay Throughout
+> - Intensity: High
+> - Max Missed: 2
+> - Result: Random alarms every ~15–30 min for 4 hours. Miss 3+ = penalty triggers
