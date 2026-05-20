@@ -1,10 +1,62 @@
 ---
 title: "Admin Lock"
-description: "Uninstall protection via Device Administrator"
+description: "Protect the client against uninstallation, cache clearing, and manual process stops."
 ---
 
-# Admin Lock
+# Device Admin Lock
 
-Uninstall protection via Device Administrator.
+The **Device Administrator** permission serves as CommitT's primary self-defense protocol. In a high-stakes commitment model, a common loophole is uninstallation or clearing data during moments of high stress. The Device Admin Lock makes these actions impossible without completing active task conditions.
 
-*Detailed documentation coming soon.*
+---
+
+## Why it is Required
+
+When registered as a Device Administrator, the application acts as a system manager. The operating system blocks:
+*   **Uninstallation:** The standard "Uninstall" option is grayed out in settings.
+*   **Force Stopping:** The "Force Stop" button in application settings is disabled.
+*   **Clear Data:** The system prevents wiping the local SQLite database.
+
+---
+
+## Native Implementation
+
+The native module registers the `BlockerDeviceAdminReceiver` subclass of `DeviceAdminReceiver`. The active status is audited using `DevicePolicyManager`:
+
+```kotlin
+private fun isAdminActive(context: Context): Boolean {
+    val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+    val adminName = ComponentName(context.packageName, "expo.modules.blocker.BlockerDeviceAdminReceiver")
+    return dpm.isAdminActive(adminName)
+}
+```
+
+---
+
+## OEM Settings Deep-Linking
+
+Redirecting users to the Device Admin settings panel varies drastically across different Android distributions due to custom vendor skins (e.g. Samsung OneUI, Xiaomi MIUI, OnePlus OxygenOS). 
+
+To ensure a seamless user experience, the native module utilizes custom skin routing:
+
+```kotlin
+// Android settings router for Device Administrator
+"admin" -> {
+    try {
+        // [SAMSUNG ONEUI] Navigate directly to the dedicated "Device admin apps" list
+        Intent().apply {
+            component = ComponentName(
+                "com.android.settings",
+                "com.android.settings.DeviceAdminSettings"
+            )
+        }
+    } catch (e: Exception) {
+        // Fallback for standard AOSP and other OEMs
+        Log.w(TAG, "Samsung DeviceAdminSettings not found, falling back")
+        Intent(Settings.ACTION_SECURITY_SETTINGS)
+    }
+}
+```
+
+### OEM Fallback Matrix
+1.  **Samsung (OneUI):** Direct component dispatch to `com.android.settings.DeviceAdminSettings`.
+2.  **Standard Android / Other OEMs:** Fallback route to `Settings.ACTION_SECURITY_SETTINGS` (Security & Privacy settings page), where users can find the "Device admin apps" sub-menu.

@@ -1,10 +1,64 @@
 ---
 title: "OS Permissions"
-description: "8-point Android permission prerequisite audit"
+description: "Understand the 8-point system configuration audit for fail-closed enforcement."
 ---
 
-# OS Permissions
+# OS Permissions Audit
 
-8-point Android permission prerequisite audit.
+CommitT operates on a **zero-trust, fail-closed enforcement model**. To prevent bypasses, self-sabotage, and background sleep cycles, the application requires and continuously audits **eight system-level permissions**. 
 
-*Detailed documentation coming soon.*
+If any required permission is revoked by the user while a commitment is active, the local SQLite engine immediately triggers a **fail-closed lock state**, restricting device usage until the audit passes.
+
+---
+
+## The 8-Point Audit Matrix
+
+CommitT's custom React Native module—`Enforcement`—exposes the `checkAllPermissions()` method to perform a concurrent system-level check on the device.
+
+| Permission | Native Check / API | Purpose | Failure Mode |
+| :--- | :--- | :--- | :--- |
+| **Accessibility Service** | Secure Settings lookup | Intercepting active apps & websites for blocking | Immediate Lock |
+| **Appear On Top** | `Settings.canDrawOverlays()` | Drawing full-screen blocking overlays | Immediate Lock |
+| **Location** | `ACCESS_BACKGROUND_LOCATION` | Geofence verification (e.g. Gym, Library) | Immediate Lock |
+| **Device Admin** | `DevicePolicyManager.isAdminActive()` | Uninstall and force-stop protection | Immediate Lock |
+| **Camera** | `Manifest.permission.CAMERA` | AI-assisted photo and video verification | Prevent Submission |
+| **Alarms & Reminders** | `AlarmManager.canScheduleExactAlarms()`| Accurate wake-up and random check-in alarms | Fail-Closed Alert |
+| **Battery Optimization**| `isIgnoringBatteryOptimizations()` | Preventing Android from sleeping background tasks | Sync Stall |
+| **Notifications** | `areNotificationsEnabled()` | Reminders and check-in prompt delivery | Fail-Closed Alert |
+
+---
+
+## Strict Background Location Protocol
+
+<Warning>
+  **API 29+ (Android 10+) Requirement:** Granting `"Allow only while using the app"` is **insufficient** for CommitT.
+</Warning>
+
+For location-based tracking (such as *Stay Throughout* geofencing), the Android operating system enforces background location limits.
+*   **The Issue:** If `ACCESS_FINE_LOCATION` is granted but `ACCESS_BACKGROUND_LOCATION` is not, the accessibility service's background GPS thread is killed by the OS after several minutes of screen-off time.
+*   **The Enforcement Solution:** The `Enforcement` module checks both fine and background permissions:
+    ```kotlin
+    val locationEnabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val hasFine = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val hasBackground = context.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+        hasFine && hasBackground
+    } else {
+        context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+    ```
+*   **User Action:** The user must explicitly select **"Allow all the time"** in the system settings screen.
+
+---
+
+## Native API Integration
+
+The native bridge uses double intent flags (`FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`) to ensure that when a user completes settings configuration and presses the system back button, they are immediately returned to the CommitT application.
+
+```typescript
+import { Enforcement } from "@/modules/enforcement-module";
+
+// Request redirect to system settings for specific permission
+const handleOpenSettings = (type: "camera" | "location" | "notifications" | "alarms" | "battery" | "overlay" | "accessibility" | "admin") => {
+  Enforcement.openSettings(type);
+};
+```

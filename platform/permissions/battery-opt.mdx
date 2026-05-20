@@ -1,10 +1,57 @@
 ---
 title: "Battery Bypass"
-description: "Disable battery-saver restrictions for background persistence"
+description: "Configure battery optimization bypass for persistent background execution."
 ---
 
-# Battery Bypass
+# Battery Optimization Bypass
 
-Disable battery-saver restrictions for background persistence.
+Android's default power management subsystem features aggressive background restrictions (such as **Doze Mode** and App Standby). For a self-improvement and enforcement app like CommitT, continuous background activity is essential to schedule alarms, monitor location geofences, and process synchronization loops. 
 
-*Detailed documentation coming soon.*
+Bypassing battery optimization ensures CommitT remains active, online, and persistent.
+
+---
+
+## Why Whitelisting is Mandatory
+
+By default, the operating system limits background processes in several ways:
+*   **GPS Stream Throttle:** Background location updates are restricted to once every few hours.
+*   **Alarms & Tasks Coalescing:** Custom alarm schedules are deferred to save power.
+*   **Sync Throttling:** Network synchronizations are grouped and delayed.
+
+When CommitT is **whitelisted** (ignoring battery optimizations), these restrictions are waived:
+1.  **Continuous 1Hz GPS:** High-frequency GPS updates are allowed for precise geofencing checks.
+2.  **Immediate Alarm Dispatch:** Exact check-in alarms sound instantly without scheduling drift.
+3.  **Real-Time Cloud Sync:** Sync events with the Convex backend execute immediately.
+
+---
+
+## Native Implementation
+
+The application checks optimization status using `PowerManager.isIgnoringBatteryOptimizations`:
+
+```kotlin
+private fun isBatteryOptimizationDisabled(context: Context): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        pm.isIgnoringBatteryOptimizations(context.packageName)
+    } else {
+        true
+    }
+}
+```
+
+---
+
+## Deep-Linking to System Whitelist
+
+The native module directs users directly to the system-level battery settings, where they can search and toggle CommitT to "Don't Optimize":
+
+```kotlin
+"battery" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+} else null
+```
+
+<Note>
+  Android security policies restrict applications from bypassing this screen programmatically. The user must manually select "All Apps" in the dropdown and check CommitT to complete the whitelist configuration.
+</Note>

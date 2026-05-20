@@ -1,10 +1,47 @@
 ---
 title: "Appear On Top"
-description: "Full-screen overlay rendering for app blocking"
+description: "Renders blocking overlays to prevent app skipping."
 ---
 
-# Appear On Top
+# Appear On Top (System Overlay)
 
-Full-screen overlay rendering for app blocking.
+The **Appear On Top** permission (known natively as the `SYSTEM_ALERT_WINDOW` or System Overlay permission) is critical to CommitT's digital enforcement engine. It allows the background blocker thread to render an interactive, un-skippable blocking screen when a user attempts to launch a restricted app.
 
-*Detailed documentation coming soon.*
+---
+
+## Why it is Required
+
+When a restricted app (like Instagram) is opened:
+1. The **Accessibility Service** detects the app launch.
+2. The service queries the local SQLite engine for active block rules.
+3. If active, the overlay window is spawned immediately using WindowManager.
+4. The overlay intercepts touch events, rendering the CommitT blocking UI.
+
+---
+
+## Native Implementation
+
+The permission is checked using the system's `Settings.canDrawOverlays` API on Android Marshmallow (API 23) and above:
+
+```kotlin
+val overlayEnabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    Settings.canDrawOverlays(context)
+} else {
+    true // Autopassed on pre-Marshmallow Android
+}
+```
+
+---
+
+## Requesting the Permission
+
+To request this permission, the native module triggers a targeted system intent directly to the drawing settings page for CommitT, saving the user from searching through system settings menus:
+
+```kotlin
+"overlay" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+        // Points the settings directly to the CommitT package
+        data = Uri.parse("package:${context.packageName}")
+    }
+} else null
+```
