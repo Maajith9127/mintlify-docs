@@ -24,3 +24,42 @@ aside[aria-label="On this page"],
 .on-this-page {
   border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
+
+/* ── Nested Sidebar Sub-topics Custom Spacing & Typography ── */
+
+/* Indented links inside accordion or sub-list wrappers */
+#mintlify-sidebar nav [class*="pl-"] a,
+#mintlify-sidebar nav [class*="ml-"] a,
+#mintlify-sidebar nav ul ul a,
+[class*="Sidebar"] nav [class*="pl-"] a,
+[class*="Sidebar"] nav ul ul a,
+nav[aria-label="Main"] [class*="pl-"] a,
+nav[aria-label="Main"] ul ul a {
+  font-size: 0.8125rem !important; /* Smaller, compact font size */
+  font-weight: 400 !important;       /* Lighter weight */
+  opacity: 0.8 !important;          /* Dimmed by default to look like sub-text */
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Hover state for sub-topics */
+#mintlify-sidebar nav [class*="pl-"] a:hover,
+#mintlify-sidebar nav ul ul a:hover,
+[class*="Sidebar"] nav [class*="pl-"] a:hover,
+[class*="Sidebar"] nav ul ul a:hover {
+  opacity: 1 !important;
+  color: var(--primary-light) !important;
+}
+
+/* Active/selected sub-topic state */
+#mintlify-sidebar nav [class*="pl-"] a[class*="text-primary"],
+#mintlify-sidebar nav [class*="pl-"] a[class*="text-slate-900"],
+#mintlify-sidebar nav [class*="pl-"] a[class*="text-white"],
+#mintlify-sidebar nav ul ul a[class*="text-primary"],
+#mintlify-sidebar nav ul ul a[class*="text-white"],
+[class*="Sidebar"] nav [class*="pl-"] a[class*="text-primary"],
+[class*="Sidebar"] nav ul ul a[class*="text-primary"] {
+  font-weight: 500 !important;
+  opacity: 1 !important;
+}
+
