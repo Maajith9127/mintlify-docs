@@ -29,17 +29,21 @@
         "groups": [
           {
             "group": "Get Started",
-            "icon": "play",
             "pages": [
               "index",
-              "quickstart",
-              "setup-env",
-              "start-developing"
+              {
+                "group": "Quick Start",
+                "icon": "rocket",
+                "pages": [
+                  "quickstart",
+                  "setup-env",
+                  "start-developing"
+                ]
+              }
             ]
           },
           {
             "group": "Platform",
-            "icon": "cubes",
             "pages": [
               {
                 "group": "Setup & Permissions",
@@ -98,29 +102,34 @@
             ]
           },
           {
-            "group": "Architecture & Guides",
-            "icon": "sitemap",
+            "group": "Guides",
             "pages": [
-              "architecture/overview",
-              "architecture/sync-engine",
-              "architecture/local-database",
-              "architecture/write-gate",
-              "architecture/state-management",
-              "architecture/app-routes"
-            ]
-          },
-          {
-            "group": "Convex Backend",
-            "icon": "server",
-            "pages": [
-              "backend/schema"
-            ]
-          },
-          {
-            "group": "Native Modules",
-            "icon": "microchip",
-            "pages": [
-              "native-modules/overview"
+              {
+                "group": "Architecture",
+                "icon": "sitemap",
+                "pages": [
+                  "architecture/overview",
+                  "architecture/sync-engine",
+                  "architecture/local-database",
+                  "architecture/write-gate",
+                  "architecture/state-management",
+                  "architecture/app-routes"
+                ]
+              },
+              {
+                "group": "Convex Backend",
+                "icon": "server",
+                "pages": [
+                  "backend/schema"
+                ]
+              },
+              {
+                "group": "Native Modules",
+                "icon": "microchip",
+                "pages": [
+                  "native-modules/overview"
+                ]
+              }
             ]
           }
         ]
