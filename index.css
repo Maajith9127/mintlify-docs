@@ -1,33 +1,26 @@
-/* Invisible Scrollbar - Still Scrollable */
-::-webkit-scrollbar {
-  display: none;
-}
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+/* ── Invisible Scrollbar ── */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; -ms-overflow-style: none; }
+
+/* ── Expo-Style Separator Lines ── */
+
+/* Header bottom border */
+#mintlify-navbar,
+[class*="Navbar"],
+header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Force visible layout borders (Expo Style) */
-:root {
-  --color-border: rgba(255, 255, 255, 0.15) !important;
+/* Left sidebar right border */
+#mintlify-sidebar,
+[class*="Sidebar"],
+nav[aria-label="Main"] {
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.dark {
-  --color-border: rgba(255, 255, 255, 0.15) !important;
-}
-
-/* Ensure the main sidebar and right TOC have visible border lines */
-aside {
-  border-color: var(--color-border) !important;
-  border-right-width: 1px !important;
-}
-
-/* Target the right TOC border */
-main > div:last-child {
-  border-left: 1px solid var(--color-border) !important;
-}
-
-/* Header border */
-header, nav {
-  border-bottom: 1px solid var(--color-border) !important;
+/* Right TOC left border */
+[class*="TableOfContents"],
+aside[aria-label="On this page"],
+.on-this-page {
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
