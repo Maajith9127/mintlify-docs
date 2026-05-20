@@ -9,56 +9,259 @@
   },
   "favicon": "/favicon.svg",
   "navbar": {
-    "links": [
-      {
-        "label": "Blog",
-        "href": "https://committ.mintlify.app"
-      },
-      {
-        "label": "Changelog",
-        "href": "https://github.com/Maajith9127/CommitT/commits/main"
-      }
-    ],
     "primary": {
       "type": "button",
       "label": "Star Us on GitHub",
       "href": "https://github.com/Maajith9127/CommitT"
     }
   },
-  "navigation": [
-    {
-      "group": "Get started",
-      "pages": [
-        "index",
-        "quickstart"
-      ]
-    },
-    {
-      "group": "Develop",
-      "pages": [
-        "development"
-      ]
-    },
-    {
-      "group": "Core Framework",
-      "pages": [
-        "essentials/markdown",
-        "essentials/code"
-      ]
-    },
-    {
-      "group": "User Interface",
-      "pages": [
-        "essentials/images"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/introduction"
-      ]
-    }
-  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Develop",
+            "pages": [
+              "development"
+            ]
+          },
+          {
+            "group": "Core Framework",
+            "pages": [
+              "essentials/markdown",
+              "essentials/code"
+            ]
+          },
+          {
+            "group": "User Interface",
+            "pages": [
+              "essentials/images"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Journey",
+        "groups": [
+          {
+            "group": "2025",
+            "pages": [
+              {
+                "group": "December",
+                "pages": [
+                  "2025/december/day-04",
+                  "2025/december/day-05",
+                  "2025/december/day-06",
+                  "2025/december/day-07",
+                  "2025/december/day-08",
+                  "2025/december/day-09",
+                  "2025/december/day-10",
+                  "2025/december/day-11",
+                  "2025/december/day-12",
+                  "2025/december/day-13",
+                  "2025/december/day-14",
+                  "2025/december/day-15",
+                  "2025/december/day-16",
+                  "2025/december/day-17",
+                  "2025/december/day-18",
+                  "2025/december/day-19",
+                  "2025/december/day-20",
+                  "2025/december/day-21",
+                  "2025/december/day-22",
+                  "2025/december/day-23",
+                  "2025/december/day-24",
+                  "2025/december/day-25",
+                  "2025/december/day-26",
+                  "2025/december/day-27",
+                  "2025/december/day-28",
+                  "2025/december/day-29",
+                  "2025/december/day-30",
+                  "2025/december/day-31"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "2026",
+            "pages": [
+              {
+                "group": "January",
+                "pages": [
+                  "2026/january/day-01",
+                  "2026/january/day-02",
+                  "2026/january/day-03",
+                  "2026/january/day-04",
+                  "2026/january/day-05",
+                  "2026/january/day-06",
+                  "2026/january/day-07",
+                  "2026/january/day-08",
+                  "2026/january/day-09",
+                  "2026/january/day-10",
+                  "2026/january/day-11",
+                  "2026/january/day-12",
+                  "2026/january/day-13",
+                  "2026/january/day-14",
+                  "2026/january/day-15",
+                  "2026/january/day-16",
+                  "2026/january/day-17",
+                  "2026/january/day-18",
+                  "2026/january/day-19",
+                  "2026/january/day-20",
+                  "2026/january/day-21",
+                  "2026/january/day-22",
+                  "2026/january/day-23",
+                  "2026/january/day-24",
+                  "2026/january/day-25",
+                  "2026/january/day-26",
+                  "2026/january/day-27",
+                  "2026/january/day-28",
+                  "2026/january/day-29",
+                  "2026/january/day-30",
+                  "2026/january/day-31"
+                ]
+              },
+              {
+                "group": "February",
+                "pages": [
+                  "2026/february/day-01",
+                  "2026/february/day-02",
+                  "2026/february/day-03",
+                  "2026/february/day-04",
+                  "2026/february/day-05",
+                  "2026/february/day-06",
+                  "2026/february/day-07",
+                  "2026/february/day-08",
+                  "2026/february/day-09",
+                  "2026/february/day-10",
+                  "2026/february/day-11",
+                  "2026/february/day-12",
+                  "2026/february/day-13",
+                  "2026/february/day-14",
+                  "2026/february/day-15",
+                  "2026/february/day-16",
+                  "2026/february/day-17",
+                  "2026/february/day-18",
+                  "2026/february/day-19",
+                  "2026/february/day-20",
+                  "2026/february/day-21",
+                  "2026/february/day-22",
+                  "2026/february/day-23",
+                  "2026/february/day-24",
+                  "2026/february/day-25",
+                  "2026/february/day-26",
+                  "2026/february/day-27",
+                  "2026/february/day-28"
+                ]
+              },
+              {
+                "group": "March",
+                "pages": [
+                  "2026/march/day-01",
+                  "2026/march/day-02",
+                  "2026/march/day-03",
+                  "2026/march/day-04",
+                  "2026/march/day-05",
+                  "2026/march/day-06",
+                  "2026/march/day-07",
+                  "2026/march/day-08",
+                  "2026/march/day-09",
+                  "2026/march/day-10",
+                  "2026/march/day-11",
+                  "2026/march/day-12",
+                  "2026/march/day-13",
+                  "2026/march/day-14",
+                  "2026/march/day-15",
+                  "2026/march/day-16",
+                  "2026/march/day-17",
+                  "2026/march/day-18",
+                  "2026/march/day-19",
+                  "2026/march/day-20",
+                  "2026/march/day-21",
+                  "2026/march/day-22",
+                  "2026/march/day-23",
+                  "2026/march/day-24",
+                  "2026/march/day-25",
+                  "2026/march/day-26",
+                  "2026/march/day-27",
+                  "2026/march/day-28",
+                  "2026/march/day-29",
+                  "2026/march/day-30",
+                  "2026/march/day-31"
+                ]
+              },
+              {
+                "group": "April",
+                "pages": [
+                  "2026/april/day-01",
+                  "2026/april/day-02",
+                  "2026/april/day-03",
+                  "2026/april/day-04",
+                  "2026/april/day-05",
+                  "2026/april/day-06",
+                  "2026/april/day-07",
+                  "2026/april/day-08",
+                  "2026/april/day-09",
+                  "2026/april/day-10",
+                  "2026/april/day-11",
+                  "2026/april/day-12",
+                  "2026/april/day-13",
+                  "2026/april/day-14",
+                  "2026/april/day-15",
+                  "2026/april/day-17",
+                  "2026/april/day-18",
+                  "2026/april/day-19",
+                  "2026/april/day-20",
+                  "2026/april/day-21",
+                  "2026/april/day-22",
+                  "2026/april/day-23",
+                  "2026/april/day-24",
+                  "2026/april/day-25",
+                  "2026/april/day-26",
+                  "2026/april/day-27",
+                  "2026/april/day-28",
+                  "2026/april/day-29",
+                  "2026/april/day-30"
+                ]
+              },
+              {
+                "group": "May",
+                "pages": [
+                  "2026/may/day-01",
+                  "2026/may/day-02",
+                  "2026/may/day-03",
+                  "2026/may/day-04",
+                  "2026/may/day-05",
+                  "2026/may/day-06",
+                  "2026/may/day-08",
+                  "2026/may/day-09",
+                  "2026/may/day-10",
+                  "2026/may/day-11",
+                  "2026/may/day-12",
+                  "2026/may/day-13",
+                  "2026/may/day-14",
+                  "2026/may/day-15"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
