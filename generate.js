@@ -4,6 +4,7 @@ const path = require('path');
 const docsDir = 'C:\\\\Docs\\\\mintlify-docs';
 const pad = (n) => n.toString().padStart(2, '0');
 
+// --- Journey Tab Pages ---
 const dec2025Pages = [];
 for (let i = 4; i <= 31; i++) dec2025Pages.push(`2025/december/day-${pad(i)}`);
 const jan2026Pages = [];
@@ -17,66 +18,109 @@ for (let i = 1; i <= 30; i++) { if (i === 16) continue; apr2026Pages.push(`2026/
 const may2026Pages = [];
 for (let i = 1; i <= 15; i++) { if (i === 7) continue; may2026Pages.push(`2026/may/day-${pad(i)}`); }
 
-// --- Full 8 Permissions Setup ---
-const platformPages = {
+// ============================================================
+//  PLATFORM GROUPS — Maps to 28 features across 8 sections
+// ============================================================
+
+const platformSections = {
+  // ── Section A: Setup & Permissions (Feature #1) ──
   "Setup & Permissions": {
-    groupIcon: "shield-halved",
+    icon: "shield-halved",
     pages: [
-      { path: "platform/permissions/audit", title: "OS Permissions", desc: "Overview of the 8-point system configuration audit" },
-      { path: "platform/permissions/accessibility", title: "Accessibility", desc: "Accessibility Service needed for app blocking & strict mode" },
-      { path: "platform/permissions/admin-lock", title: "Admin Lock", desc: "Uninstall protection via Device Administrator" },
-      { path: "platform/permissions/appear-on-top", title: "Appear On Top", desc: "Full-screen overlay rendering for anti-skip overlays" },
-      { path: "platform/permissions/battery-opt", title: "Battery Bypass", desc: "Bypass battery-saver restrictions for background running" },
-      { path: "platform/permissions/camera", title: "Camera", desc: "Required for live photo & video verification" },
-      { path: "platform/permissions/location", title: "Location", desc: "Needed for 5km run and location-based tasks" },
-      { path: "platform/permissions/notifications", title: "Notifications", desc: "For reminders and randomized checks" },
-      { path: "platform/permissions/alarms", title: "Alarms & Reminders", desc: "Needed for wake-up commitments & schedules" }
+      { path: "platform/permissions/audit",         title: "OS Permissions",     desc: "Overview of the 8-point system configuration audit" },
+      { path: "platform/permissions/accessibility",  title: "Accessibility",      desc: "Accessibility Service for app blocking & strict mode" },
+      { path: "platform/permissions/admin-lock",     title: "Admin Lock",         desc: "Uninstall protection via Device Administrator" },
+      { path: "platform/permissions/appear-on-top",  title: "Appear On Top",      desc: "Full-screen overlay rendering for anti-skip overlays" },
+      { path: "platform/permissions/battery-opt",    title: "Battery Bypass",     desc: "Bypass battery-saver restrictions for background running" },
+      { path: "platform/permissions/camera",         title: "Camera",             desc: "Required for live photo & video verification" },
+      { path: "platform/permissions/location",       title: "Location",           desc: "Needed for geofencing and location-based tasks" },
+      { path: "platform/permissions/notifications",  title: "Notifications",      desc: "For reminders and randomized checks" },
+      { path: "platform/permissions/alarms",         title: "Alarms",             desc: "Needed for wake-up commitments & schedules" },
     ]
   },
-  "Core Configuration": {
-    groupIcon: "calendar-days",
+
+  // ── Section B: Commitment Wizard (Features #2–10) ──
+  "Commitment Wizard": {
+    icon: "wand-magic-sparkles",
     pages: [
-      { path: "platform/config/task-instances", title: "Task Instances", desc: "Immutable task instance generation" },
-      { path: "platform/config/time-slots", title: "Time Slots", desc: "Multi-window daily scheduling with repeat toggles" },
-      { path: "platform/config/attachments", title: "Attachments", desc: "Assign locations, blocklists, and rules per slot" },
-      { path: "platform/config/presets", title: "Presets", desc: "Save and reuse locations, blocklists, and rules" },
-      { path: "platform/config/day-planning", title: "Day Planning", desc: "Full-day routine configuration in a single view" }
+      { path: "platform/wizard/naming-conditions",  title: "Naming & Conditions",   desc: "Enter a name and attach conditions: Time, Location, Partner" },
+      { path: "platform/wizard/time-slots",         title: "Time Slots",            desc: "Pick days, toggle repeat, add multiple time windows per day" },
+      { path: "platform/wizard/attachments",        title: "Slot Attachments",      desc: "Attach location, app blocks, and rules to each time slot independently" },
+      { path: "platform/wizard/app-web-blocking",   title: "App & Web Blocking",    desc: "Block apps, websites, or use AI to generate block rules" },
+      { path: "platform/wizard/penalties",          title: "Penalties",             desc: "Stake money, embarrassing photo, or block favourite apps" },
+      { path: "platform/wizard/waivers",            title: "Penalty Waivers",       desc: "CAPTCHAs, text transcription, or redo with more intensity" },
+      { path: "platform/wizard/verification-modes", title: "Verification Modes",    desc: "Just Show Up vs Stay Throughout — two enforcement paradigms" },
+      { path: "platform/wizard/alarm-config",       title: "Alarm Config",          desc: "When to start, frequency, and persistence across reboots" },
+      { path: "platform/wizard/commit-action",      title: "The Commit Action",     desc: "Three-step atomic write: Convex → SQLite → AlarmManager" },
     ]
   },
-  "Verification & Enforcement": {
-    groupIcon: "shield-check",
+
+  // ── Section C: Dashboard (Features #11–13) ──
+  "Dashboard": {
+    icon: "gauge-high",
     pages: [
-      { path: "platform/enforcement/app-blocker", title: "App Blocker", desc: "Block installed Android applications" },
-      { path: "platform/enforcement/web-filter", title: "Web Filter", desc: "Restrict access to specific web domains" },
-      { path: "platform/enforcement/ai-rules", title: "AI Rules", desc: "Natural-language block rule generation" },
-      { path: "platform/enforcement/gps-geofencing", title: "GPS Geofencing", desc: "Real-time geofence checks via 1Hz GPS stream" },
-      { path: "platform/enforcement/just-show-up", title: "Just Show Up", desc: "Single-check grace-window verification" },
-      { path: "platform/enforcement/stay-throughout", title: "Stay Throughout", desc: "Randomized check-in alarms during session" }
+      { path: "platform/dashboard/active-commits",      title: "Active CommitTs",      desc: "Shows all commitments with status icons" },
+      { path: "platform/dashboard/upcoming-card",        title: "Upcoming Card",        desc: "Top card showing next commitment with countdown timer" },
+      { path: "platform/dashboard/verification-modal",   title: "Verification Modal",   desc: "Popup with task details, map embed, penalty, and waiver info" },
     ]
   },
-  "Penalties & Waivers": {
-    groupIcon: "triangle-exclamation",
+
+  // ── Section D: Calendar (Features #14–17) ──
+  "Calendar": {
+    icon: "calendar-check",
     pages: [
-      { path: "platform/penalties/durable-cloud", title: "Durable Cloud", desc: "Serverless cloud penalty triggers" },
-      { path: "platform/penalties/stake-money", title: "Stake Money", desc: "Financial stakes on commitments" },
-      { path: "platform/penalties/social-accountability", title: "Social Proof", desc: "Email proof photos on failure" },
-      { path: "platform/penalties/captcha-defusal", title: "CAPTCHA Defusal", desc: "Solve 1-400 CAPTCHAs to waive penalties" },
-      { path: "platform/penalties/text-transcription", title: "Text Transcription", desc: "Transcribe long text to defuse penalties" },
-      { path: "platform/penalties/intensity-redo", title: "Intensity Redo", desc: "Re-perform task at higher difficulty" }
+      { path: "platform/calendar/calendar-view",      title: "Calendar View",      desc: "Shows all task instances as events on a calendar grid" },
+      { path: "platform/calendar/event-interaction",   title: "Event Interaction",  desc: "Tap an event to open verification modal with instance details" },
+      { path: "platform/calendar/drag-drop",           title: "Drag & Drop",        desc: "Directly manipulate, resize, and delete events on the calendar" },
+      { path: "platform/calendar/strict-mode",         title: "Strict Mode",        desc: "Make tasks un-deletable and un-editable until completion" },
     ]
   },
-  "Security & Integrity": {
-    groupIcon: "lock",
+
+  // ── Section E: Presets & Planning (Features #18–21) ──
+  "Presets & Planning": {
+    icon: "bookmark",
     pages: [
-      { path: "platform/security/strict-mode", title: "Strict Mode", desc: "Immutable commitment locking at database layer" },
-      { path: "platform/security/device-marriage", title: "Device Marriage", desc: "Bind sessions to physical device signatures" },
-      { path: "platform/security/nuke-pave", title: "Nuke & Pave", desc: "Automatic SQLite wipe and cloud re-sync" }
+      { path: "platform/presets/location-presets",   title: "Location Presets",   desc: "Save frequently used places: Gym, Library, Office, etc." },
+      { path: "platform/presets/blocklist-presets",   title: "Blocklist Presets",  desc: "Save groups of apps you always block together" },
+      { path: "platform/presets/rule-presets",        title: "Rule Presets",       desc: "Save complete verification configurations for reuse" },
+      { path: "platform/presets/day-planning",        title: "Day Planning",       desc: "Configure your entire day in one screen using presets" },
     ]
-  }
+  },
+
+  // ── Section F: Alerts (Feature #22) ──
+  "Alerts": {
+    icon: "bell",
+    pages: [
+      { path: "platform/alerts/upcoming",   title: "Upcoming",   desc: "Shows next pending tasks with location and end time" },
+      { path: "platform/alerts/waivers",    title: "Waivers",    desc: "Active waiver sessions if any penalty waivers are in progress" },
+      { path: "platform/alerts/verified",   title: "Verified",   desc: "History of completed verifications with proof" },
+    ]
+  },
+
+  // ── Section G: Profile & Account (Features #23–27) ──
+  "Profile & Account": {
+    icon: "user-gear",
+    pages: [
+      { path: "platform/profile/block-screen",     title: "Block Screen",      desc: "Configure the blocking overlay appearance" },
+      { path: "platform/profile/notifications",    title: "Notifications",     desc: "Notification preferences and channel configuration" },
+      { path: "platform/profile/resync",           title: "Full Resync",       desc: "Wipe local data, fetch fresh from Convex, rebuild SQLite" },
+      { path: "platform/profile/accounts",         title: "Accounts",          desc: "Switch accounts, log out, or delete your account" },
+      { path: "platform/profile/device-marriage",  title: "Device Marriage",   desc: "One account = one device while commitments are active" },
+    ]
+  },
+
+  // ── Section H: Advanced (Feature #28) ──
+  "Advanced": {
+    icon: "puzzle-piece",
+    pages: [
+      { path: "platform/advanced/combo-conditions", title: "Combo Conditions", desc: "Mix and match Time + Location + App Block conditions" },
+    ]
+  },
 };
 
-const platformGroups = Object.entries(platformPages).map(([name, def]) => ({
-  group: name, icon: def.groupIcon, pages: def.pages.map(p => p.path)
+// --- Build navigation structure ---
+const platformGroups = Object.entries(platformSections).map(([name, def]) => ({
+  group: name, icon: def.icon, pages: def.pages.map(p => p.path)
 }));
 
 const config = {
@@ -131,23 +175,22 @@ const config = {
   "footer": { "socials": { "x": "https://x.com/Maajith_cmt", "linkedin": "https://www.linkedin.com/in/abdul-maajith-99165026b", "github": "https://github.com/Maajith9127" } }
 };
 
-// --- Generate stubs and overwrite titles ---
-Object.values(platformPages).forEach(groupDef => {
+// --- Generate stubs (ONLY if file doesn't exist) ---
+Object.values(platformSections).forEach(groupDef => {
   groupDef.pages.forEach(page => {
     const fullPath = path.join(docsDir, page.path + '.mdx');
     const dir = path.dirname(fullPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    
-    // Only write a stub if the file does not exist
+
     if (!fs.existsSync(fullPath)) {
       fs.writeFileSync(fullPath, `---\ntitle: "${page.title}"\ndescription: "${page.desc}"\n---\n\n# ${page.title}\n\n${page.desc}.\n\n*Detailed documentation coming soon.*\n`);
-      console.log(`Generated: ${page.path}.mdx (title: ${page.title})`);
+      console.log(`Created stub: ${page.path}.mdx`);
     } else {
-      // Just update frontmatter title of existing files to keep custom written content safe
+      // Only update frontmatter title — preserve custom content
       let content = fs.readFileSync(fullPath, 'utf8');
       const replaced = content.replace(/^title:\s*["']?.*?["']?$/m, `title: "${page.title}"`);
       fs.writeFileSync(fullPath, replaced, 'utf8');
-      console.log(`Updated title of existing: ${page.path}.mdx`);
+      console.log(`Title updated: ${page.path}.mdx`);
     }
   });
 });
@@ -159,19 +202,16 @@ function updateMdxTitle(pagePath, newTitle) {
     let content = fs.readFileSync(fp, 'utf8');
     const replaced = content.replace(/^title:\s*["']?.*?["']?$/m, `title: "${newTitle}"`);
     fs.writeFileSync(fp, replaced, 'utf8');
-    console.log(`Updated title for ${pagePath}.mdx to "${newTitle}"`);
   } else {
     const dir = path.dirname(fp);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(fp, `---\ntitle: "${newTitle}"\ndescription: "Documentation for ${newTitle}."\n---\n\n# ${newTitle}\n\n*Detailed documentation coming soon.*\n`);
-    console.log(`Generated missing stub: ${pagePath}.mdx`);
   }
 }
 
 updateMdxTitle("quickstart", "Quick Start");
 updateMdxTitle("setup-env", "Environment Setup");
 updateMdxTitle("start-developing", "Developing");
-
 updateMdxTitle("architecture/overview", "Overview");
 updateMdxTitle("architecture/sync-engine", "Sync Engine");
 updateMdxTitle("architecture/local-database", "Local Database");
@@ -182,4 +222,6 @@ updateMdxTitle("backend/schema", "Schema");
 updateMdxTitle("native-modules/overview", "Overview");
 
 fs.writeFileSync(path.join(docsDir, 'docs.json'), JSON.stringify(config, null, 2));
-console.log('Done! Collapsible groups with trimmed page titles generated.');
+console.log('\n✅ Done! Full 28-feature sidebar skeleton generated.');
+console.log(`Total platform groups: ${Object.keys(platformSections).length}`);
+console.log(`Total platform pages: ${Object.values(platformSections).reduce((sum, g) => sum + g.pages.length, 0)}`);

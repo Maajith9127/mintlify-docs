@@ -61,47 +61,74 @@
                 ]
               },
               {
-                "group": "Core Configuration",
-                "icon": "calendar-days",
+                "group": "Commitment Wizard",
+                "icon": "wand-magic-sparkles",
                 "pages": [
-                  "platform/config/task-instances",
-                  "platform/config/time-slots",
-                  "platform/config/attachments",
-                  "platform/config/presets",
-                  "platform/config/day-planning"
+                  "platform/wizard/naming-conditions",
+                  "platform/wizard/time-slots",
+                  "platform/wizard/attachments",
+                  "platform/wizard/app-web-blocking",
+                  "platform/wizard/penalties",
+                  "platform/wizard/waivers",
+                  "platform/wizard/verification-modes",
+                  "platform/wizard/alarm-config",
+                  "platform/wizard/commit-action"
                 ]
               },
               {
-                "group": "Verification & Enforcement",
-                "icon": "shield-check",
+                "group": "Dashboard",
+                "icon": "gauge-high",
                 "pages": [
-                  "platform/enforcement/app-blocker",
-                  "platform/enforcement/web-filter",
-                  "platform/enforcement/ai-rules",
-                  "platform/enforcement/gps-geofencing",
-                  "platform/enforcement/just-show-up",
-                  "platform/enforcement/stay-throughout"
+                  "platform/dashboard/active-commits",
+                  "platform/dashboard/upcoming-card",
+                  "platform/dashboard/verification-modal"
                 ]
               },
               {
-                "group": "Penalties & Waivers",
-                "icon": "triangle-exclamation",
+                "group": "Calendar",
+                "icon": "calendar-check",
                 "pages": [
-                  "platform/penalties/durable-cloud",
-                  "platform/penalties/stake-money",
-                  "platform/penalties/social-accountability",
-                  "platform/penalties/captcha-defusal",
-                  "platform/penalties/text-transcription",
-                  "platform/penalties/intensity-redo"
+                  "platform/calendar/calendar-view",
+                  "platform/calendar/event-interaction",
+                  "platform/calendar/drag-drop",
+                  "platform/calendar/strict-mode"
                 ]
               },
               {
-                "group": "Security & Integrity",
-                "icon": "lock",
+                "group": "Presets & Planning",
+                "icon": "bookmark",
                 "pages": [
-                  "platform/security/strict-mode",
-                  "platform/security/device-marriage",
-                  "platform/security/nuke-pave"
+                  "platform/presets/location-presets",
+                  "platform/presets/blocklist-presets",
+                  "platform/presets/rule-presets",
+                  "platform/presets/day-planning"
+                ]
+              },
+              {
+                "group": "Alerts",
+                "icon": "bell",
+                "pages": [
+                  "platform/alerts/upcoming",
+                  "platform/alerts/waivers",
+                  "platform/alerts/verified"
+                ]
+              },
+              {
+                "group": "Profile & Account",
+                "icon": "user-gear",
+                "pages": [
+                  "platform/profile/block-screen",
+                  "platform/profile/notifications",
+                  "platform/profile/resync",
+                  "platform/profile/accounts",
+                  "platform/profile/device-marriage"
+                ]
+              },
+              {
+                "group": "Advanced",
+                "icon": "puzzle-piece",
+                "pages": [
+                  "platform/advanced/combo-conditions"
                 ]
               }
             ]
