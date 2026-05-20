@@ -29,7 +29,67 @@ for (let i = 1; i <= 15; i++) {
   may2026Pages.push(`2026/may/day-${pad(i)}`);
 }
 
-// --- Configure Navigation ---
+// --- Page definitions with icons and descriptions ---
+const platformPages = {
+  "Setup & Permissions": {
+    groupIcon: "shield-halved",
+    pages: [
+      { path: "platform/permissions/audit", title: "OS Permissions Audit", icon: "clipboard-check", desc: "8-point Android permission prerequisite audit" },
+      { path: "platform/permissions/admin-lock", title: "Device Admin Lock", icon: "gavel", desc: "Uninstall protection via Device Administrator" },
+      { path: "platform/permissions/appear-on-top", title: "Appear On Top", icon: "window-restore", desc: "Full-screen overlay rendering for app blocking" },
+      { path: "platform/permissions/battery-opt", title: "Battery Optimization Bypass", icon: "battery-full", desc: "Disable battery-saver restrictions for background persistence" }
+    ]
+  },
+  "Core Configuration": {
+    groupIcon: "calendar-days",
+    pages: [
+      { path: "platform/config/task-instances", title: "Task & Instances", icon: "copy", desc: "Immutable task instance generation" },
+      { path: "platform/config/time-slots", title: "Flexible Time Slots", icon: "clock", desc: "Multi-window daily scheduling with repeat toggles" },
+      { path: "platform/config/attachments", title: "Per-Time-Slot Attachments", icon: "sliders", desc: "Assign locations, blocklists, and rules per slot" },
+      { path: "platform/config/presets", title: "Configuration Presets", icon: "bookmark", desc: "Save and reuse locations, blocklists, and rules" },
+      { path: "platform/config/day-planning", title: "One-Screen Day Planning", icon: "list-check", desc: "Full-day routine configuration in a single view" }
+    ]
+  },
+  "Verification & Enforcement": {
+    groupIcon: "shield-check",
+    pages: [
+      { path: "platform/enforcement/app-blocker", title: "Digital App Blocker", icon: "mobile-screen", desc: "Block installed Android applications" },
+      { path: "platform/enforcement/web-filter", title: "Web Domain Filter", icon: "globe", desc: "Restrict access to specific web domains" },
+      { path: "platform/enforcement/ai-rules", title: "AI-Powered Rules", icon: "sparkles", desc: "Natural-language block rule generation" },
+      { path: "platform/enforcement/gps-geofencing", title: "1Hz GPS Geofencing", icon: "location-dot", desc: "Real-time geofence checks via 1Hz GPS stream" },
+      { path: "platform/enforcement/just-show-up", title: "Just Show Up Mode", icon: "shoe-prints", desc: "Single-check grace-window verification" },
+      { path: "platform/enforcement/stay-throughout", title: "Stay Throughout Mode", icon: "repeat", desc: "Randomized check-in alarms during session" }
+    ]
+  },
+  "Penalties & Waivers": {
+    groupIcon: "triangle-exclamation",
+    pages: [
+      { path: "platform/penalties/durable-cloud", title: "Durable Cloud Penalties", icon: "cloud-bolt", desc: "Serverless cloud penalty triggers" },
+      { path: "platform/penalties/stake-money", title: "Stake Money", icon: "money-bill", desc: "Financial stakes on commitments" },
+      { path: "platform/penalties/social-accountability", title: "Social Accountability", icon: "envelope", desc: "Email proof photos on failure" },
+      { path: "platform/penalties/captcha-defusal", title: "CAPTCHA Defusal", icon: "brain", desc: "Solve 1-400 CAPTCHAs to waive penalties" },
+      { path: "platform/penalties/text-transcription", title: "Text Transcription Waiver", icon: "keyboard", desc: "Transcribe long text to defuse penalties" },
+      { path: "platform/penalties/intensity-redo", title: "Intensity Redo", icon: "bolt", desc: "Re-perform task at higher difficulty" }
+    ]
+  },
+  "Security & Integrity": {
+    groupIcon: "lock",
+    pages: [
+      { path: "platform/security/strict-mode", title: "Strict Mode", icon: "lock", desc: "Immutable commitment locking at database layer" },
+      { path: "platform/security/device-marriage", title: "Device Marriage Protocol", icon: "fingerprint", desc: "Bind sessions to physical device signatures" },
+      { path: "platform/security/nuke-pave", title: "Nuke & Pave Recovery", icon: "arrows-rotate", desc: "Automatic SQLite wipe and cloud re-sync" }
+    ]
+  }
+};
+
+// --- Build nested navigation groups for Platform ---
+const platformGroups = Object.entries(platformPages).map(([groupName, groupDef]) => ({
+  group: groupName,
+  icon: groupDef.groupIcon,
+  pages: groupDef.pages.map(p => p.path)
+}));
+
+// --- Build docs.json ---
 const config = {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
@@ -67,58 +127,9 @@ const config = {
             ]
           },
           {
-            "group": "Setup & Permissions",
-            "icon": "shield-halved",
-            "pages": [
-              "platform/permissions/audit",
-              "platform/permissions/admin-lock",
-              "platform/permissions/appear-on-top",
-              "platform/permissions/battery-opt"
-            ]
-          },
-          {
-            "group": "Core Configuration",
-            "icon": "calendar-days",
-            "pages": [
-              "platform/config/task-instances",
-              "platform/config/time-slots",
-              "platform/config/attachments",
-              "platform/config/presets",
-              "platform/config/day-planning"
-            ]
-          },
-          {
-            "group": "Verification & Enforcement",
-            "icon": "mobile-screen",
-            "pages": [
-              "platform/enforcement/app-blocker",
-              "platform/enforcement/web-filter",
-              "platform/enforcement/ai-rules",
-              "platform/enforcement/gps-geofencing",
-              "platform/enforcement/just-show-up",
-              "platform/enforcement/stay-throughout"
-            ]
-          },
-          {
-            "group": "Penalties & Waivers",
-            "icon": "envelope",
-            "pages": [
-              "platform/penalties/durable-cloud",
-              "platform/penalties/stake-money",
-              "platform/penalties/social-accountability",
-              "platform/penalties/captcha-defusal",
-              "platform/penalties/text-transcription",
-              "platform/penalties/intensity-redo"
-            ]
-          },
-          {
-            "group": "Security & Integrity",
-            "icon": "lock",
-            "pages": [
-              "platform/security/strict-mode",
-              "platform/security/device-marriage",
-              "platform/security/nuke-pave"
-            ]
+            "group": "Platform",
+            "icon": "cubes",
+            "pages": platformGroups
           },
           {
             "group": "Architecture & Guides",
@@ -190,7 +201,33 @@ const config = {
   }
 };
 
-// --- Auto-generate stubs for defined pages ---
+// --- Auto-generate stubs with icons for platform pages ---
+Object.values(platformPages).forEach(groupDef => {
+  groupDef.pages.forEach(page => {
+    const fullPath = path.join(docsDir, page.path + '.mdx');
+    const dir = path.dirname(fullPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const content = `---
+title: "${page.title}"
+description: "${page.desc}"
+icon: "${page.icon}"
+---
+
+# ${page.title}
+
+${page.desc}.
+
+*Detailed documentation coming soon.*
+`;
+    fs.writeFileSync(fullPath, content);
+    console.log(`Generated: ${page.path}.mdx (icon: ${page.icon})`);
+  });
+});
+
+// --- Ensure non-platform pages exist ---
 function ensurePageExists(pagePath) {
   const fullPath = path.join(docsDir, pagePath + '.mdx');
   if (!fs.existsSync(fullPath)) {
@@ -198,27 +235,14 @@ function ensurePageExists(pagePath) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
-    // Generate clean stub content based on path
-    const pathParts = pagePath.split('/');
-    const filename = pathParts[pathParts.length - 1];
-    const category = pathParts[pathParts.length - 2] || '';
-    
-    const title = filename
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-      
-    const desc = `Detailed documentation for the ${title} capability under the ${category.toUpperCase()} category.`;
-    
+    const filename = pagePath.split('/').pop();
+    const title = filename.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const content = `---
 title: "${title}"
-description: "${desc}"
+description: "Documentation for ${title}."
 ---
 
 # ${title}
-
-This section documents the configuration and execution parameters of the ${title} capability.
 
 *Detailed documentation coming soon.*
 `;
@@ -227,23 +251,13 @@ This section documents the configuration and execution parameters of the ${title
   }
 }
 
-// Traverse tabs to check page existence
-config.navigation.tabs.forEach(tab => {
-  tab.groups.forEach(group => {
-    group.pages.forEach(page => {
-      if (typeof page === 'string') {
-        ensurePageExists(page);
-      } else if (page.pages && Array.isArray(page.pages)) {
-        // Nested groups (e.g., December journey logs)
-        page.pages.forEach(nestedPage => {
-          if (typeof nestedPage === 'string') {
-            ensurePageExists(nestedPage);
-          }
-        });
-      }
-    });
-  });
-});
+// Check architecture, backend, native-modules pages
+const otherPages = [
+  "architecture/overview", "architecture/sync-engine", "architecture/local-database",
+  "architecture/write-gate", "architecture/state-management", "architecture/app-routes",
+  "backend/schema", "native-modules/overview"
+];
+otherPages.forEach(ensurePageExists);
 
 // Write docs.json
 const docsJsonPath = path.join(docsDir, 'docs.json');
@@ -256,4 +270,4 @@ if (fs.existsSync(mintJsonPath)) {
   console.log('Removed old mint.json');
 }
 
-console.log('Successfully generated docs.json and verified all page stubs!');
+console.log('Successfully generated docs.json with collapsible Platform groups and page icons!');
