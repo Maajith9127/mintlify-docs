@@ -29,9 +29,10 @@ for (let i = 1; i <= 15; i++) {
   may2026Pages.push(`2026/may/day-${pad(i)}`);
 }
 
-// --- Build the modern mint.json ---
+// --- Build docs.json ---
 const config = {
-  "$schema": "https://mintlify.com/mint.json",
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
   "name": "CommitT",
   "colors": {
     "primary": "#C6613F",
@@ -39,107 +40,107 @@ const config = {
     "dark": "#080808"
   },
   "favicon": "/favicon.svg",
-  "topbarLinks": [
-    { "name": "Changelog", "url": "https://github.com/Maajith9127/CommitT/commits/main" }
-  ],
-  "topbarCtaButton": {
-    "name": "Star Us on GitHub",
-    "url": "https://github.com/Maajith9127/CommitT"
+  "navbar": {
+    "links": [
+      { "label": "Changelog", "href": "https://github.com/Maajith9127/CommitT/commits/main" }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Star Us on GitHub",
+      "href": "https://github.com/Maajith9127/CommitT"
+    }
   },
-  "anchors": [
-    {
-      "name": "Home",
-      "icon": "house",
-      "url": "/"
-    },
-    {
-      "name": "Guides",
-      "icon": "book-open",
-      "url": "/architecture/overview"
-    },
-    {
-      "name": "Convex",
-      "icon": "server",
-      "url": "/backend/schema"
-    },
-    {
-      "name": "Reference",
-      "icon": "cube",
-      "url": "/architecture/local-database"
-    },
-    {
-      "name": "Journey",
-      "icon": "route",
-      "url": "/2026/may/day-15"
-    }
-  ],
-  "navigation": [
-    {
-      "group": "Get started",
-      "icon": "hand-wave",
-      "pages": ["index"]
-    },
-    {
-      "group": "Architecture",
-      "icon": "sitemap",
-      "pages": [
-        "architecture/overview",
-        "architecture/sync-engine",
-        "architecture/local-database",
-        "architecture/write-gate",
-        "architecture/state-management",
-        "architecture/app-routes"
-      ]
-    },
-    {
-      "group": "Native Modules",
-      "icon": "microchip",
-      "pages": ["native-modules/overview"]
-    },
-    {
-      "group": "Backend",
-      "icon": "cloud",
-      "pages": ["backend/schema"]
-    },
-    {
-      "group": "2026 Logs",
-      "icon": "calendar-days",
-      "pages": [
-        { "group": "January", "pages": jan2026Pages },
-        { "group": "February", "pages": feb2026Pages },
-        { "group": "March", "pages": mar2026Pages },
-        { "group": "April", "pages": apr2026Pages },
-        { "group": "May", "pages": may2026Pages }
-      ]
-    },
-    {
-      "group": "2025 Logs",
-      "icon": "calendar",
-      "pages": [
-        { "group": "December", "pages": dec2025Pages }
-      ]
-    }
-  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Get Started",
+            "icon": "play",
+            "pages": ["index"]
+          },
+          {
+            "group": "Architecture",
+            "icon": "sitemap",
+            "pages": [
+              "architecture/overview",
+              "architecture/sync-engine",
+              "architecture/local-database",
+              "architecture/write-gate",
+              "architecture/state-management",
+              "architecture/app-routes"
+            ]
+          },
+          {
+            "group": "Native Modules",
+            "icon": "microchip",
+            "pages": ["native-modules/overview"]
+          },
+          {
+            "group": "Backend (Convex)",
+            "icon": "server",
+            "pages": ["backend/schema"]
+          },
+          {
+            "group": "Develop",
+            "icon": "code",
+            "pages": ["development"]
+          }
+        ]
+      },
+      {
+        "tab": "Journey",
+        "icon": "route",
+        "groups": [
+          {
+            "group": "2025",
+            "icon": "calendar",
+            "pages": [
+              { "group": "December", "pages": dec2025Pages }
+            ]
+          },
+          {
+            "group": "2026",
+            "icon": "calendar-days",
+            "pages": [
+              { "group": "January", "pages": jan2026Pages },
+              { "group": "February", "pages": feb2026Pages },
+              { "group": "March", "pages": mar2026Pages },
+              { "group": "April", "pages": apr2026Pages },
+              { "group": "May", "pages": may2026Pages }
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
-  "footerSocials": {
-    "x": "https://x.com/Maajith_cmt",
-    "linkedin": "https://www.linkedin.com/in/abdul-maajith-99165026b",
-    "github": "https://github.com/Maajith9127"
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "mcp", "cursor", "vscode"]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/Maajith_cmt",
+      "linkedin": "https://www.linkedin.com/in/abdul-maajith-99165026b",
+      "github": "https://github.com/Maajith9127"
+    }
   }
 };
 
-// Write mint.json
-const mintJsonPath = path.join(docsDir, 'mint.json');
-fs.writeFileSync(mintJsonPath, JSON.stringify(config, null, 2));
-
-// Remove docs.json if it exists (forcing modern schema)
+// Write docs.json
 const docsJsonPath = path.join(docsDir, 'docs.json');
-if (fs.existsSync(docsJsonPath)) {
-  fs.unlinkSync(docsJsonPath);
-  console.log('Removed old docs.json');
+fs.writeFileSync(docsJsonPath, JSON.stringify(config, null, 2));
+
+// Remove mint.json to avoid conflicts
+const mintJsonPath = path.join(docsDir, 'mint.json');
+if (fs.existsSync(mintJsonPath)) {
+  fs.unlinkSync(mintJsonPath);
+  console.log('Removed old mint.json');
 }
 
-console.log('Successfully generated mint.json with Expo-style Icons and Anchors!');
+console.log('docs.json generated with icons on groups and tabs!');
