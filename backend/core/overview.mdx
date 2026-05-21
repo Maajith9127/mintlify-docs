@@ -1,0 +1,50 @@
+---
+title: "Core Business Logic"
+description: "The autonomous engine driving task generation, conflict detection, and penalty routing."
+---
+
+# Core Logic Layer
+
+The `backend/convex/core/` directory contains the actual business logic of the CommitT system. While the API layer handles routing and validation, the Core layer makes the architectural decisions.
+
+## Commitments (Tasks) Service
+The `core/commitments/service.ts` file acts as the primary orchestrator for the lifecycle of a task.
+
+### 1. Creation Pipeline
+When a task is created, the Core Service:
+1. **Validates Domain Logic**: Checks title lengths, valid recurrence rules, and penalty structures.
+2. **Detects Conflicts**: Runs a conflict detection algorithm to ensure the new task's scheduled time slots don't overlap with existing commitments.
+3. **Resolves Penalty Media**: If a penalty requires an uploaded photo, the service proactively fetches the permanent public HTTPS URL from Convex Storage and embeds it in the task config.
+4. **Persists to DB**: Saves the master rule to the `tasks` table.
+5. **Generates Instances**: Calls the Instance Generator to scaffold out 365 days of future `taskInstances`.
+6. **Syncs the Schedule**: Awakens the "Temporal Brain" (Scheduler) to lock a verification heartbeat onto the next upcoming instance.
+
+### 2. Autonomous Habit Harvesting
+*(Note: Background harvesting has been suspended natively at the backend level in favor of user-intent harvesting via the Preset Hub.)*
+The core service includes logic for **The Accountability Identity**:
+It maintains a single, high-confidence preset of the user's most recent penalty choices. This powers the "Smart Pre-fill" feature on the client app, meaning users don't have to manually configure their $50 stake and CAPTCHA settings every time they create a task.
+
+---
+
+## The Instance Generator
+Located in `core/instances/generator.ts`, this service transforms a single Master Task into a temporal series of individual occurrences. 
+
+*   **Snapshotting**: It perfectly clones the parent task's `penalty` and `penalty_waiver` rules into each instance at the moment of creation, preventing retroactive manipulation.
+*   **Timezone Safety**: Handles epoch calculations to ensure daily tasks always align correctly with the user's local timezone.
+
+---
+
+## Penalty & Waiver Dispatchers
+Located in `core/penalties/dispatcher.ts` and `core/waivers/dispatcher.ts`.
+When a user fails a task, the Core layer routes the failure to the correct handler based on the snapshot rules:
+*   **Photo Blast**: Triggers a function to email an embarrassing photo to a friend.
+*   **CAPTCHA Waivers**: Scaffolds a series of challenges the user must solve before a deadline to waive the penalty.
+
+---
+
+## Verification Engines
+Located in `core/verification/`.
+Contains specialized validators for evaluating proof submitted by the client:
+*   **Location Validator**: Ensures GPS coordinates fall within the geofence radius.
+*   **Picture Validator**: Routes images to the AI models for visual confirmation.
+*   **Time Validator**: Enforces strict "Grace Period" constraints for Just-Show-Up commitments.

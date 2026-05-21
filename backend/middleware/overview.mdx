@@ -1,0 +1,38 @@
+---
+title: "Middleware & Auth"
+description: "Authentication guards and request validation using Better Auth."
+---
+
+# Middleware & Authentication
+
+The `backend/convex/middleware/` directory ensures that every request hitting the CommitT backend is secure, authenticated, and authorized.
+
+## Better Auth Integration
+
+CommitT uses [Better Auth](https://better-auth.com/) for cross-platform identity management, integrated natively with Convex via the `@convex-dev/better-auth` plugin.
+
+Located in `middleware/auth.ts`:
+
+```typescript
+import { expo } from "@better-auth/expo";
+import { convex } from "@convex-dev/better-auth/plugins";
+import { betterAuth } from "better-auth";
+
+function createAuth(ctx) {
+  return betterAuth({
+    trustedOrigins: [siteUrl, nativeAppUrl], // Allows web and mobile deep links
+    emailAndPassword: { enabled: true },
+    socialProviders: { google: { /* ... */ } },
+    plugins: [ expo(), convex({ authConfig }) ],
+  });
+}
+```
+
+## API Guards
+
+Instead of checking auth state manually in every endpoint, the backend exports strongly-typed middleware wrappers:
+
+*   `authedMutation`
+*   `authedQuery`
+
+These wrappers guarantee that the `ctx.user` object is populated before the endpoint logic executes. If a user is unauthenticated, the request is instantly rejected, preventing unauthorized access to the core logic layer.

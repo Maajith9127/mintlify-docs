@@ -1,0 +1,16 @@
+---
+title: "Monitoring Mobile"
+description: "Shared React Native monitoring utilities."
+---
+
+# Monitoring Mobile (`packages/monitoring-mobile`)
+
+This package contains reusable, platform-specific monitoring and extraction tools for Android and iOS. 
+
+While the core native modules live directly inside `apps/native/modules/`, this package contains higher-level React Native hooks and utilities that interface with those bridges.
+
+## Responsibilities
+
+*   **Usage Stats**: Interfaces with Android's `UsageStatsManager` to determine exactly how long specific apps have been in the foreground.
+*   **Accessibility Service Monitors**: Provides standard patterns for determining if the CommitT accessibility blocker service is alive and active.
+*   **Battery Opt Status**: Utilities to check and report if the user has improperly restricted background execution.

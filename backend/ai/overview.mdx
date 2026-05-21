@@ -1,0 +1,35 @@
+---
+title: "AI & Computer Vision"
+description: "Integration with Opencode AI and vision models for automated proof verification."
+---
+
+# AI & Verification
+
+The `backend/convex/ai/` directory manages the integration between the CommitT backend and external AI models used for proof verification and task generation.
+
+## The Opencode Client
+
+Located in `ai/client.ts`.
+
+CommitT leverages **Opencode AI** to analyze image uploads and perform complex semantic validation. The client is instantiated as a singleton using the `@opencode-ai/sdk/client` package.
+
+```typescript
+import { createOpencodeClient } from "@opencode-ai/sdk/client";
+
+export async function getOpencodeClient() {
+  if (!opencodeClient) {
+    opencodeClient = createOpencodeClient({
+      baseUrl: OPENCODE_BASE_URL,
+    });
+  }
+  return opencodeClient;
+}
+```
+
+## AI Capabilities
+
+### 1. Visual Proof Verification
+When a user submits a photo to prove they completed a task (e.g., a photo of a gym entrance), the AI layer evaluates the image against the task's context to determine if it meets the criteria.
+
+### 2. Task Generation
+The AI layer can also be used to automatically generate rule sets, target lists, and blocklists based on natural language inputs from the user (e.g., "Block all distracting apps").

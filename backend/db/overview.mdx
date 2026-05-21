@@ -1,0 +1,63 @@
+---
+title: "Database & Schema"
+description: "Instance-dependent architecture, immutable snapshots, and the Steel Vault."
+---
+
+# Database Schema
+
+CommitT's database schema (`backend/convex/db/schema.ts`) is designed for absolute enforcement. It relies on immutable snapshots and time-locked vaults to prevent users from escaping their commitments.
+
+## The Instance-Dependent Architecture
+
+Unlike standard to-do apps, a "Task" in CommitT is just a template. The real enforcers are **Task Instances** (`taskInstances`). When a task is created, the backend generates instances for the next 365 days.
+
+<CardGroup cols={2}>
+  <Card title="tasks Table" icon="layer-group">
+    The master template. Contains the recurrence schedule, global strict mode lock, and the master accountability contract.
+  </Card>
+  <Card title="taskInstances Table" icon="clone">
+    The temporal execution units. Contains the specific start/end epochs, verification checkpoints, and snapshotted rules.
+  </Card>
+</CardGroup>
+
+---
+
+## Immutable Rule Snapshots
+
+When an instance is generated, the `penalty` and `penalty_waiver` rules from the parent task are **snapshotted** (copied) onto the instance.
+
+**Why?** To prevent retroactive manipulation.
+If a user commits to a ₹500 penalty, fails the task, and then quickly edits the parent task to reduce the penalty to ₹10, the *instance* retains the original ₹500 rule. The punishment contract cannot be changed after the fact.
+
+---
+
+## The Steel Vault (Strict Mode)
+
+Strict Mode is the ultimate self-binding mechanism. 
+
+### Implementation
+1. **Master Rule**: The `tasks` table stores a `strict_until` timestamp. Any future generation cycles will respect this.
+2. **Instance Locking**: Every existing future instance within the timeframe is individually patched with `strict_until = instance.end`.
+
+### Enforcement
+The backend strictly rejects any mutation or deletion of an instance as long as `Date.now() < strict_until`. The user voluntarily surrenders control.
+
+---
+
+## Central Asset Registry
+
+All binary assets (penalty photos, videos, PDFs) are managed in a single `files` table.
+
+*   **Unified Security**: Enforces ownership and ACLs in one place.
+*   **Performance**: Single index for "User's Recent Activity" across all media types.
+*   **Direct URLs**: When a penalty with a photo is created, the backend resolves the permanent public HTTPS URL and embeds it in the config, saving the client an extra `getUrl()` call on load.
+
+---
+
+## Accountability Presets
+
+The database acts as a persistent memory of a user's commitment style via the `accountabilityPresets`, `locationPresets`, and `digitalCommitmentPresets` tables.
+
+*   **Decoupled**: Penalty configurations survive even if tasks are deleted.
+*   **Zero-Friction**: New tasks can be "pre-armed" with the user's usual contract.
+*   **Smart Pre-fill**: Tracks `last_used_at` (recency) and `usage_count` (popularity) to suggest the most likely settings to the user.

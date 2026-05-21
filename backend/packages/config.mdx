@@ -1,0 +1,23 @@
+---
+title: "Config Package"
+description: "Centralized TypeScript, Prettier, and ESLint configurations."
+---
+
+# Config Package (`packages/config`)
+
+The `config` package is a foundational piece of the Turborepo monorepo. It ensures that every application and package within the CommitT repository adheres to the same strict styling and compilation rules.
+
+## What's Inside
+
+1.  **TypeScript Configurations (`tsconfig.json`)**:
+    *   Base configurations for Node environments.
+    *   React Native strict configurations.
+    *   Web/Tauri strict configurations.
+2.  **ESLint (`eslint.config.js`)**:
+    *   Global linting rules.
+    *   Prevents common React Hooks errors (`eslint-plugin-react-hooks`).
+    *   Enforces consistent import sorting.
+3.  **Prettier (`.prettierrc`)**:
+    *   Code formatting standards (tab widths, trailing commas, quote styles).
+
+By importing these configurations into the `apps/native` and `packages/backend` folders, we maintain a unified "Golden Standard" across the entire codebase.

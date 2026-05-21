@@ -1,0 +1,16 @@
+---
+title: "Telemetry Package"
+description: "Cross-platform logging and metrics infrastructure."
+---
+
+# Telemetry Package (`packages/telemetry`)
+
+The Telemetry package provides a unified logging and metrics interface for both the client applications and the backend services.
+
+## Features
+
+*   **Unified Logger**: A single logger interface that routes logs to the console in development, and to external aggregation services (like Sentry or Datadog) in production.
+*   **Crash Reporting**: Standardized error capture and stack trace formatting.
+*   **Performance Metrics**: Utilities for tracking function execution time, network latency, and React Native render cycles.
+
+By centralizing telemetry, we ensure that logs from the Native mobile app and the Convex backend share the same trace IDs, allowing us to debug complex Triple-Write sync failures across the network boundary.

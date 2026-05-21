@@ -1,0 +1,63 @@
+---
+title: "Convex Endpoints (API)"
+description: "The public-facing mutation and query layer for mobile and web clients."
+---
+
+# API Layer Overview
+
+The API layer inside `backend/convex/api/` serves as the primary gateway for all external clients (React Native mobile app, web dashboard). It is responsible for authorization, input validation, and orchestrating calls to the underlying Core Business Logic.
+
+## Architecture & Responsibilities
+
+In CommitT, API endpoints are **thin wrappers**. They do not contain heavy business logic. Their primary responsibilities are:
+
+1. **Authentication & Authorization**: Handled via custom middleware (`authedMutation`, `authedQuery`).
+2. **Schema Validation**: Enforcing strict Zod/Convex validators (e.g., `PenaltySchema`, `RecurrenceSchema`).
+3. **Delegation**: Calling internal services (like `createInternal` in the Core Logic layer).
+4. **Graceful Error Formatting**: Catching internal domain exceptions (e.g., `[SCHEDULE_CONFLICT]`) and formatting them for the client UI.
+
+---
+
+## The Synchronization Pipeline
+
+<Card title="The Triple-Write Architecture" icon="arrows-rotate">
+  The core of the mobile app's offline-first capabilities relies on the **Delta Pipeline** (`api/sync/delta.ts`).
+</Card>
+
+### Hydration & Reconciliation (`getDeltaPayload`)
+When the mobile app boots, it passes a `last_synced_at` token to the server:
+- **Scenario A (Fresh Wipe)**: If the token is null, the endpoint acts as a "Full Hydration Basin", streaming all active tasks and instances to rebuild the native SQLite cache and Kotlin Alarms.
+- **Scenario B (Warm Boot)**: If a token is provided, it acts as a "Delta Pipeline", returning *only* items created or modified since the last boot.
+
+**Rolling Horizon:** Task instances are highly dynamic. The sync endpoint utilizes a rolling horizon, returning all active instances from the last 7 days plus futures, allowing the mobile SQLite `Upsert` to handle deduplication natively.
+
+---
+
+## Core Endpoints
+
+### Commitments (Tasks)
+*   `create`: Orchestrates task creation. Accepts optional penalties and waivers as the accountability contract, delegates to `createInternal`, and returns the 365 generated instances as the identical source of truth.
+*   `update`: Handles partial updates, conflict checks, and triggers "Reschedules" (cleaning up old instances and generating new ones).
+*   `strict_mode`: Activates the "Steel Vault", locking a task and its future instances from edits or deletions.
+
+### Instances
+*   `update`: Mutates runtime tracking for instances.
+*   `waivers`: Manages the lifecycle state of waivers (e.g., transitioning from 'failed' to 'waiver_active').
+
+### Logs & Notifications
+*   `queries` & `mutations`: Manage the central audit ledger for chronological user events.
+*   `read` / `test_email`: Push notification routing and email delivery testing.
+
+---
+
+## Error Handling Paradigm
+
+CommitT avoids raw, opaque database errors. If a conflict occurs deep in the core logic, it throws a tagged error: `throw new Error("[SCHEDULE_CONFLICT] Temporal overlap detected");`. 
+
+The API layer catches this and formats it:
+```javascript
+// Catch block in API layer
+const codeMatch = message.match(/^\[(.*?)\] (.*)/);
+return { success: false, error: { code: codeMatch[1], message: codeMatch[2] } };
+```
+This allows the client to display specific toast notifications or trigger UI flows (like resolving conflicts) rather than generic failures.

@@ -1,0 +1,47 @@
+---
+title: "Execution & Cron Jobs"
+description: "The Temporal Brain handling verification heartbeats and penalty execution."
+---
+
+# Execution Engine
+
+The `backend/convex/execution/` directory is the autonomous heartbeat of CommitT. It is responsible for waking up at precise temporal moments to enforce commitments and execute penalties via Convex Scheduled Functions.
+
+## The Temporal Brain (Scheduler)
+
+Located in `execution/scheduling/scheduler.ts`.
+
+The `syncTaskSchedule` function is the Reconciler for the CommitT accountability chain. It ensures that exactly **ONE** authoritative verification heartbeat exists for the next upcoming habit occurrence of any task.
+
+### Design Principles:
+1. **Temporal Firewall**: Strictly looks PAST the current time (`gt("end", now)`) to prevent self-cancellation during active runner execution.
+2. **Surgical Cleanup**: Eliminates stray, duplicate jobs scheduled in the future, avoiding job flicker and race conditions.
+3. **Reactive Overrides**: Safely applies drag-and-drop time shifts from the calendar by purging old job IDs before replacement.
+
+Whenever a task is created, updated, or an instance finishes, the Temporal Brain is invoked to lock the *next* background job into place.
+
+---
+
+## Penalty Worker (The Gatekeeper & Executor)
+
+Located in `execution/penalties/worker.ts`.
+
+When a user fails a commitment and is offered a waiver, a durable scheduled job is armed with the waiver's deadline. If the deadline expires before the waiver is completed, this worker activates.
+
+It implements a strict two-phase "Silent Abort" safety guard to ensure zero accidental penalties.
+
+### 1. The Gatekeeper (Mutation)
+*   **Locks State**: Immediately checks if the instance is still in a `waiver_active` state. If it was already completed or deleted, it aborts.
+*   If valid, it permanently patches the status to `penalized`.
+*   Schedules the Executor phase using `runAfter(0, ...)`.
+
+### 2. The Executor (Action)
+*   **Side Effects**: Because mutations cannot perform external HTTP requests, the Executor runs as a Convex Action.
+*   **Detonation**: Calls the core Penalty Dispatcher to execute the financial charge, send the embarrassing photo email, etc.
+*   **Audit Logging**: Successfully records the execution in the immutable `auditLogs` table.
+
+---
+
+## Watchdog
+
+The `watchdog.ts` file acts as an overarching cron job that periodically sweeps the database for "Orphaned" instances. If the Temporal Brain failed to schedule a job (due to a server crash or edge case), the Watchdog detects instances that are past their temporal deadline but stuck in "pending" status, and forcefully fails them.

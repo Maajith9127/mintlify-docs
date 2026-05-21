@@ -1,0 +1,32 @@
+---
+title: "Shared Lib & Types"
+description: "Cross-cutting utilities, validators, and constants for the Convex backend."
+---
+
+# Shared Library
+
+The `backend/convex/lib/` and `backend/convex/types/` directories contain shared code used across the entire backend architecture.
+
+## Validators
+
+Located in `lib/validators.ts`.
+
+Convex utilizes a custom runtime validation schema. The validators file contains the master schemas used by the API layer to ensure all incoming mutations are perfectly formed.
+
+*   **`PenaltySchema`**: Defines the structure for various penalty types (money, embarrassing photos).
+*   **`PenaltyWaiverSchema`**: Defines the structure for waivers (CAPTCHA counts, transcriptions).
+*   **`RecurrenceSchema`**: Validates complex time slots, week days, and interval logic.
+*   **`ConditionsSchema`**: Validates the targets (like lat/lng bounds for GPS, or app package names for digital blocking).
+
+## Error Handling
+
+Located in `lib/errorHandler.ts`.
+
+CommitT uses a structured error tagging system. Instead of throwing raw Node or database errors, domain logic throws tagged strings like `[SCHEDULE_CONFLICT]` or `[TASK_NOT_FOUND]`. The error handler intercepts these tags, cleans up stack traces, and formats them for the API layer to send to the client.
+
+## Constants & Enums
+
+Located in `config/enums.ts` and `config/constants.ts`.
+
+*   **Enums**: Define the strict string literals used in the database schema (e.g., `taskStatusEnum`: `"pending" | "verified" | "failed"`).
+*   **Constants**: System-wide magic numbers (e.g., maximum grace period minutes, pagination limits, default penalty amounts).

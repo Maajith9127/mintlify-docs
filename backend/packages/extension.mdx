@@ -1,0 +1,21 @@
+---
+title: "Monitoring Extension"
+description: "WXT-based browser extension for desktop distraction blocking."
+---
+
+# Monitoring Extension (`packages/monitoring-extension`)
+
+CommitT is primarily a mobile application, but true accountability requires cross-device enforcement. The Monitoring Extension is a browser plugin built with [WXT](https://wxt.dev/) that acts as the desktop enforcer.
+
+## Capabilities
+
+1.  **Site Blocking**: Pulls the active `digital_commitment` target blocklists from the Convex backend and uses the `chrome.webRequest` API to instantly block access to forbidden URLs (e.g., YouTube, Reddit).
+2.  **Verification Reporting**: Can report active tab usage back to the Convex backend to prove the user is actively working on a required website during a study session.
+3.  **Tamper Resistance**: Designed to be difficult to uninstall during an active Strict Mode session.
+
+## Why WXT?
+
+WXT is a next-generation framework for building cross-browser extensions. It provides:
+*   Vite-powered hot module replacement (HMR) during development.
+*   Out-of-the-box support for Chrome, Firefox, and Edge.
+*   First-class TypeScript and React support.
