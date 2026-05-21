@@ -5,4 +5,10 @@ description: Syncs waiver configuration from the wizard to the draft store.
 
 # useWaiverSync
 
-*Detailed documentation coming soon.*
+The useWaiverSync hook (hooks/commits/useWaiverSync.ts) synchronizes the waiver configuration between the (penaltywaiver) route group screens and the useTaskDraftStore.
+
+---
+
+## Sync Direction
+
+The hook reads waiver state from the sub-screens and writes it back to the draft store's penalty_waiver field. This keeps the wizard hub in sync with the waiver configuration screens.

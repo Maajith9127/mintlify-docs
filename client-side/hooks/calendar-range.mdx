@@ -5,4 +5,14 @@ description: Computes visible date range for the calendar grid.
 
 # useCalendarRange
 
-*Detailed documentation coming soon.*
+The useCalendarRange hook (hooks/calendar/useCalendarRange.ts) computes the start and end dates of the currently visible calendar grid.
+
+---
+
+## Computation
+
+Based on the selectedDate from useCalendarStore and the current iewMode:
+- **Week view:** Returns the Monday-to-Sunday range containing the selected date
+- **Day view:** Returns a single-day range
+
+The computed range is used by useCalendarEvents to scope the SQLite query for performance.

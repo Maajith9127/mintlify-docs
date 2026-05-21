@@ -5,4 +5,29 @@ description: Drives the verification modal with instance details, map embed, and
 
 # useEventDetail
 
-*Detailed documentation coming soon.*
+The useEventDetail hook (hooks/modal/useEventDetail.ts) is the data layer for the EventDetailModal. At ~480 lines, it is one of the most complex hooks in the application.
+
+---
+
+## Responsibilities
+
+1. Fetches the full instance details from SQLite by selectedEventId
+2. Parses JSON columns (conditions, penalties, waivers, checkpoints)
+3. Resolves the parent task for display metadata
+4. Computes verification status and time remaining
+5. Provides action handlers (verify, skip, delete instance)
+
+---
+
+## Modal Integration
+
+The hook returns a structured object that the EventDetailModal consumes directly:
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| instance | ParsedInstance | Full instance data with parsed JSON fields |
+| parentTask | ParsedTask | Parent task metadata (if not orphaned) |
+| 	imeRemaining | string | Human-readable countdown |
+| canVerify | oolean | Whether the verification button should be active |
+| onVerify | () => void | Navigates to the verification flow |
+| onDelete | () => void | Triggers instance deletion via Triple-Write |

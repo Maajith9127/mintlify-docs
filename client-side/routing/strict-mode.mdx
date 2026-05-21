@@ -5,4 +5,36 @@ description: The immutability lock activation screen.
 
 # Strict Mode Setup
 
-*Detailed documentation coming soon.*
+The (strict-mode)/setup.tsx screen allows the user to activate Strict Mode on a commitment, making it immutable for a configured duration.
+
+---
+
+## What Strict Mode Does
+
+When activated, Strict Mode sets a strict_until timestamp on both the task and its instances. Until that timestamp passes, the Convex backend rejects all mutations (edits, deletions) on the locked entities:
+
+`
+strict_until = Date.now() + (duration_days * 24 * 60 * 60 * 1000)
+`
+
+---
+
+## Configuration
+
+The setup screen provides:
+
+- **Duration Selector** -- Choose the lock duration (e.g., 7 days, 14 days, 30 days)
+- **Confirmation Modal** -- Explicit confirmation that the user understands the commitment cannot be modified or deleted until the lock expires
+- **Visual Warning** -- Clear indication that this action is irreversible
+
+---
+
+## Security Enforcement
+
+Strict Mode is enforced at three levels:
+
+| Level | Mechanism |
+| :--- | :--- |
+| **Cloud** | Convex mutations check strict_until before any edit/delete |
+| **Local** | SQLite queries filter strict-locked instances from edit screens |
+| **Native** | The Kotlin Accessibility Service blocks access to Settings during strict periods |

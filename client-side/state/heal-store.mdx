@@ -5,4 +5,21 @@ description: HealOverlay recovery UI progress and status tracking.
 
 # Heal Store
 
-*Detailed documentation coming soon.*
+The useHealStore controls the HealOverlay -- the recovery UI that appears during database reconstruction.
+
+---
+
+## State Shape
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| isHealing | oolean | Whether a recovery operation is in progress |
+| progress | 
+umber | Progress percentage (0-100) |
+| statusMessage | string | Human-readable status (e.g., Rebuilding schema...) |
+
+---
+
+## Usage
+
+The HealOverlay component reads from this store and renders a full-screen progress indicator when isHealing is true. This prevents the user from interacting with the app during database reconstruction.

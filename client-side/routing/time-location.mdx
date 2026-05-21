@@ -5,4 +5,52 @@ description: Day picker, time windows, map-based geofencing, and per-slot attach
 
 # Time and Location Setup
 
-*Detailed documentation coming soon.*
+These two spoke screens handle the temporal and spatial dimensions of a commitment.
+
+---
+
+## time-set.tsx -- Temporal Configuration
+
+The time setup screen is one of the most complex screens in the app (~450 lines). It manages:
+
+### Day Selection
+A horizontal row of day buttons (Mo, Tu, We, Th, Fr, Sa, Su). Selecting days automatically triggers setRecurrence() on the draft store, which switches the recurrence type to weekly and computes the instance count.
+
+### Time Windows
+Each day can have multiple time windows (e.g., 6:00 AM - 8:00 AM and 5:00 PM - 7:00 PM). Time windows are managed as an array on the recurrence object:
+
+`	ypescript
+recurrence: {
+  type: weekly,
+  days_of_week: [1, 3, 5], // Mon, Wed, Fri
+  time_windows: [
+    { start: 06:00, end: 08:00 },
+    { start: 17:00, end: 19:00 }
+  ]
+}
+`
+
+### Repeat Toggle
+A toggle that switches between one-time and recurring commitments:
+- **Checked (Repeat):** Sets ends.type to never for indefinite weekly recurrence
+- **Unchecked (One Week):** Sets ends.type to after with count calculated from days * slots
+
+### Per-Slot Attachments
+Under each time slot, the user can independently attach:
+- **Location** -- via setSlotLocation(index, location)
+- **App Block** -- via setSlotBlocklist(index, blocklist)
+- **Rules** -- via setSlotRule(index, rule)
+
+Each attachment reads from the hydrated usePresetStore for one-tap selection.
+
+---
+
+## location-set.tsx -- Spatial Configuration
+
+The location screen integrates Google Maps with a geofencing radius selector:
+
+- **Map View:** Full-screen Google Maps with the user's current location centered
+- **Search:** Address search via Google Places API
+- **Radius:** Adjustable geofence radius (default: 50m)
+- **Inverse Mode:** Outside vs Within toggle for location condition relation
+- **State Update:** On confirm, calls setSlotLocation() or setLocation() on the draft store

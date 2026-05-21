@@ -5,4 +5,35 @@ description: Root/jailbreak detection gate that unmounts the entire app tree.
 
 # SecurityShield
 
-*Detailed documentation coming soon.*
+The SecurityShield (components/system/SecurityShield.tsx) is a fail-closed security gate that checks for device compromise before rendering any application content.
+
+---
+
+## Detection
+
+The shield uses JailMonkey to detect:
+- Rooted Android devices (su binary, Magisk, SuperSU)
+- Jailbroken iOS devices (Cydia, checkra1n)
+- Development mode indicators
+- Debugger attachment
+
+---
+
+## Enforcement
+
+If any compromise is detected, the entire child tree is unmounted and replaced with a full-screen violation screen. Because the SecurityShield sits above the navigation stack in the provider tree, there is no way to navigate around it:
+
+`
+ResurrectionProvider
+  SQLiteProvider
+    ConvexClientWrapper
+      SecurityShield          <-- IF COMPROMISED: stops here
+        GestureHandler        <-- Never mounts
+          Navigation          <-- Never mounts
+`
+
+---
+
+## Graceful Client Teardown
+
+When the shield flips to violation mode, it unmounts the ConvexClientWrapper's child tree mid-render. The setTimeout delay in ConvexClientWrapper's cleanup handles this edge case, preventing ConvexReactClient has already been closed crashes.

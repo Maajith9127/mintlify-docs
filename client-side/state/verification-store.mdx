@@ -5,4 +5,18 @@ description: Real-time GPS, geofence, camera, and CAPTCHA verification state.
 
 # Verification Store
 
-*Detailed documentation coming soon.*
+The useVerificationStore tracks the real-time state of an active verification session.
+
+---
+
+## State Shape
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| currentLocation | LatLng \| null | Current GPS coordinates |
+| isInsideGeofence | oolean | Whether the user is within the required geofence |
+| captchaProgress | 
+umber | Number of CAPTCHAs solved in waiver challenge |
+| photoUri | string \| null | URI of the captured verification photo |
+
+This store is consumed by useVerificationEngine to drive the verification session lifecycle.

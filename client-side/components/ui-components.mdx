@@ -5,4 +5,29 @@ description: Reusable buttons, inputs, modals, sliders, and layout containers.
 
 # UI Components
 
-*Detailed documentation coming soon.*
+The components/ui/ directory contains all reusable UI primitives organized by domain.
+
+---
+
+## Directory Structure
+
+| Directory | Components |
+| :--- | :--- |
+| **Root** | utton.tsx, input.tsx, 	ext.tsx, ooter.tsx, ScreenContainer, TabScreenWrapper, ActionScreenLayout, BottomBar, CustomSlider, PremiumToggle |
+| **blocklist/** | App/website blocklist selection UI components |
+| **buttons/** | Specialized buttons: AlarmFab, AddButton, SecondaryButton |
+| **captcha/** | CAPTCHA challenge rendering and interaction |
+| **commits/** | ConditionCard, task list items, status badges |
+| **location/** | Map overlays, geofence radius visualizer, address search |
+| **modal/** | EventDetailModal, DatePickerModal, HealOverlay, preset picker modals |
+| **overlay/** | Full-screen overlays for blocking and verification |
+| **penalty/** | Penalty type selection cards and configuration UI |
+| **skeletons/** | Loading skeleton components with useSkeletonAnimation |
+| **time/** | Time picker, day selector, time window cards |
+| **waivers/** | Waiver challenge UI (CAPTCHA grid, paragraph transcription) |
+
+---
+
+## Design System
+
+All components consume the centralized THEME constant from constants/theme.ts for consistent colors, spacing, and typography across the application.

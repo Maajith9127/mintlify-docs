@@ -5,4 +5,26 @@ description: 8-point permission audit state and deep-link triggers.
 
 # usePermissions
 
-*Detailed documentation coming soon.*
+The usePermissions hook (hooks/usePermissions.ts) checks all 8 required Android permissions and returns their grant status.
+
+---
+
+## Permission Map
+
+| Key | Android Permission | Check Method |
+| :--- | :--- | :--- |
+| camera | CAMERA | expo-camera API |
+| location | ACCESS_FINE_LOCATION | expo-location API |
+| 
+otifications | POST_NOTIFICATIONS | expo-notifications API |
+| larms | SCHEDULE_EXACT_ALARM | enforcement-module native bridge |
+| attery | IGNORE_BATTERY_OPTIMIZATIONS | enforcement-module native bridge |
+| overlay | SYSTEM_ALERT_WINDOW | enforcement-module native bridge |
+| ccessibility | AccessibilityService | enforcement-module native bridge |
+| dmin | DevicePolicyManager | enforcement-module native bridge |
+
+---
+
+## Refresh
+
+The hook provides a efresh() function that re-checks all permissions. This is called when the user returns from Android Settings after granting a permission.

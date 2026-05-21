@@ -5,4 +5,20 @@ description: ChaosFab, DbDebugFab, AlarmFab for resilience testing.
 
 # Developer Tools
 
-*Detailed documentation coming soon.*
+The components/dev/ directory contains floating action buttons used exclusively during development for debugging and chaos engineering.
+
+---
+
+## Components
+
+| Component | Purpose | Production? |
+| :--- | :--- | :--- |
+| **ChaosFab** | Floating button that opens the (dev)/chaos screen. Provides actions to corrupt the database, kill WebSocket, simulate network drops, and trigger resurrection. | No |
+| **DbDebugFab** | Floating button that displays raw SQLite state. Shows table row counts, recent log entries, and sync token status. | No |
+| **AlarmFab** | Floating button for testing hardware alarm registration. Displays the next scheduled alarm and allows manual trigger. | No |
+
+---
+
+## Mounting
+
+These components are mounted at the root _layout.tsx level but only render in development mode (__DEV__ guard). In production builds, they are completely absent from the component tree.

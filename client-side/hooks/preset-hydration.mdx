@@ -5,4 +5,20 @@ description: One-shot hook at wizard layout mount to pre-load all presets.
 
 # usePresetHydration
 
-*Detailed documentation coming soon.*
+The usePresetHydration hook (hooks/usePresetHydration.ts) fetches all saved presets from the Convex backend and populates usePresetStore.
+
+---
+
+## One-Shot Strategy
+
+This hook is called at the (create-commit)/_layout.tsx level. By running at the layout mount, it guarantees that all child spoke screens have instant access to presets. The isHydrated flag on the store prevents redundant fetches on subsequent navigations within the wizard flow.
+
+---
+
+## Fetched Data
+
+| Preset Type | Convex Table | Store Field |
+| :--- | :--- | :--- |
+| Location | locationPresets | locationPresets |
+| Digital (Blocklist) | digitalCommitmentPresets | digitalPresets |
+| Rule | ehavioralRulePresets | ulePresets |

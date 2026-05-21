@@ -5,4 +5,49 @@ description: Active verification session with GPS check, photo capture, and CAPT
 
 # Verification Flow
 
-*Detailed documentation coming soon.*
+The (verify-commit) route group handles active verification sessions where the user proves they are fulfilling their commitment.
+
+---
+
+## Verification Trigger
+
+Verification is triggered when a task instance's start_time arrives. The hardware AlarmManager fires, the app wakes, and the user is presented with the verification screen.
+
+---
+
+## Verification Modes
+
+| Mode | Behavior |
+| :--- | :--- |
+| **Just Show Up** | User taps a button to confirm presence. GPS and photo checks validate location. |
+| **Stay Throughout** | Random checkpoint pings during the session window. User must verify at each checkpoint. |
+
+---
+
+## Verification Engine
+
+The useVerificationEngine hook drives the session:
+
+1. Polls GPS coordinates at 1Hz intervals
+2. Compares current position against the commitment's geofence
+3. Manages camera state for photo capture
+4. Tracks CAPTCHA progress for waiver challenges
+5. Updates instance status via Triple-Write on completion
+
+---
+
+## State Management
+
+The useVerificationStore tracks real-time verification state:
+
+- Current GPS coordinates and accuracy
+- Geofence match status (inside/outside)
+- Camera capture state
+- Checkpoint completion progress
+- CAPTCHA solve count
+
+---
+
+## Failure Handling
+
+If the user fails to verify within the grace period, the instance status transitions to ailed, and the penalty waiver offer is triggered (if configured). A durable Convex scheduled function is armed as the penalty deadline.

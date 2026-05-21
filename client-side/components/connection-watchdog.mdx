@@ -5,4 +5,21 @@ description: Monitors and resurrects dead Convex WebSocket connections.
 
 # ConnectionWatchdog
 
-*Detailed documentation coming soon.*
+The ConnectionWatchdog (components/system/ConnectionWatchdog.tsx) monitors the health of the Convex WebSocket connection and triggers recovery when the connection dies.
+
+---
+
+## Detection
+
+The watchdog periodically checks the Convex client's connection status. If the WebSocket has been disconnected for longer than a threshold period, it triggers the Resurrection protocol.
+
+---
+
+## Recovery
+
+When a dead connection is detected:
+1. Logs the failure with timestamp and duration
+2. Increments the ResurrectionProvider's iteration counter
+3. This causes ConvexClientWrapper to destroy the old client and create a new one
+4. The new client establishes a fresh WebSocket connection
+5. HydrationSync automatically re-syncs on the new connection

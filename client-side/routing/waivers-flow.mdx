@@ -5,4 +5,44 @@ description: CAPTCHA, paragraph transcription, and waiver setup screens.
 
 # Penalty Waivers Flow
 
-*Detailed documentation coming soon.*
+The (penaltywaiver) route group configures the second-chance challenges that allow a user to cancel a pending penalty by completing redemption tasks.
+
+---
+
+## Waiver Types
+
+| Type | Challenge | Difficulty |
+| :--- | :--- | :--- |
+| **CAPTCHA** | Solve N CAPTCHA puzzles within the deadline | Configurable count and difficulty |
+| **Paragraph** | Transcribe a given text passage accurately | Length-based difficulty |
+
+---
+
+## Configuration Screen
+
+The setup.tsx screen allows the user to configure:
+
+- **Waiver type** -- CAPTCHA or Paragraph
+- **Count/Length** -- How many CAPTCHAs or how long the paragraph
+- **Difficulty** -- Easy, Medium, Hard
+- **Deadline** -- Minutes allowed to complete the challenge (default: 60 minutes)
+
+---
+
+## State Synchronization
+
+Waiver configuration syncs to the draft store via useWaiverSync:
+
+`	ypescript
+penalty_waiver: {
+  type: captcha,
+  config: { count: 5, difficulty: medium },
+  deadline_minutes: 60
+}
+`
+
+---
+
+## Waiver Lifecycle
+
+When a commitment fails, the waiver challenge is offered. A durable Convex scheduled function (the penalty bomb) is armed with the deadline. The only way to defuse it is by completing the challenge, which calls ctx.scheduler.cancel(penalty_job_id).

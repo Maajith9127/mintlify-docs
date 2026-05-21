@@ -1,8 +1,39 @@
 ---
 title: Validation
-description: Runtime validation for task drafts and time slots using Zod.
+description: Runtime validation for task drafts and time slots.
 ---
 
 # Validation
 
-*Detailed documentation coming soon.*
+The Validation module (lib/validation/) provides runtime validation for task drafts before they are submitted to the Triple-Write Orchestrator.
+
+---
+
+## Validation Files
+
+| File | Purpose |
+| :--- | :--- |
+| 	askDraft.ts | Validates the complete TaskDraft object before commit |
+| 	imeSlot.ts | Validates individual time slot configurations |
+| index.ts | Barrel export and validation orchestration |
+
+---
+
+## Task Draft Validation
+
+The alidateTaskDraft() function checks:
+- Title is non-empty
+- At least one time window is configured
+- All time windows have valid start/end times (start before end)
+- If location conditions exist, GPS coordinates are valid
+- If penalty is configured, required fields are present
+- If waiver is configured, deadline is positive
+
+---
+
+## Time Slot Validation
+
+The alidateTimeSlot() function checks:
+- Start time is before end time
+- Time window does not overlap with existing windows on the same day
+- Slot-level conditions (if attached) have valid configurations

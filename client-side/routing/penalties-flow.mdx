@@ -5,4 +5,39 @@ description: Embarrassing photo, email, money, and direct commit penalty sub-scr
 
 # Penalties Configuration
 
-*Detailed documentation coming soon.*
+The (penalties) route group contains sub-screens for configuring each penalty type. Penalties are the consequences that fire when a user fails a commitment.
+
+---
+
+## Penalty Types
+
+| Type | File | Configuration |
+| :--- | :--- | :--- |
+| **Embarrassing Photo** | embarrassing-photo.tsx | Camera capture or gallery selection of the photo to send |
+| **Send Email** | email-setup.tsx | Recipient email, subject line, and message body |
+| **Send Money** | money.tsx | Amount selection and payment method |
+| **Direct Commit** | (via hub) | App block penalty that blocks favorite apps for a duration |
+
+---
+
+## State Synchronization
+
+Penalty configuration is synced to the draft store via usePenaltySync:
+
+`	ypescript
+// The penalty object on the draft store
+penalty: {
+  type: embarrassing_photo,
+  config: {
+    channel: email,
+    emailTo: friend@example.com,
+    photoUrl: file:///captured_photo.jpg
+  }
+}
+`
+
+---
+
+## Immutable Penalty Snapshots
+
+When the user finally commits, the penalty configuration is frozen onto each generated task instance. Even if the user later edits the parent task's penalty settings, existing instances enforce the original contract. This prevents retroactive manipulation.

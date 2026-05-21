@@ -5,4 +5,38 @@ description: Background hook that pulls deltas from Convex and feeds them to the
 
 # useHydrationSync
 
-*Detailed documentation coming soon.*
+The useHydrationSync hook (hooks/useHydrationSync.ts) is the background synchronization engine that keeps the local SQLite database in sync with the Convex cloud backend.
+
+---
+
+## Lifecycle
+
+This hook is mounted once via the invisible HydrationEngine component at the root of the app tree. It runs continuously, monitoring authentication state and triggering sync cycles.
+
+---
+
+## Sync Trigger Conditions
+
+| Trigger | Behavior |
+| :--- | :--- |
+| **App launch** | Checks for sync token; if missing, enters Amnesia Mode (full download) |
+| **Foreground resume** | Monitors useAppStore.isActive; triggers delta sync on resume |
+| **Authentication change** | Re-syncs when session state changes |
+
+---
+
+## Amnesia Mode
+
+If the sync token is missing (cleared during Nuke and Pave or first install), the hook fetches a complete payload from Convex with no timestamp filter. This rebuilds the entire local database from scratch.
+
+---
+
+## Manual Resync Awareness
+
+Before running, the hook checks syncLock.isManualResyncActive. If a manual resync is in progress, the hook gracefully defers to avoid fighting for the lock.
+
+---
+
+## Post-Sync Actions
+
+After successful delta ingestion, the hook triggers scheduleNextAlarm() to re-arm the hardware AlarmManager with the latest instance schedule.

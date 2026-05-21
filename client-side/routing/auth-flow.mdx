@@ -5,4 +5,43 @@ description: Sign-in, welcome, and OAuth callback screens.
 
 # Authentication Flow
 
-*Detailed documentation coming soon.*
+The authentication flow consists of three screens that gate access to the protected (main) route group.
+
+---
+
+## Screen Sequence
+
+`mermaid
+flowchart LR
+    A[index.tsx (Onboarding)] --> B[signin.tsx]
+    B --> C[welcome.tsx]
+    C --> D[(main)/commits.tsx]
+    D -.->|Sign Out| B
+`
+
+---
+
+## index.tsx -- The Cold Start Screen
+
+This is the atmospheric landing page shown on first launch. It performs a session check via uthClient.useSession():
+
+- **If session exists and user is at root (/):** Immediately redirects to /(main)/commits via outer.replace().
+- **If no session:** Renders the branded onboarding view with Reanimated entrance animations (FadeInDown, ZoomIn, FadeInUp) and a primary Initialize Session button.
+- **Pathname guard:** Redirect only fires when pathname === /, preventing accidental stack resets when the app re-mounts from background while deep in sub-screens.
+
+---
+
+## signin.tsx -- The Sign-In Screen
+
+A minimal screen that renders the AuthForm component over a programmatic SVG gradient background. The AuthForm handles both email/password and Google OAuth via Better Auth.
+
+---
+
+## welcome.tsx -- Post-Authentication Landing
+
+Shown after successful authentication. Displays the user's name from the active session and provides two actions:
+
+| Action | Behavior |
+| :--- | :--- |
+| **Get Started** | Routes to /(main)/commits |
+| **Sign Out** | Calls uthClient.signOut() and GoogleSignin.signOut(), then replaces the route with /(auth)/signin |

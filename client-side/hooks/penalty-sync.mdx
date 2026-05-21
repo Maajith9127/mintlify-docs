@@ -5,4 +5,10 @@ description: Syncs penalty configuration from the wizard to the draft store.
 
 # usePenaltySync
 
-*Detailed documentation coming soon.*
+The usePenaltySync hook (hooks/commits/usePenaltySync.ts) synchronizes the penalty configuration between the (penalties) route group screens and the useTaskDraftStore.
+
+---
+
+## Sync Direction
+
+The hook reads penalty state from the sub-screens and writes it back to the draft store's penalty field. This keeps the wizard hub in sync with the penalty configuration screens.

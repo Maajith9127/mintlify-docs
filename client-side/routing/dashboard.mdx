@@ -5,4 +5,52 @@ description: The bottom tab navigator: Commits, Schedules, Notifications, Preset
 
 # Dashboard and Main Tabs
 
-*Detailed documentation coming soon.*
+The (main)/_layout.tsx is the authenticated hub of the application. It manages three primary responsibilities: global navigation, singleton modals, and draft state initialization.
+
+---
+
+## Tab Structure
+
+The bottom tab navigator renders five screens using a custom BottomTabBar component:
+
+| Tab | Screen File | Purpose |
+| :--- | :--- | :--- |
+| **Commits** | commits.tsx | Active commitments list with heterogeneous FlatList |
+| **Schedules** | schedules.tsx | Calendar grid with CalendarKit integration |
+| **Presets** | presets.tsx | Location, blocklist, and rule preset management |
+| **Alerts** | 
+otifications.tsx | Upcoming, Waivers, and Verified sub-tabs |
+| **Profile** | profile.tsx | Settings, resync, account management |
+
+<Info>
+The Schedules tab is configured with lazy: false, meaning CalendarKit pre-loads in the background during app startup for instantaneous tab transitions.
+</Info>
+
+---
+
+## Global Sticky Header
+
+The layout renders a unified sticky header bar that dynamically adapts its title and actions based on the current pathname:
+
+- **Commits:** Shows CommitT brand title
+- **Schedules:** Shows the current month name with a dropdown chevron that opens the DatePickerModal
+- **Presets / Alerts / Profile:** Shows the respective section title
+
+---
+
+## Singleton Modals
+
+Two modals live at the layout level so any tab can trigger them via Zustand without re-rendering individual screen components:
+
+- **EventDetailModal** -- Self-contained modal that reads selectedEventId from the CalendarStore. Protected by a module-level singleton guard to prevent Expo Router from creating duplicates during Stack transitions.
+- **DatePickerModal** -- Date selection overlay for the Schedules screen.
+
+---
+
+## The Add New Flow
+
+When the user taps the header Add button, the layout:
+
+1. Calls esetDraft() on useTaskDraftStore to clear any stale wizard state
+2. Sets ssigner_id and ssignee_id to the current session user
+3. Routes to /(create-commit)/final (the wizard hub)

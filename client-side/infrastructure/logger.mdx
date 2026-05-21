@@ -5,4 +5,43 @@ description: Console hijack system with persistent daily log files on disk.
 
 # Logger
 
-*Detailed documentation coming soon.*
+The Logger (lib/logger.ts) is a production-grade async logging system that intercepts all console output and writes it to persistent daily log files on disk.
+
+---
+
+## Architecture
+
+The Logger operates in tandem with the native LogcatRecorder module:
+
+| Layer | File Pattern | Content |
+| :--- | :--- | :--- |
+| **JS Logger** (this module) | commit-js-YYYY-MM-DD.log | Structured logs with caller info and JSON data |
+| **Native LogcatRecorder** | commit-logcat-YYYY-MM-DD.log | Raw Android system logcat (all native and JS) |
+
+---
+
+## Console Hijack
+
+The installPolyfill() method replaces console.log, console.warn, and console.error with interceptors that both call the original console method and queue the log entry for disk persistence:
+
+`	ypescript
+Logger.installPolyfill(); // Called once in _layout.tsx before providers mount
+`
+
+---
+
+## Auto-Tracing
+
+Every log entry includes automatic caller detection by parsing the JavaScript call stack. The logger extracts the source file and line number (e.g., sync-engine:128) from the Error stack trace.
+
+---
+
+## Daily File Rotation
+
+One log file per day. No auto-rotation cap -- files grow until explicitly cleared via Logger.clear() or Logger.clearAll(). Daily files stay small enough (~1-5MB) to avoid OOM during the read-and-append pattern.
+
+---
+
+## Async Queue
+
+Log entries are queued in memory and flushed to disk in batches by a background worker. If a disk write is in progress, new entries accumulate in the queue until the current write completes. This prevents blocking the UI thread.

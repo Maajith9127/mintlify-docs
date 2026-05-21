@@ -5,4 +5,27 @@ description: Location, blocklist, and rule presets hydrated from Convex.
 
 # Preset Store
 
-*Detailed documentation coming soon.*
+The usePresetStore holds all saved presets fetched from the Convex backend. It is populated once at the wizard layout mount via usePresetHydration().
+
+---
+
+## State Shape
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| locationPresets | LocationPreset[] | Saved places with GPS coordinates and radius |
+| digitalPresets | DigitalPreset[] | Saved app/website blocking lists |
+| ulePresets | RulePreset[] | Saved verification configurations |
+| isHydrated | oolean | Whether the initial fetch has completed |
+
+---
+
+## Hydration Strategy
+
+Presets are fetched once when the (create-commit)/_layout.tsx mounts. The isHydrated flag prevents redundant fetches on subsequent navigations within the wizard flow. This guarantees zero loading spinners on spoke screens.
+
+---
+
+## Usage in Wizard
+
+Spoke screens read from the preset store to display selectable preset lists. When the user taps a preset, its data is copied into the appropriate slot on useTaskDraftStore.

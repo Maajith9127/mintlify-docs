@@ -5,4 +5,18 @@ description: Global foreground/background state for HydrationSync triggers.
 
 # App Store
 
-*Detailed documentation coming soon.*
+The useAppStore is a minimal global store that tracks the application's foreground/background state.
+
+---
+
+## State Shape
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| isActive | oolean | Whether the app is in the foreground |
+
+---
+
+## Usage
+
+The HydrationSync engine monitors this flag. When the app transitions from background to foreground (isActive flips to 	rue), it triggers a delta sync to fetch any changes that occurred while the app was suspended.

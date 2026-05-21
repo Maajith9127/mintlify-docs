@@ -5,4 +5,42 @@ description: Singleton Promise-chain mutex serializing all database writes.
 
 # Sync Lock Mutex
 
-*Detailed documentation coming soon.*
+The SyncLock (lib/sync-lock.ts) is a singleton Promise-chain mutex that serializes all database writes and hardware alarm sync triggers.
+
+---
+
+## Why It Exists
+
+SQLite via expo-sqlite is a single-writer database. If Background Hydration and a User Saga attempt concurrent transactions, the native bridge throws SQLITE_BUSY or SQLITE_LOCKED errors.
+
+---
+
+## How It Works
+
+Operations are chained onto a single Promise. Each caller waits for all preceding callers to finish:
+
+`	ypescript
+const result = await syncLock.execute(
+  Saga:CreateCommitment,
+  async () => { /* database writes */ },
+  15_000 // timeout
+);
+`
+
+---
+
+## Timeout Circuit Breaker
+
+Every lock holder has a hard time limit (default: 30 seconds). If exceeded, the lock is forcibly released via Promise.race. The timed-out operation's result is silently discarded.
+
+---
+
+## Manual Resync Awareness
+
+The isManualResyncActive flag prevents HydrationSync from fighting the Manual Resync saga for the lock, breaking the Loop of Doom deadlock pattern.
+
+---
+
+## Cold Boot Reset
+
+On app startup, syncLock.reset() clears any stale state from a prior crash. Required for Android ROMs that keep the process alive after swipe-kill when an Accessibility Service is active.

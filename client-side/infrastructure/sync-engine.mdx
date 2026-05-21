@@ -5,4 +5,45 @@ description: Delta payload ingestion with Freshness Guard and corruption recover
 
 # Sync Engine
 
-*Detailed documentation coming soon.*
+The Sync Engine (lib/sync-engine.ts) receives delta payloads from the Convex backend and atomically upserts them into the local SQLite cache.
+
+---
+
+## Delta Payload
+
+`	ypescript
+interface DeltaPayload {
+  tasks: any[];       // Tasks modified since last sync
+  instances: any[];   // Instances modified since last sync
+  sync_token: number; // New watermark for next cycle
+}
+`
+
+The sync token is stored in expo-secure-store (encrypted), not in SQLite.
+
+---
+
+## Freshness Guard
+
+The Freshness Guard prevents background sync from overwriting fresh user edits with stale cloud data. It operates at two levels:
+
+**Task-level:** Compares updated_at timestamps. If local is newer, the task AND its child instances are skipped.
+
+**Instance-level:** Checks the is_manual_edit flag. If the local instance has been manually edited but the incoming payload does not reflect that, the incoming data is discarded.
+
+---
+
+## Atomic Transaction
+
+All writes are wrapped in db.withTransactionAsync(). The sync token is written outside the transaction, after success. If the transaction fails, the token is not updated, guaranteeing at-least-once delivery.
+
+---
+
+## Corruption Recovery
+
+If the transaction throws malformed or disk I/O errors, the engine:
+1. Purges all data records
+2. Clears the sync token
+3. Alerts the user
+4. Force-exits the app
+5. On next launch, Amnesia Mode triggers a full re-sync

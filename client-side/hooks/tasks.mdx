@@ -5,4 +5,21 @@ description: Reads committed tasks from local SQLite for the Dashboard.
 
 # useTasks
 
-*Detailed documentation coming soon.*
+The useTasks hook (hooks/commits/useTasks.ts) reads committed tasks from the local SQLite database and populates useTaskStore.
+
+---
+
+## Query
+
+The hook runs a SQLite query against the local_tasks table, joining with 	ask_instances to compute active instance counts and upcoming verification times.
+
+---
+
+## Refresh Strategy
+
+The hook re-runs its query when:
+- The component mounts
+- The HydrationSync engine completes a delta ingestion
+- A task is created, edited, or deleted via useTaskActions
+
+This ensures the Dashboard always reflects the latest local state.

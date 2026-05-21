@@ -5,4 +5,22 @@ description: Dark-mode theming and design token management.
 
 # App Theme Context
 
-*Detailed documentation coming soon.*
+The AppThemeProvider (contexts/app-theme-context.tsx) provides dark-mode theming and design token management across the application.
+
+---
+
+## Design Tokens
+
+The theme context consumes the centralized THEME constant from constants/theme.ts:
+
+| Token Category | Examples |
+| :--- | :--- |
+| **Colors** | primary, pureBlack, surface, 	extMain, success, danger |
+| **Spacing** | sm, md, lg, xl, xxl, xxxl |
+| **Typography** | size.sm, size.md, size.lg, size.xl |
+
+---
+
+## Dark-Only Design
+
+CommitT uses a pure black (#000000) dark theme exclusively. There is no light mode. This reduces OLED power consumption and provides maximum contrast for the enforcement overlay screens.

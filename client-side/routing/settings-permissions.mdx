@@ -5,4 +5,42 @@ description: The 8-point hardware permission audit screen.
 
 # Settings and Permissions
 
-*Detailed documentation coming soon.*
+The (settings)/permissions.tsx screen is the 8-point hardware permission audit that gates commitment creation.
+
+---
+
+## Permission Checklist
+
+The screen renders eight ConditionCard components, each backed by the usePermissions hook:
+
+| Permission | Android API | Purpose |
+| :--- | :--- | :--- |
+| **Camera** | ndroid.permission.CAMERA | Live photo and video verification |
+| **Location** | ACCESS_FINE_LOCATION | Geofencing and location-based tasks |
+| **Notifications** | POST_NOTIFICATIONS | Reminders and randomized check-ins |
+| **Alarms** | SCHEDULE_EXACT_ALARM | Wake-up commitments and schedules |
+| **Battery Optimization** | REQUEST_IGNORE_BATTERY_OPTIMIZATIONS | Background task execution |
+| **Appear On Top** | SYSTEM_ALERT_WINDOW | Full-screen verification overlay |
+| **Accessibility** | AccessibilityService | App blocking and strict mode enforcement |
+| **Device Admin** | DevicePolicyManager | Uninstall protection |
+
+---
+
+## Fail-Closed Color Coding
+
+Each permission card uses state-based color mapping:
+
+- **Green** -- Permission granted, enforcement-ready
+- **Red** -- Permission missing, fail-closed state
+
+---
+
+## Deep-Link Settings
+
+Tapping a permission card calls Enforcement.openSettings(type) from the enforcement-module native bridge, which deep-links directly to the relevant Android Settings page for that specific permission.
+
+---
+
+## Commitment Gate
+
+The inal.tsx hub screen checks all 8 permissions before allowing the user to submit. If any permission is missing, the user is forced to this audit page before being allowed to commit.

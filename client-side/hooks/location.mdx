@@ -5,4 +5,15 @@ description: GPS position tracking and permission management.
 
 # useLocation
 
-*Detailed documentation coming soon.*
+The useLocation hook (hooks/useLocation.ts) manages GPS position tracking and location permission state.
+
+---
+
+## Capabilities
+
+| Feature | Implementation |
+| :--- | :--- |
+| **Permission Check** | Uses expo-location to request ACCESS_FINE_LOCATION |
+| **Current Position** | One-shot getCurrentPositionAsync() for map centering |
+| **Continuous Tracking** | watchPositionAsync() at 1Hz for real-time verification |
+| **Accuracy Filtering** | Discards readings with accuracy > 50m to prevent GPS drift |

@@ -5,4 +5,19 @@ description: Generates calendar event blocks from task instances.
 
 # useCalendarEvents
 
-*Detailed documentation coming soon.*
+The useCalendarEvents hook (hooks/calendar/useCalendarEvents.ts) transforms raw 	ask_instances rows from SQLite into CalendarKit-compatible event objects for the Schedules grid.
+
+---
+
+## Transformation Pipeline
+
+1. Queries 	ask_instances within the visible date range from useCalendarRange
+2. Maps each instance to a CalendarKit event object with start, end, 	itle, and color
+3. Groups overlapping events for stacked rendering
+4. Returns the event array consumed by the CalendarKit component
+
+---
+
+## Performance
+
+The hook memoizes the event array based on the visible date range and instance data. Re-computation only occurs when the date range scrolls or instance data changes.

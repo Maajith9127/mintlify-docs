@@ -5,4 +5,14 @@ description: Drives the active verification session: GPS polling, photo capture,
 
 # useVerificationEngine
 
-*Detailed documentation coming soon.*
+The useVerificationEngine hook (hooks/commits/useVerificationEngine.ts) drives the real-time verification session when a commitment window opens.
+
+---
+
+## Responsibilities
+
+1. **GPS Polling** -- Requests location updates at 1Hz intervals via useLocation
+2. **Geofence Check** -- Compares current coordinates against the commitment's geofence radius
+3. **Photo Capture** -- Manages camera state for verification photo
+4. **Status Transition** -- Updates instance status from pending to proceeding to completed or ailed
+5. **Triple-Write** -- Each status change goes through the orchestrator to persist across all three systems

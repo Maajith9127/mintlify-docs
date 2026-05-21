@@ -5,4 +5,64 @@ description: The Saga-pattern engine: Convex, SQLite, and AlarmManager in sequen
 
 # Triple-Write Orchestrator
 
-*Detailed documentation coming soon.*
+The TripleWriteOrchestrator (lib/triple-write-orchestrator.ts) is a Saga-pattern implementation that coordinates multi-step write operations with automatic rollback on failure.
+
+---
+
+## The Three Steps
+
+Every user action that modifies data must write to three independent systems in strict sequence:
+
+| Step | Target | Timeout | Compensating Function |
+| :--- | :--- | :--- | :--- |
+| 1 | Convex Cloud Mutation | 15s | Convex rollback mutation |
+| 2 | Local SQLite Write | 15s | SQLite delete |
+| 3 | Hardware Alarm Sync | 15s | None (idempotent) |
+
+---
+
+## Usage
+
+`	ypescript
+const saga = new TripleWriteOrchestrator(context);
+
+saga
+  .addStep(Convex Mutation,
+    async (ctx) => await convexMutation(ctx),
+    async (ctx, result) => await convexRollback(result)
+  )
+  .addStep(Local SQLite Write,
+    async (ctx, prev) => await sqliteInsert(prev),
+    async (ctx, result) => await sqliteDelete(result)
+  )
+  .addStep(Hardware Alarm Sync,
+    async (ctx) => await scheduleNextAlarm()
+  );
+
+const { success, error, rollbackFailed } = await saga.execute();
+`
+
+---
+
+## Per-Step Timeouts
+
+Each step races against its own timeout via Promise.race. If a Convex mutation hangs due to a slow network, the timeout fires and the orchestrator skips to the rollback phase.
+
+---
+
+## Rollback Behavior
+
+Steps are rolled back in reverse order. If Step 2 fails, Step 1's compensating function runs. If a compensating function itself fails, the ollbackFailed flag is set, signaling HydrationSync to perform a full reconciliation on the next cycle.
+
+---
+
+## Saga Tracking
+
+Each orchestrator instance generates a unique saga ID for log correlation:
+
+`
+[Saga:X7K2M1] Initiating 3-stage sequence...
+[Saga:X7K2M1] Phase: Convex Mutation (timeout: 15000ms)
+[Saga:X7K2M1] Phase: Local SQLite Write (timeout: 15000ms)
+[Saga:X7K2M1] SUCCESS: All layers committed.
+`

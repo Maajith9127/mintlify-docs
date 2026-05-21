@@ -5,4 +5,27 @@ description: Better Auth client configuration and session management.
 
 # Auth Client
 
-*Detailed documentation coming soon.*
+The Auth Client (lib/auth-client.ts) configures the Better Auth client for session management and OAuth flows.
+
+---
+
+## Configuration
+
+`	ypescript
+import { createAuthClient } from @better-auth/expo;
+
+export const authClient = createAuthClient({
+  baseURL: env.EXPO_PUBLIC_AUTH_URL,
+});
+`
+
+---
+
+## Usage
+
+The uthClient provides hooks consumed throughout the app:
+- uthClient.useSession() -- Returns the current session data and loading state
+- uthClient.signOut() -- Clears the session and redirects to sign-in
+- uthClient.signIn.social() -- Initiates Google OAuth flow
+
+The session user ID is used to set ssigner_id and ssignee_id on the task draft when creating new commitments.

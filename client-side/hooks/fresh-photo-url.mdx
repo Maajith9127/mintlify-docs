@@ -5,4 +5,19 @@ description: Generates time-limited signed URLs for verification photo uploads.
 
 # useFreshPhotoUrl
 
-*Detailed documentation coming soon.*
+The useFreshPhotoUrl hook (hooks/useFreshPhotoUrl.ts) generates time-limited signed URLs for verification photo uploads to Convex Storage.
+
+---
+
+## Usage
+
+When the penalty type is embarrassing_photo, this hook generates a fresh upload URL before the Triple-Write executes. The URL is time-limited to prevent replay attacks.
+
+---
+
+## Flow
+
+1. Requests a signed upload URL from the Convex backend
+2. Uploads the photo file to Convex Storage
+3. Returns the storage ID that is embedded in the penalty config
+4. The storage ID is frozen onto the task instance as part of the immutable penalty snapshot

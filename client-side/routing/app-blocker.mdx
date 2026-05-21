@@ -5,4 +5,49 @@ description: App/website selection with AppListerModule native bridge and search
 
 # App Blocker Screen
 
-*Detailed documentation coming soon.*
+The app blocker screen (choose.tsx) allows the user to select which apps and websites should be blocked during a commitment window.
+
+---
+
+## Three-Tab Interface
+
+The screen presents three tabs:
+
+| Tab | Source | Purpose |
+| :--- | :--- | :--- |
+| **Apps** | AppListerModule native bridge | Lists all installed apps on the device with icons and package names |
+| **Websites** | Manual input | Text input for adding website URLs to the blocklist |
+| **Search** | Routes to searchpac.tsx | Full-text search across installed packages |
+
+---
+
+## Native Bridge Integration
+
+The app list is fetched via the AppListerModule Kotlin native module, which uses Android's PackageManager to enumerate all installed packages at high speed via JSI:
+
+`	ypescript
+const { apps } = useAppDiscovery();
+// Returns: [{ packageName: com.instagram.android, label: Instagram, icon: base64... }, ...]
+`
+
+---
+
+## State Management
+
+Selected apps and websites are written to the draft store via setBlocklist() or setSlotBlocklist():
+
+`	ypescript
+setSlotBlocklist(slotIndex, {
+  apps: [com.instagram.android, com.twitter.android],
+  websites: [youtube.com, reddit.com],
+  id: presetId // Optional: reference to saved preset
+});
+`
+
+If both arrays become empty, the digital commitment condition is automatically removed from the draft.
+
+---
+
+## Preset Integration
+
+Users can select a saved blocklist preset from usePresetStore for one-tap configuration. The preset ID is stored alongside the blocklist data for toggle resolution in the UI.

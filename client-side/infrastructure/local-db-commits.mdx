@@ -5,4 +5,29 @@ description: Specialized SQLite transaction boundaries for task CRUD.
 
 # Local DB Commits
 
-*Detailed documentation coming soon.*
+The local-db-commits.ts module is the Vault Guard -- a specialized repository that handles all task-level CRUD operations against the local SQLite database.
+
+---
+
+## Unified Identity Strategy
+
+To prevent Split-Brain duplication, the module uses the official Convex _id as the local primary key. This ensures that the Triple-Write Saga and the Hydration Engine always target the same physical rows.
+
+---
+
+## Core Operations
+
+| Function | Purpose | Transaction? |
+| :--- | :--- | :--- |
+| insertTaskToLocalDb() | Creates a new task with all projected instances | Atomic |
+| updateTaskInLocalDb() | Updates task master rules and overwrites future instances | Atomic |
+| updateStrictModeInLocalDb() | Activates/extends Strict Mode on task and instances | Atomic |
+| updateInstanceInLocalDb() | Updates a single instance (status, checkpoints, waiver) | Single statement |
+| 
+ukeLocalDb() | Deletes all data from both tables for testing/re-sync | Atomic |
+
+---
+
+## Instance Trajectory Sync
+
+When a task is created or updated, the module synchronizes the full future instance trajectory using db.prepareAsync() for high-performance batched insertion. Manually-edited instances (is_manual_edit = 1) are protected from the purge during updates.

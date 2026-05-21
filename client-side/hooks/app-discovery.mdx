@@ -5,4 +5,20 @@ description: Fetches installed apps from the AppListerModule native bridge.
 
 # useAppDiscovery
 
-*Detailed documentation coming soon.*
+The useAppDiscovery hook (hooks/useAppDiscovery.ts) fetches the list of all installed applications from the Android device via the AppListerModule native bridge.
+
+---
+
+## Native Bridge
+
+The hook calls AppLister.getInstalledApps() which uses Android's PackageManager to enumerate all installed packages. Each package includes:
+
+- packageName -- e.g., com.instagram.android
+- label -- e.g., Instagram
+- icon -- Base64-encoded app icon
+
+---
+
+## Performance
+
+The app list is cached in component state after the first fetch. The native module uses JSI for synchronous, high-performance data transfer to avoid the React Native bridge serialization overhead.

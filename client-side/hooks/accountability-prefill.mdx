@@ -5,4 +5,14 @@ description: Auto-populates penalty and waiver fields from saved presets.
 
 # useAccountabilityPrefill
 
-*Detailed documentation coming soon.*
+The useAccountabilityPrefill hook (hooks/useAccountabilityPrefill.ts) auto-populates penalty and waiver fields on the task draft from saved accountability presets.
+
+---
+
+## Flow
+
+1. Checks if the user has a saved accountability preset in Convex
+2. If found, pre-fills the penalty and penalty_waiver fields on the draft store
+3. Sets isAccountabilityPrefilled flag to 	rue to prevent re-population on re-renders
+
+This provides a zero-friction experience for users who always use the same penalty configuration.

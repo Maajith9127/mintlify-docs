@@ -5,4 +5,25 @@ description: Recovery UI displayed during database reconstruction.
 
 # HealOverlay
 
-*Detailed documentation coming soon.*
+The HealOverlay (components/ui/modal/HealOverlay.tsx) is a full-screen recovery UI that appears during database reconstruction operations.
+
+---
+
+## Trigger
+
+The overlay renders when useHealStore.isHealing is 	rue. This is set by the Manual Resync saga and the Nuke and Pave recovery protocol.
+
+---
+
+## Display
+
+The overlay shows:
+- A progress bar driven by useHealStore.progress
+- A status message (e.g., Rebuilding schema..., Downloading from cloud...)
+- A warning that the app should not be closed during reconstruction
+
+---
+
+## User Safety
+
+While the overlay is visible, all navigation and interaction is blocked. This prevents the user from triggering writes against a partially-rebuilt database.

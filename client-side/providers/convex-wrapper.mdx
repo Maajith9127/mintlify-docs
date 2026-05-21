@@ -5,4 +5,28 @@ description: Manages Convex client lifecycle with graceful teardown on resurrect
 
 # ConvexClientWrapper
 
-*Detailed documentation coming soon.*
+The ConvexClientWrapper is an internal component in _layout.tsx that manages the lifecycle of the ConvexReactClient.
+
+---
+
+## Lifecycle Management
+
+The client is created via useMemo keyed on the iteration counter from ResurrectionProvider:
+
+`	ypescript
+const convexClient = useMemo(() => {
+  return new ConvexReactClient(convexUrl, { unsavedChangesWarning: false });
+}, [iteration]);
+`
+
+---
+
+## Graceful Teardown
+
+A useRef stores the previous client instance. On each iteration change, the previous client is explicitly closed via .close() before the new client takes over. This prevents orphaned WebSocket connections and file descriptor leaks.
+
+---
+
+## Hardware-Specific Fix
+
+On devices with slow eMMC storage (e.g., Lenovo K12 Note), abandoning a client without calling .close() leaves ghost handles that overlap with the new client's handles on commit.db, corrupting the WAL journal. Samsung's faster UFS storage masks this race condition.

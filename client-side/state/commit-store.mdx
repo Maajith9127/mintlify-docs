@@ -5,4 +5,24 @@ description: Active commitment list selection, menu, and deletion state.
 
 # Commit Store
 
-*Detailed documentation coming soon.*
+The useCommitStore manages the Dashboard's commitment list interaction state.
+
+---
+
+## State Shape
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| selectedTaskId | string \| null | Currently selected task for context menu |
+| isMenuVisible | oolean | Whether the action menu is shown |
+| isDeleteModalVisible | oolean | Whether the deletion confirmation modal is shown |
+| isDeletingTask | oolean | Loading state during task deletion |
+
+---
+
+## Key Actions
+
+- selectTask(id) -- Highlights a task and opens the context menu
+- clearSelection() -- Dismisses the context menu
+- showDeleteModal() -- Opens the deletion confirmation dialog
+- setDeletingTask(state) -- Tracks the async deletion progress

@@ -5,4 +5,38 @@ description: Calendar grid rendering, event interaction, and drag-and-drop.
 
 # Calendar and Schedules
 
-*Detailed documentation coming soon.*
+The Schedules tab (schedules.tsx) renders a weekly calendar grid using CalendarKit with full drag-and-drop support for task instance management.
+
+---
+
+## CalendarKit Integration
+
+The calendar displays task instances as colored event blocks on a time grid. Events are generated from local SQLite data via the useCalendarEvents hook, which maps 	ask_instances rows into CalendarKit-compatible event objects.
+
+---
+
+## Key Hooks
+
+| Hook | Purpose |
+| :--- | :--- |
+| useCalendarEvents | Generates event blocks from task instances for the visible date range |
+| useCalendarRange | Computes the visible date range based on current scroll position |
+| useCalendarStore | Manages selected date, view mode, and selected event state |
+
+---
+
+## Event Interaction
+
+Tapping an event sets selectedEventId in the CalendarStore, which triggers the EventDetailModal mounted at the (main)/_layout.tsx level. The modal displays full instance details including location map, penalty info, and verification status.
+
+---
+
+## Drag and Drop
+
+Events can be dragged vertically to change their time and horizontally to change their day. The drag operation updates the task instance in real-time via useTaskActions, triggering a Triple-Write to persist the change across Convex, SQLite, and the hardware AlarmManager.
+
+---
+
+## Architectural Decision: freezeOnBlur
+
+The tab navigator has reezeOnBlur: false specifically because of CalendarKit. When React Native freezes a component tree, it severs Reanimated gesture listener bindings. Upon thawing, native gestures fail to lock parent ScrollViews, causing events to float while the background scrolls. Disabling freeze prevents this class of interaction bugs.

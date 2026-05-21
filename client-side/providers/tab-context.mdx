@@ -5,4 +5,20 @@ description: Bottom tab navigator state and inter-tab communication.
 
 # Tab Context
 
-*Detailed documentation coming soon.*
+The TabContext (contexts/TabContext.tsx) provides state management for the bottom tab navigator and enables inter-tab communication.
+
+---
+
+## Capabilities
+
+| Feature | Description |
+| :--- | :--- |
+| **Active Tab Tracking** | Exposes the currently active tab name for header configuration |
+| **Tab Change Events** | Allows components to subscribe to tab switch events |
+| **Cross-Tab Actions** | Enables actions like jump to Schedules tab and scroll to date |
+
+---
+
+## Usage
+
+The (main)/_layout.tsx uses this context to dynamically configure the global sticky header based on which tab is currently active. This avoids prop-drilling header configuration through the tab navigator.

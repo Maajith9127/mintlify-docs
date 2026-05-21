@@ -5,4 +5,20 @@ description: Isolated editing state for preset CRUD without affecting the wizard
 
 # Preset Edit Store
 
-*Detailed documentation coming soon.*
+The usePresetEditStore provides isolated state for the (edit-preset) route group. It is completely separate from usePresetStore and useTaskDraftStore.
+
+---
+
+## Design Decision
+
+Preset editing must not interfere with an in-progress wizard flow. If the user is mid-way through creating a commitment, navigates to edit a preset, and then returns, the wizard state must be exactly as they left it. The isolated store guarantees this separation.
+
+---
+
+## State Shape
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| editingPreset | Preset \| null | The preset currently being edited |
+| isNew | oolean | Whether creating a new preset or editing existing |
+| isDirty | oolean | Whether unsaved changes exist |

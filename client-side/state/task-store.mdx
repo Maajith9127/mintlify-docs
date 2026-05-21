@@ -5,4 +5,19 @@ description: Read-only SQLite task cache for the Dashboard.
 
 # Task Store
 
-*Detailed documentation coming soon.*
+The useTaskStore holds the cached list of tasks fetched from the local SQLite database. It is a lightweight read-only store populated by the useTasks hook.
+
+---
+
+## State Shape
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| 	asks | Task[] | Array of tasks from local_tasks table |
+| isLoading | oolean | Whether the initial SQLite query is in progress |
+
+---
+
+## Data Source
+
+Unlike most stores that receive data from user actions, this store is populated by SQLite queries. The useTasks hook reads from the local_tasks table and updates this store, which the Dashboard commits.tsx screen consumes for rendering.

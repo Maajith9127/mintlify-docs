@@ -5,4 +5,21 @@ description: CRUD actions for tasks: delete, edit, move, and strict-mode lock.
 
 # useTaskActions
 
-*Detailed documentation coming soon.*
+The useTaskActions hook (hooks/commits/useTaskActions.ts) provides all CRUD operations for committed tasks. Each action goes through the Triple-Write Orchestrator.
+
+---
+
+## Available Actions
+
+| Action | Triple-Write Steps | Notes |
+| :--- | :--- | :--- |
+| deleteTask(id) | Convex delete, SQLite delete, Re-arm alarms | Checks strict_until before allowing deletion |
+| editTask(id, draft) | Convex update, SQLite update, Re-arm alarms | Preserves manually-edited instances |
+| moveInstance(id, newTime) | Convex update, SQLite update, Re-arm alarms | Used by calendar drag-and-drop |
+| ctivateStrictMode(id, days) | Convex lock, SQLite lock, Re-arm alarms | Sets strict_until on task and all instances |
+
+---
+
+## Strict Mode Guard
+
+Before any edit or delete, the hook checks strict_until on the task. If the timestamp has not passed, the operation is rejected with a user-facing error message.

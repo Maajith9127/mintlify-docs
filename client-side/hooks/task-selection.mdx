@@ -5,4 +5,21 @@ description: Multi-select state for bulk task operations on the Dashboard.
 
 # useTaskSelection
 
-*Detailed documentation coming soon.*
+The useTaskSelection hook (hooks/commits/useTaskSelection.ts) manages multi-select state for bulk task operations on the Dashboard.
+
+---
+
+## Capabilities
+
+| Feature | Description |
+| :--- | :--- |
+| **Toggle Selection** | Tap a task to toggle it in/out of the selection set |
+| **Select All** | Selects all visible tasks |
+| **Clear Selection** | Deselects all tasks |
+| **Bulk Delete** | Deletes all selected tasks via sequential Triple-Writes |
+
+---
+
+## Usage
+
+The Dashboard commits.tsx screen uses this hook to enable long-press multi-select mode with visual selection indicators.

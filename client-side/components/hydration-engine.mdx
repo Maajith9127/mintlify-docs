@@ -5,4 +5,27 @@ description: Invisible root component that runs background sync.
 
 # HydrationEngine
 
-*Detailed documentation coming soon.*
+The HydrationEngine (components/system/HydrationEngine.tsx) is an invisible React component mounted at the root of the app tree inside the ThemeProvider.
+
+---
+
+## Implementation
+
+`	ypescript
+export function HydrationEngine() {
+  useHydrationSync();
+  return null; // Renders nothing -- pure side-effect component
+}
+`
+
+---
+
+## Purpose
+
+This component exists solely to run the useHydrationSync hook at the root level. By mounting it inside the provider tree (after authentication and database providers are available), it ensures continuous background synchronization between the Convex cloud and local SQLite.
+
+---
+
+## Future Enhancement
+
+The component can be extended to render a full-screen blur overlay during Amnesia Mode (complete database rebuild), preventing the user from interacting with stale or empty data.

@@ -5,4 +5,27 @@ description: V12 Instance-Dependent SQLite schema and Nuke and Pave migrations.
 
 # Local Database Schema
 
-*Detailed documentation coming soon.*
+The local database (lib/local-db.ts) defines the V12 Instance-Dependent schema with zero foreign key constraints and a Nuke and Pave migration strategy.
+
+---
+
+## Schema Version 12
+
+Two core tables with no FK constraints:
+
+- **local_tasks** -- Mirror of Convex 	asks collection. Stores recurrence, conditions, penalties, and waivers as JSON columns.
+- **task_instances** -- Individual commitment occurrences. Orphan-safe: the 	ask_id column has no FK constraint, allowing instances to survive parent deletion.
+
+---
+
+## Nuke and Pave
+
+There are no incremental migrations. If PRAGMA user_version does not match DATABASE_VERSION = 12, the entire database is destroyed and rebuilt atomically. The VACUUM command physically reconstructs the file, eliminating ghost WAL boundaries.
+
+---
+
+## Three Recovery Tiers
+
+1. **Surgical Purge** -- DELETE FROM without dropping tables. Preserves file descriptors for the Kotlin Accessibility Service.
+2. **Nuke and Pave** -- Drops all tables, deploys unified schema, runs VACUUM. Requires full re-sync from Convex.
+3. **OS-Level Clear** -- User clears app data through Android Settings. Last resort.

@@ -5,4 +5,22 @@ description: Development-only store for injecting failures and testing resilienc
 
 # Chaos Store
 
-*Detailed documentation coming soon.*
+The useChaosStore is a development-only store used by the ChaosFab floating action button to inject failures and test system resilience.
+
+---
+
+## Capabilities
+
+| Action | Effect |
+| :--- | :--- |
+| **Corrupt Database** | Injects malformed data into SQLite to trigger recovery protocols |
+| **Kill WebSocket** | Closes the Convex client connection to test reconnection |
+| **Simulate Network Drop** | Blocks outbound requests to test offline behavior |
+| **Trigger Resurrection** | Increments the resurrection counter to force a full client rebirth |
+| **Clear Sync Token** | Deletes the SecureStore token to trigger Amnesia Mode |
+
+---
+
+## Safety
+
+This store is only accessible via the (dev)/chaos route, which is excluded from production builds. The ChaosFab button only renders in development mode.
