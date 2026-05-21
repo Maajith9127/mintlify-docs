@@ -1,24 +1,83 @@
 ---
-title: Tab Context
-description: Bottom tab navigator state and inter-tab communication.
+title: "Tab Context"
+description: "Tab navigation state, visit tracking, state persistence, and preload optimization."
 ---
 
 # Tab Context
 
-The TabContext (contexts/TabContext.tsx) provides state management for the bottom tab navigator and enables inter-tab communication.
+**Source:** `contexts/TabContext.tsx` (131 lines)
+
+The TabProvider manages bottom tab navigator state, tracks tab visit history for performance optimization, persists per-tab state across tab switches, and provides analytics data for usage patterns.
 
 ---
 
-## Capabilities
+## Context API
 
-| Feature | Description |
-| :--- | :--- |
-| **Active Tab Tracking** | Exposes the currently active tab name for header configuration |
-| **Tab Change Events** | Allows components to subscribe to tab switch events |
-| **Cross-Tab Actions** | Enables actions like jump to Schedules tab and scroll to date |
+```typescript
+const {
+  visitedTabs,        // Set of tab IDs the user has visited this session
+  markTabVisited,     // Mark a tab as visited (triggers analytics)
+  tabStates,          // Map of saved per-tab state objects
+  saveTabState,       // Persist state for a specific tab
+  getTabState,        // Retrieve saved state for a tab (with 24h expiry)
+  clearTabState,      // Clear saved state for a tab
+  isTabReady,         // Whether the tab system has finished initializing
+  shouldPreload,      // Whether a given tab should be preloaded
+  tabSwitchCount,     // Total number of tab switches this session
+  lastActiveTab,      // ID of the most recently active tab
+} = useTabContext();
+```
 
 ---
 
-## Usage
+## Tab Visit Tracking
 
-The (main)/_layout.tsx uses this context to dynamically configure the global sticky header based on which tab is currently active. This avoids prop-drilling header configuration through the tab navigator.
+The provider initializes with the "commits" tab pre-marked as visited (since it's the default landing tab). Each tab switch calls markTabVisited(), which:
+
+1. Adds the tab ID to the visitedTabs Set
+2. Increments the tabSwitchCount counter
+3. Updates lastActiveTab to the new tab ID
+
+---
+
+## Per-Tab State Persistence
+
+Each tab can save arbitrary state that survives tab switches:
+
+```typescript
+// Save scroll position when leaving the tab
+saveTabState("schedules", { scrollY: 450, selectedDate: "2026-05-21" });
+
+// Restore when returning
+const state = getTabState("schedules");
+if (state) scrollTo(state.scrollY);
+```
+
+State entries are timestamped on save. The getTabState() function automatically expires entries older than 24 hours, clearing stale state that no longer reflects the current data.
+
+---
+
+## Preload Optimization
+
+The shouldPreload() function determines which tabs should eagerly load their content:
+
+```typescript
+const shouldPreload = useCallback((tabId: string) => {
+  return visitedTabs.has(tabId) ||
+         ['commits', 'schedules'].includes(tabId);
+}, [visitedTabs]);
+```
+
+The "commits" and "schedules" tabs are always preloaded. Other tabs are preloaded only after the user has visited them at least once this session.
+
+---
+
+## AppState Integration
+
+The provider listens to React Native's AppState changes. When the app goes to background, it can persist critical tab state to AsyncStorage (currently a placeholder for future implementation).
+
+---
+
+## Initialization
+
+The tab system performs async initialization on mount with a 100ms delay before marking isTabReady as true. Components can gate rendering on this flag to prevent layout jumps during cold start.

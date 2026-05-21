@@ -1,24 +1,58 @@
 ---
 title: "Heal Store"
-description: "HealOverlay recovery UI progress and status tracking."
+description: "Dual-mode recovery state: healing spinner and crash confirmation."
 ---
 
 # Heal Store
 
-The useHealStore controls the HealOverlay -- the recovery UI that appears during database reconstruction.
+**Source:** `stores/useHealStore.ts` (39 lines)
+
+The useHealStore controls the HealOverlay component, managing two distinct recovery states: active healing (blocking spinner) and unrecoverable crash (confirmation modal with nuclear reset).
 
 ---
 
 ## State Shape
 
-| Field | Type | Purpose |
-| :--- | :--- | :--- |
-| isHealing | boolean | Whether a recovery operation is in progress |
-| progress | number | Progress percentage (0-100) |
-| statusMessage | string | Human-readable status (e.g., "Rebuilding schema...") |
+```typescript
+interface HealState {
+  isHealing: boolean;      // Whether a healing operation is in progress
+  message: string;         // Human-readable status message
+  isCrashed: boolean;      // Whether an unrecoverable error has been detected
+  crashMessage: string;    // Error message shown in crash confirmation
+}
+```
 
 ---
 
-## Usage
+## Actions
 
-The HealOverlay component reads from this store and renders a full-screen progress indicator when isHealing is true. This prevents the user from interacting with the app during database reconstruction.
+| Action | Signature | Effect |
+| :--- | :--- | :--- |
+| startHealing | (message?: string) => void | Sets isHealing = true, clears isCrashed, shows spinner overlay |
+| stopHealing | () => void | Sets isHealing = false, dismisses spinner overlay |
+| triggerCrash | (message: string) => void | Sets isCrashed = true, isHealing = false, shows crash confirmation |
+
+---
+
+## Default Messages
+
+When startHealing() is called without a message argument, the default status text is:
+
+> "Cloud save successful. Healing local cache..."
+
+---
+
+## Crash Mode
+
+When triggerCrash() is called, it overrides any active healing state and forces the HealOverlay into crash mode. The crash confirmation modal has a single "OK" button that calls nuclearReset() from the Kotlin recovery-module, restarting the entire app process.
+
+---
+
+## Callers
+
+| Caller | Action | Typical Message |
+| :--- | :--- | :--- |
+| useCommitTask (Triple-Write) | startHealing / stopHealing | "Cloud save successful. Healing local cache..." |
+| Manual Resync saga | startHealing / stopHealing | "Rebuilding database from cloud..." |
+| Sync Engine (corruption) | triggerCrash | "Local sync failed. The app will restart." |
+| Nuke and Pave migration | triggerCrash | "Schema mismatch detected. Rebuilding..." |

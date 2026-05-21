@@ -1,29 +1,75 @@
 ---
-title: HealOverlay
-description: Recovery UI displayed during database reconstruction.
+title: "HealOverlay"
+description: "Recovery UI with dual-mode display: healing spinner and crash confirmation."
 ---
 
 # HealOverlay
 
-The HealOverlay (components/ui/modal/HealOverlay.tsx) is a full-screen recovery UI that appears during database reconstruction operations.
+**Source:** `components/ui/modal/HealOverlay.tsx` (41 lines)
+
+The HealOverlay is a full-screen modal that blocks all user interaction during database reconstruction operations. It operates in two distinct modes driven by the useHealStore.
 
 ---
 
-## Trigger
+## Dual-Mode Display
 
-The overlay renders when useHealStore.isHealing is 	rue. This is set by the Manual Resync saga and the Nuke and Pave recovery protocol.
+The overlay renders one of two states based on the store:
+
+```
+useHealStore
+    │
+    ├── isCrashed === true
+    │       → ConfirmationModal with crash message
+    │       → Single "OK" button
+    │       → Both onConfirm and onCancel call nuclearReset()
+    │
+    └── isHealing === true
+            → ConfirmationModal with loading spinner
+            → Title: message || "Synchronizing device state..."
+            → isLoading: true (shows spinner animation)
+            → Buttons disabled (no-op handlers)
+```
 
 ---
 
-## Display
+## Healing Mode
 
-The overlay shows:
-- A progress bar driven by useHealStore.progress
-- A status message (e.g., Rebuilding schema..., Downloading from cloud...)
-- A warning that the app should not be closed during reconstruction
+Shown during Triple-Write saga operations and Manual Resync. The overlay displays a spinning loader with the current operation status message. Both the confirm and cancel buttons are no-ops, preventing the user from dismissing the modal during an atomic operation.
+
+Triggered by:
+
+```typescript
+useHealStore.getState().startHealing("Cloud save successful. Healing local cache...");
+// ... perform database operations ...
+useHealStore.getState().stopHealing();
+```
 
 ---
 
-## User Safety
+## Crash Mode
 
-While the overlay is visible, all navigation and interaction is blocked. This prevents the user from triggering writes against a partially-rebuilt database.
+Shown when an unrecoverable error is detected. The overlay displays the crash message with a single "OK" button that triggers `nuclearReset()` from the recovery-module:
+
+```typescript
+useHealStore.getState().triggerCrash("Local sync failed. The app will restart.");
+```
+
+The nuclearReset() function from the Kotlin recovery-module performs a full process restart, clearing all in-memory state and triggering Amnesia Mode on the next launch.
+
+---
+
+## Mount Location
+
+The HealOverlay is mounted at the root `_layout.tsx` level alongside the HydrationEngine. Because it sits above the navigation stack, it can block interaction with any screen in the app regardless of the current route.
+
+---
+
+## Store Integration
+
+The overlay reads from useHealStore which exposes three actions:
+
+| Action | Effect |
+| :--- | :--- |
+| startHealing(message?) | Sets isHealing = true, shows spinner modal |
+| stopHealing() | Sets isHealing = false, dismisses modal |
+| triggerCrash(message) | Sets isCrashed = true, shows crash confirmation |

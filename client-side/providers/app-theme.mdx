@@ -1,26 +1,96 @@
 ---
-title: App Theme Context
-description: Dark-mode theming and design token management.
+title: "App Theme Context"
+description: "Uniwind-powered dark-mode theming with Hardened Saffron design tokens."
 ---
 
 # App Theme Context
 
-The AppThemeProvider (contexts/app-theme-context.tsx) provides dark-mode theming and design token management across the application.
+**Source:** `contexts/app-theme-context.tsx` (56 lines) + `constants/theme.ts` (60 lines)
+
+The AppThemeProvider wraps the entire app in a Uniwind-powered theme context, exposing theme state, toggle functions, and the centralized THEME design token constant.
 
 ---
 
-## Design Tokens
+## Context API
 
-The theme context consumes the centralized THEME constant from constants/theme.ts:
+```typescript
+const { currentTheme, isLight, isDark, setTheme, toggleTheme } = useAppTheme();
+```
 
-| Token Category | Examples |
-| :--- | :--- |
-| **Colors** | primary, pureBlack, surface, 	extMain, success, danger |
-| **Spacing** | sm, md, lg, xl, xxl, xxxl |
-| **Typography** | size.sm, size.md, size.lg, size.xl |
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| currentTheme | string | Current active theme name ("light" or "dark") |
+| isLight | boolean | Convenience flag for light mode checks |
+| isDark | boolean | Convenience flag for dark mode checks |
+| setTheme | function | Explicitly set theme by name |
+| toggleTheme | function | Switch between light and dark |
 
 ---
 
-## Dark-Only Design
+## Uniwind Integration
 
-CommitT uses a pure black (#000000) dark theme exclusively. There is no light mode. This reduces OLED power consumption and provides maximum contrast for the enforcement overlay screens.
+The provider delegates theme management to the Uniwind library, which handles CSS-in-JS theme resolution across the component tree:
+
+```typescript
+const { theme } = useUniwind();
+const setTheme = useCallback((newTheme: ThemeName) => {
+  Uniwind.setTheme(newTheme);
+}, []);
+```
+
+---
+
+## Design Tokens: THEME Constant
+
+All components consume the centralized THEME constant from `constants/theme.ts` for consistent styling:
+
+### Colors -- Hardened Saffron Palette
+
+| Token | Hex | Usage |
+| :--- | :--- | :--- |
+| primary | #C6613F | Brand saffron -- buttons, active states, headers |
+| primaryLight | #E27E5A | Hover states, secondary accents |
+| primaryDark | #8A3B22 | Deepened saffron for pressed states |
+| background | #080808 | App background (near-black) |
+| surface | #171717 | Card and container backgrounds |
+| surfaceElevated | #222222 | Elevated surfaces (modals, sheets) |
+| pureBlack | #000000 | True black for OLED screens |
+| textMain | #FFFFFF | Primary text color |
+| textMuted | #949494 | Secondary/helper text |
+| danger | #FF3B30 | Error states, failed verifications |
+| success | #34C759 | Completed verifications, granted permissions |
+| border | rgba(255,255,255,0.08) | Premium subtle borders |
+
+### Spacing Scale
+
+| Token | Value | Usage |
+| :--- | :--- | :--- |
+| xs | 4px | Tight gaps between inline elements |
+| sm | 8px | Small padding, icon margins |
+| md | 12px | Standard component padding |
+| lg | 16px | Section padding, card margins |
+| xl | 20px | Large section gaps |
+| xxl | 24px | Screen-level padding |
+| xxxl | 32px | Major section dividers |
+
+### Typography Scale
+
+| Token | Value | Usage |
+| :--- | :--- | :--- |
+| xs | 12px | Captions, timestamps |
+| sm | 14px | Body text, list items |
+| base | 16px | Default text size |
+| lg | 18px | Section headings |
+| xl | 20px | Screen titles |
+| xxxl | 30px | Hero headings |
+| display | 48px | Splash screen, onboarding |
+
+---
+
+## Dark-Only Design Decision
+
+CommitT uses a pure black dark theme exclusively. There is no light mode in production. This decision was made for three reasons:
+
+1. **OLED power efficiency** -- Pure black pixels are physically off on OLED screens
+2. **Maximum contrast** -- Enforcement overlays and blocking screens need high visibility
+3. **Brand identity** -- The "Hardened Saffron on Obsidian" palette is central to the app's visual identity

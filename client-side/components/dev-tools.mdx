@@ -1,24 +1,98 @@
 ---
-title: Developer Tools
-description: ChaosFab, DbDebugFab, AlarmFab for resilience testing.
+title: "Developer Tools"
+description: "ChaosFab and DbDebugFab -- floating debug buttons for resilience testing and database inspection."
 ---
 
 # Developer Tools
 
-The components/dev/ directory contains floating action buttons used exclusively during development for debugging and chaos engineering.
+**Source:** `components/dev/ChaosFab.tsx` (34 lines) + `components/dev/DbDebugFab.tsx` (263 lines, 12.2KB)
+
+Two floating action buttons mounted at the root layout level that provide real-time debugging and chaos engineering capabilities during development.
 
 ---
 
-## Components
+## ChaosFab
 
-| Component | Purpose | Production? |
-| :--- | :--- | :--- |
-| **ChaosFab** | Floating button that opens the (dev)/chaos screen. Provides actions to corrupt the database, kill WebSocket, simulate network drops, and trigger resurrection. | No |
-| **DbDebugFab** | Floating button that displays raw SQLite state. Shows table row counts, recent log entries, and sync token status. | No |
-| **AlarmFab** | Floating button for testing hardware alarm registration. Displays the next scheduled alarm and allows manual trigger. | No |
+A red floating button (bug emoji) positioned at the bottom-right of the screen. Tapping it navigates to the `/(dev)/chaos` screen where the full ChaosStore actions are available.
+
+**Visual Spec:**
+- Size: 48x48px, circular (borderRadius: 24)
+- Color: #FF3B30 (danger red)
+- Position: absolute, bottom: 280, right: 16
+- Z-index: 9999 (always on top)
+- Shadow: iOS shadow + Android elevation: 10
+
+**Safety Guard:**
+
+```typescript
+if (!__DEV__) return null;
+```
+
+The component returns null in production builds, completely removing itself from the render tree.
 
 ---
 
-## Mounting
+## DbDebugFab
 
-These components are mounted at the root _layout.tsx level but only render in development mode (__DEV__ guard). In production builds, they are completely absent from the component tree.
+A full-featured database inspector (magnifying glass emoji) that provides a dual-mode debug overlay:
+
+**Visual Spec:**
+- Size: 48x48px, circular (borderRadius: 24)
+- Color: #FF9500 (warning orange)
+- Position: absolute, bottom: 160, right: 16
+
+### DB View Mode
+
+Displays all data from the local SQLite cache:
+
+| Section | Data Shown |
+| :--- | :--- |
+| **Task Cards** | Title, convex_id, visibility, assigner/assignee IDs |
+| **JSON Inspectors** | Pretty-printed recurrence_json, conditions_json, config_json |
+| **Instance List** | First 3 instances per task with timestamps and full JSON dump |
+| **Orphaned Instances** | Instances that survived parent task deletion (is_manual_edit = 1) |
+| **Timestamps** | created_at and synced_at for each task |
+
+### Log View Mode
+
+Displays the full contents of today's persistent JS log file (from the Logger module). Includes:
+
+- Toggle button to switch between DB and Log views
+- "Clear" button to wipe today's log file
+- Monospace green text on near-black background for readability
+
+### Orphan Detection
+
+The inspector runs a special query to find orphaned instances:
+
+```sql
+SELECT * FROM task_instances
+WHERE task_id NOT IN (SELECT id FROM local_tasks)
+ORDER BY start_time DESC
+```
+
+These are displayed in a separate "Preserved Instances" section with orange left-border styling, making it easy to verify that the V12 orphan survival model is working correctly.
+
+---
+
+## Mount Location
+
+Both components are mounted in `app/_layout.tsx` inside the provider tree:
+
+```
+SecurityShield
+  GestureHandlerRootView
+    KeyboardProvider
+      AppThemeProvider
+        ...Navigation Stack...
+        ChaosFab          ← Floating on top of everything
+        DbDebugFab        ← Floating on top of everything
+```
+
+They render above all navigation content due to their `position: absolute` and `zIndex: 9999` styling.
+
+---
+
+## Why Two Separate Components
+
+The ChaosFab is a simple navigation trigger (34 lines) that routes to the full chaos screen. The DbDebugFab is a self-contained inspector (263 lines) that renders its own modal without navigating away from the current screen. This separation ensures that database inspection never disrupts the current navigation state.
