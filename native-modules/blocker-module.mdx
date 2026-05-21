@@ -1,0 +1,40 @@
+---
+title: "Blocker Module"
+description: "Accessibility-based anti-circumvention engine and live GPS tracker."
+---
+
+# Blocker Module
+
+The `blocker-module` is the core enforcement engine for the CommitT accountability platform. It uses an Android `AccessibilityService` to intercept application launches and user interactions in real-time.
+
+## Dual Enforcement Vectors
+
+The service guarantees enforcement via two complementary systems:
+
+1.  **Event-Driven Enforcement**: Responds instantly to `AccessibilityEvent` callbacks (like `WINDOW_STATE_CHANGED` and `WINDOW_CONTENT_CHANGED`) to intercept restricted apps the moment they appear.
+2.  **Pulse-Based Background Audit**: A 5-second heartbeat (`pulseRunnable`) periodically re-evaluates the foreground app. This catches edge cases where the OS drops accessibility events (e.g., split-screen transitions or PiP modes).
+
+---
+
+## Location Enforcement (Fail-Closed)
+
+When a commitment includes a geofence, the Blocker maintains a real-time 1Hz GPS stream. 
+*   **Strict Live Enforcement**: Decisions are gated exclusively on *live* coordinates. It never falls back to `getLastKnownLocation()`.
+*   **Staleness Threshold**: If a GPS fix is older than 30 seconds (accounting for Android's 20-second background OS throttling), the Blocker defaults to a **fail-closed** policy and blocks access for safety.
+
+---
+
+## Maximum Escalation (Device Lock & Purge)
+
+If a user attempts a deep security violation (such as attempting to uninstall CommitT or disable the accessibility service), the Blocker initiates a **Maximum Escalation** sequence.
+
+On Samsung / OneUI devices, it executes a 3-Phase Purge:
+1.  **Recents**: Fires `GLOBAL_ACTION_RECENTS` to instantly break the user's interaction with the Settings app.
+2.  **Purge**: Scans the view hierarchy for the "Close all" button and executes an automated click to clear background memory.
+3.  **Lock**: Physically turns off the screen via `GLOBAL_ACTION_LOCK_SCREEN`, forcing re-authentication.
+
+---
+
+## Thread Safety & WAL Synchronization
+
+Similar to the Scheduler, the Blocker explicitly uses a `OPEN_READONLY` SQLite connection to avoid WAL writer contention with the React Native UI. To prevent stale reads, the connection is forcefully closed and refreshed on every 5-second pulse.

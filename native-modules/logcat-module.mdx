@@ -1,0 +1,27 @@
+---
+title: "Logcat Module"
+description: "The Infinite Black Box Flight Recorder."
+---
+
+# Logcat Module
+
+The standard Android system logcat buffer is extremely small (64KB–1MB). Under heavy background execution (like GPS tracking or AlarmManager scheduling), this buffer wraps around in minutes, destroying critical evidence needed for debugging.
+
+The `logcat-module` acts as an infinite flight recorder to preserve this state.
+
+## Architecture
+
+1.  **Daemon Process**: Spawns a background thread that executes a shell `logcat -v threadtime --pid=<APP_PID>` command.
+2.  **Stream Pipe**: Reads every single stdout line in real-time.
+3.  **Persistence**: Appends the stream directly to an internal storage text file (`commit-logcat-YYYY-MM-DD.log`).
+4.  **Segmentation**: If a daily log exceeds 50MB, the module automatically closes the file and rotates to a new segment to ensure the files remain parsable by standard text editors.
+
+## Capabilities
+
+The resulting log files contain an identical mirror of what an `adb logcat` session would capture:
+*   React Native JavaScript console logs.
+*   `BlockerAccessibilityService` native enforcement triggers.
+*   `AlarmScheduler` execution paths.
+*   System memory / GC events.
+
+These logs persist across app kills and phone reboots, acting as the ultimate source of truth when debugging Triple-Write database corruptions or strict mode evasions.

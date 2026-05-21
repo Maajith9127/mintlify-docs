@@ -1,0 +1,18 @@
+---
+title: "Recovery & Alarm Modules"
+description: "Catastrophic thread reset and basic native UI toasts."
+---
+
+# Recovery & Alarm Modules
+
+These are lightweight but essential utility modules that provide specific system hooks.
+
+## Recovery Module
+
+Contains a single function: `nuclearReset()`.
+
+If the React Native Javascript thread detects a catastrophic state corruption (like an unrecoverable infinite loop during database sync), it can call this module to execute a hard `Process.killProcess(Process.myPid())`. This instantly terminates the app at the Linux kernel level, forcing Android to reboot the application into a clean memory state.
+
+## Alarm Module
+
+A lightweight module for native feedback. Primarily used to trigger synchronous `Toast` messages without relying on React Native's async rendering bridge, and provides localized readonly SQLite queries for debug screens. (Note: Actual heavy Alarm execution is handled by the dedicated `SchedulerModule`).

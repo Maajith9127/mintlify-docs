@@ -1,0 +1,21 @@
+---
+title: "Enforcement Module"
+description: "System-level permissions auditing and configuration routing."
+---
+
+# Enforcement Module
+
+The `enforcement-module` is the core security auditor for the React Native application. It acts as the bridge for checking deeply nested OS configurations that standard React Native permission libraries cannot accurately detect.
+
+## Permission Auditing
+
+The `checkAllPermissions` JSI call evaluates the current state of:
+*   **Accessibility Services**: Checks `Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES` to ensure the Blocker module is actively armed.
+*   **Draw Overlays**: Verifies `canDrawOverlays` privileges required to render the full-screen penalty UI.
+*   **Location Constraints**: Validates that GPS permissions are explicitly set to "Allow all the time" (`ACCESS_BACKGROUND_LOCATION`). Simple "Allow while using" is rejected because it leads to fail-closed blockouts when the app enters the background.
+*   **Battery Optimization**: Confirms the app is whitelisted from Doze Mode execution limits.
+*   **Device Administration**: Checks `DevicePolicyManager` to verify anti-uninstall protections are active.
+
+## Settings Routing
+
+Because OEMs (like Samsung, Xiaomi, and OnePlus) heavily customize their Settings menus, standard Android intents often fail. The `openSettings` function provides specialized deep-linking to route the user directly to the correct permission configuration page across different hardware variants.

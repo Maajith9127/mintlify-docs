@@ -1,0 +1,39 @@
+---
+title: "Scheduler Module"
+description: "The Core Infrastructure Orchestrator utilizing Android AlarmManager and FBE cache."
+---
+
+# Scheduler Module
+
+The `scheduler-module` is the central "Brain" of the CommitT native system. It bypasses React Native entirely to calculate wake windows and instruct the Android Kernel exactly when to fire hardware-level alarms.
+
+## The Architecture: Vault vs. Sticky Note
+
+To survive phone restarts and File-Based Encryption (FBE) lockouts, the Scheduler utilizes a dual-layered storage architecture.
+
+### 1. The Vault (SQLite)
+The main `commit.db` database. It holds the canonical schedule but is subject to strict Android Credential Encryption (CE). If a user restarts their phone, this database remains completely locked and inaccessible until they enter their PIN.
+
+### 2. The Sticky Note (Device Protected Storage)
+To ensure alarms fire even while the device is locked post-reboot, the Scheduler writes the next 20 upcoming alarms into Android's Device Encrypted (DE) `SharedPreferences`. This unencrypted "Sticky Note" allows `BootReceiver` to successfully schedule the `AlarmManager` before the user unlocks their phone.
+
+---
+
+## Connection Strategy & Bug Mitigations
+
+The native Kotlin SQLite connection historically suffered from fatal WAL (Write-Ahead Logging) contention with the Javascript `expo-sqlite` driver. 
+
+**The Stale-Proof Formula:**
+*   **READONLY Mode**: The `AlarmScheduler` strictly opens the database in `OPEN_READONLY` mode. This prevents it from holding a WAL writer lock, which previously caused `database disk image is malformed` errors and infinite Nuke & Pave loops.
+*   **Fresh Snapshots**: The connection is opened and closed on *every single* `scheduleNextAlarm` call. Caching the connection resulted in "Stale WAL Snapshots" where the Native side couldn't see tasks updated by the JS side.
+
+---
+
+## The Pre-Alarm Math Engine
+
+The `findNextTrigger` algorithm dynamically calculates staggered `PRE_ALARM` offsets, `CHECKPOINT_ALARM` structural pings, and the final `END_ALARM`. 
+
+### Hardware Kernel Registration
+Once the closest actionable trigger is found, the Scheduler routes it directly to the Android `AlarmManager`:
+*   **Android 12+ (Exact)**: Uses `setAlarmClock` if exact permissions are granted.
+*   **Degraded Fallback**: Uses `setAndAllowWhileIdle` if the user revokes exact scheduling privileges.

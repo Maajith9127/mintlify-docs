@@ -1,0 +1,12 @@
+---
+title: "Alarm Module"
+description: "Native feedback utility for Toasts and SQLite reads."
+---
+
+# Alarm Module
+
+The `alarm-module` is a lightweight utility module for direct, synchronous native feedback. 
+
+While the actual heavy lifting of hardware WakeLocks and alarm firing is managed by the `SchedulerModule`, the `AlarmModule` provides simpler utility hooks:
+*   **showToast**: Triggers a native Android Toast message without needing to wait on the React Native asynchronous rendering bridge.
+*   **getLocalTasks**: A debug capability to quickly read from the `local_tasks` SQLite table and dump the contents to the screen to verify database hydration states.
