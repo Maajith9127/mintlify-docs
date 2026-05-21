@@ -1,81 +1,81 @@
 ---
 title: "App Routes"
-description: "Complete reference for all Expo Router screens and navigation flows."
+description: "Complete Expo Router navigation structure with 11 route groups."
 ---
 
-# App Routes & Screens
+# App Routes
 
-CommitT uses **Expo Router** with file-based routing. Every screen is organized into route groups that map to distinct user flows.
+CommitT uses **Expo Router** (file-system routing) with a root Stack navigator. The app defines 11 route groups.
 
-## Route Map
+---
 
-```
-app/
-├── _layout.tsx              # Root layout (Provider tree)
-├── index.tsx                # Entry point / splash
-├── (auth)/                  # Authentication flow
-│   └── signin.tsx           # Email + Google OAuth sign-in
-├── (main)/                  # Primary tab navigator
-│   ├── _layout.tsx          # Bottom tab bar
-│   ├── commits.tsx          # Active commitments feed
-│   ├── schedules.tsx        # Calendar schedule view
-│   ├── presets.tsx           # Accountability preset manager
-│   ├── notifications.tsx    # Audit log & event history
-│   └── profile.tsx          # User profile & settings
-├── (create-commit)/         # Multi-step commitment wizard
-│   ├── choose.tsx           # Select apps/locations/conditions
-│   ├── time-set.tsx         # Configure recurrence & windows
-│   ├── location-set.tsx     # Set geofence location
-│   ├── penalties.tsx        # Configure penalty contract
-│   ├── penaltywaivers.tsx   # Configure waiver challenges
-│   ├── captcha-setup.tsx    # CAPTCHA waiver configuration
-│   ├── searchpac.tsx        # App search & selection
-│   └── final.tsx            # Review & submit (Triple-Write)
-├── (edit-preset)/           # Preset editing flow
-├── (verify-commit)/         # Commitment verification screens
-├── (strict-mode)/           # Strict mode activation flow
-├── (penalties)/             # Penalty review screens
-├── (penaltywaiver)/         # Active waiver challenge screens
-├── (settings)/              # App settings
-└── (dev)/                   # Developer tools (chaos testing)
+## Route Group Map
+
+```typescript
+// apps/native/app/_layout.tsx
+<Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
+  <Stack.Screen name="(auth)"           options={{ animation: "fade" }} />
+  <Stack.Screen name="(main)"           />
+  <Stack.Screen name="(create-commit)"  options={{ presentation: "transparentModal" }} />
+  <Stack.Screen name="(strict-mode)"    options={{ presentation: "transparentModal" }} />
+  <Stack.Screen name="(edit-preset)"    options={{ animation: "fade" }} />
+  <Stack.Screen name="(penalties)"      options={{ presentation: "transparentModal" }} />
+  <Stack.Screen name="(penaltywaiver)"  options={{ presentation: "transparentModal" }} />
+  <Stack.Screen name="(settings)"       options={{ presentation: "transparentModal" }} />
+  <Stack.Screen name="(verify-commit)"  />
+  <Stack.Screen name="(dev)/chaos"      options={{ presentation: "modal" }} />
+  <Stack.Screen name="auth/callback"    />
+</Stack>
 ```
 
-## Key Screens
+---
 
-### `(main)/commits.tsx` — The Dashboard (16KB)
-The primary screen showing all active and upcoming commitments with real-time status updates from the local SQLite cache.
+## Route Details
 
-### `(create-commit)/final.tsx` — The Contract Seal (20KB)
-The final review screen where the user confirms their commitment. This is where the **Triple-Write Orchestrator** executes, writing to Convex, SQLite, and hardware alarms atomically.
+| Group | Purpose | Key Screens |
+| :--- | :--- | :--- |
+| **(auth)** | Login and registration | OAuth callback, Google Sign-In |
+| **(main)** | Primary tabs | Commits, Schedules, Alerts, Profile |
+| **(create-commit)** | Commitment wizard | conditions, time-set, choose, final |
+| **(strict-mode)** | Strict Mode activation | setup, confirmation |
+| **(edit-preset)** | Preset editing | location, blocklist, rule editors |
+| **(penalties)** | Penalty configuration | photo, email, money sub-screens |
+| **(penaltywaiver)** | Waiver configuration | CAPTCHA count, paragraph, intensity |
+| **(settings)** | Permissions and preferences | 8-point permission audit |
+| **(verify-commit)** | Active verification | GPS check, photo capture, waiver challenges |
+| **(dev)** | Developer tools | Chaos FAB, DB debug, alarm testing |
+| **auth/callback** | OAuth redirect handler | Token exchange via Better Auth |
 
-### `(main)/presets.tsx` — Preset Manager (31KB)
-The largest screen. Manages accountability presets with full CRUD, drag-to-reorder, and smart pre-fill suggestions.
+---
 
-### `(main)/schedules.tsx` — Calendar View (18KB)
-Calendar visualization of all scheduled commitment instances with day/week views.
+## Wizard Hydration
 
-## Navigation Transitions
+The `(create-commit)` layout calls `usePresetHydration()` at the layout level, ensuring all location, blocklist, and rule presets are loaded before any child screen mounts:
 
-| Route | Presentation | Animation |
-|---|---|---|
-| `(auth)` | Full screen | `fade` |
-| `(create-commit)` | Transparent modal | `slide_from_right` |
-| `(strict-mode)` | Transparent modal | `slide_from_right` |
-| `(penalties)` | Transparent modal | `slide_from_right` |
-| `(dev)/chaos` | Modal sheet | `slide_from_bottom` |
-
-## Component Library
-
+```typescript
+export default function CreateCommitLayout() {
+  usePresetHydration(); // One-shot hydration at layout mount
+  return (
+    <Stack screenOptions={{ animation: "fade", headerShown: false }}>
+      <Stack.Screen name="time-set" />
+      <Stack.Screen name="location-set" />
+      <Stack.Screen name="choose" />
+      <Stack.Screen name="captcha-setup" />
+      <Stack.Screen name="picture-set" />
+    </Stack>
+  );
+}
 ```
-components/
-├── auth/              # AuthForm, social login buttons
-├── calendar/          # Calendar grid, day cells, week headers
-├── dev/               # ChaosFab, DbDebugFab (dev-only)
-├── system/            # SecurityShield, HydrationEngine
-├── ui/
-│   ├── buttons/       # AlarmFab, action buttons
-│   └── modal/         # HealOverlay, bottom sheets
-├── container.tsx      # Reusable screen container
-├── sign-in.tsx        # Sign-in form component
-└── sign-up.tsx        # Sign-up form component
-```
+
+---
+
+## Navigation Patterns
+
+| Pattern | Usage | Example |
+| :--- | :--- | :--- |
+| **Transparent Modal** | Wizard screens sliding over current view | `(create-commit)`, `(penalties)` |
+| **Fade** | Auth and preset editing | `(auth)`, `(edit-preset)` |
+| **Slide from Right** | Standard forward navigation (default) | Most screens |
+| **Slide from Bottom** | Developer tools modal | `(dev)/chaos` |
+
+All modal presentations use `animationDuration: 250` for consistent transitions.

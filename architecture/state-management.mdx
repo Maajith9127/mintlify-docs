@@ -1,41 +1,158 @@
 ---
 title: "State Management"
-description: "Zustand stores, React contexts, and the Resurrection Provider."
+description: "Zustand stores powering the entire client-side state machine."
 ---
 
 # State Management
 
-CommitT uses **Zustand** for global client state and **React Context** for scoped provider state.
+CommitT uses **Zustand** for all client-side state management. There are 10 specialized stores, each owning a specific domain of the application state.
 
-## Zustand Stores
+---
 
-| Store | Purpose |
-|---|---|
-| `useTaskDraftStore` | Multi-step commitment creation wizard (26KB) |
-| `useCalendarStore` | Calendar view state and date selection |
-| `usePresetStore` | Accountability preset management |
-| `useCommitStore` | Active commitment display and filtering |
-| `useChaosStore` | Dev-only chaos testing controls |
-| `useHealStore` | Recovery overlay state |
+## Store Inventory
 
-## React Contexts
+<CardGroup cols={2}>
+  <Card title="useTaskDraftStore" icon="pen-to-square">
+    The largest store (800+ lines). Manages the entire commitment creation/editing wizard state — title, conditions, time windows, penalties, waivers, blocklists, and per-slot attachments.
+  </Card>
+  <Card title="useCalendarStore" icon="calendar">
+    Calendar grid state including selected date, view mode (day/week/month), event layout calculations, and drag-drop position tracking.
+  </Card>
+  <Card title="usePresetStore" icon="bookmark">
+    Holds all hydrated presets (location, blocklist, rule) fetched from the Convex backend. Populated once at wizard layout mount via `usePresetHydration()`.
+  </Card>
+  <Card title="useCommitStore" icon="list-check">
+    Tracks the active commitment list on the Dashboard. Manages selection state, menu visibility, and deletion modal flow.
+  </Card>
+  <Card title="useVerificationStore" icon="location-dot">
+    Real-time verification session state. Holds current GPS coordinates, geofence status, camera capture state, and CAPTCHA progress.
+  </Card>
+  <Card title="useHealStore" icon="heart-pulse">
+    Controls the HealOverlay — the recovery UI that appears during database reconstruction. Tracks progress percentage and status message.
+  </Card>
+  <Card title="usePresetEditStore" icon="sliders">
+    State for the preset editing screens (location, blocklist, rule). Separate from the main PresetStore to allow independent editing without affecting the wizard.
+  </Card>
+  <Card title="useAppStore" icon="gear">
+    Minimal global app state. Tracks whether the app is in the foreground or background, used by the HydrationSync engine to trigger syncs on app resume.
+  </Card>
+  <Card title="useTaskStore" icon="database">
+    Read-only cache of tasks fetched from the local SQLite database. Populated by the `useTasks` hook on the Dashboard screen.
+  </Card>
+  <Card title="useChaosStore" icon="flask">
+    Development-only store for the Chaos Engineering FAB. Allows injecting failures, simulating network drops, and corrupting the database for resilience testing.
+  </Card>
+</CardGroup>
 
-### ResurrectionProvider
-Top-level provider enabling complete system reset. Increments an `iteration` counter that forces the `ConvexReactClient` to be destroyed and re-instantiated with explicit `.close()` cleanup.
+---
 
-### TabContext
-Bottom tab navigation state and tab-switching animations.
+## TaskDraftStore Deep Dive
 
-### AppThemeProvider
-Hardened Saffron theme palette and dark mode defaults.
+The `useTaskDraftStore` is the state machine behind the entire commitment wizard. It manages the full `TaskDraft` type — a frontend representation of a commitment being created or edited:
 
-## Custom Hooks
+```typescript
+export type TaskDraft = {
+  id: string;
+  assigner_id: string | null;
+  assignee_id: string | null;
+  title: string;
+  description?: string;
+  visibility: "private" | "public" | "partner_only";
 
-| Hook | Purpose |
-|---|---|
-| `useHydrationSync` | Background delta sync with Convex (10.8KB) |
-| `useCommitTask` | Full CRUD lifecycle with Triple-Write Orchestrator |
-| `useLocation` | GPS location management |
-| `usePermissions` | Android permission orchestration |
-| `useAppDiscovery` | Installed app discovery via native module |
-| `usePresetHydration` | Preset loading and caching |
+  recurrence: {
+    type: "once" | "daily" | "weekly";
+    interval: number;
+    days_of_week?: number[];
+    time_windows: TimeWindow[];
+    ends?: { type: "after"; count: number } | { type: "never" };
+  };
+
+  conditions: Condition[];      // Location, blocklist, partner, etc.
+  config: TaskConfig;            // Verification style, alarms, grace period
+  penalty?: PenaltyConfig;       // Money, photo, app block
+  penalty_waiver?: WaiverConfig; // CAPTCHAs, paragraph, redo
+  cameraTarget: CameraTarget;    // Map camera position
+};
+```
+
+### Slot-Level Condition Management
+
+The most complex part of the store is the per-slot condition system. Each time window can have its own independent location, blocklist, and rule:
+
+```typescript
+// Attach a location preset to time slot at index 0
+setSlotLocation(0, {
+  latitude: 12.9692,
+  longitude: 79.1559,
+  radius: 50,
+  address: "Fitty Gym VIT",
+  isInverse: false,
+  id: "preset_abc123"
+});
+
+// Attach a blocklist preset to time slot at index 1
+setSlotBlocklist(1, {
+  apps: ["com.instagram.android", "com.twitter.android"],
+  websites: ["youtube.com"],
+  id: "preset_xyz789"
+});
+
+// Attach a verification rule to time slot at index 0
+setSlotRule(0, {
+  id: "preset_rule_001",
+  name: "Strict Session",
+  config: { verification_style: "stay_throughout", intensity: "strict" }
+});
+```
+
+### Intelligent Recurrence Logic
+
+The `setRecurrence` action contains business logic that automatically adjusts the recurrence type and instance count based on the user's day selection:
+
+```typescript
+setRecurrence: (updates) => set((state) => {
+  const newRecurrence = { ...state.draft.recurrence, ...updates };
+
+  // If days are selected, switch to "weekly" mode
+  if (newRecurrence.days_of_week?.length > 0) {
+    newRecurrence.type = "weekly";
+
+    // If not set to "Repeat Forever", calculate instance count
+    if (newRecurrence.ends?.type !== "never") {
+      const totalCount = newRecurrence.days_of_week.length
+                       * (newRecurrence.time_windows?.length || 0);
+      newRecurrence.ends = { type: "after", count: Math.max(1, totalCount) };
+    }
+  }
+  // If no days selected, revert to "once"
+  else {
+    newRecurrence.type = "once";
+    delete newRecurrence.ends;
+    delete newRecurrence.days_of_week;
+  }
+
+  return { draft: { ...state.draft, recurrence: newRecurrence } };
+});
+```
+
+### Logger Middleware
+
+Every state mutation is logged with a pretty-printed JSON dump of the full draft. This provides complete visibility during development:
+
+```typescript
+const logger = (config) => (set, get, api) =>
+  config(
+    (...args) => {
+      set(...args);
+      const d = get().draft;
+      console.log(`[Zustand] ${args[2] ?? "anonymous"}`);
+      console.log(JSON.stringify(d, null, 2));
+    },
+    get,
+    api
+  );
+
+export const useTaskDraftStore = create<TaskDraftStore>()(
+  logger((set) => ({ ... }))
+);
+```

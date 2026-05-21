@@ -1,102 +1,116 @@
 ---
 title: "Sync Engine"
-description: "Delta-based data synchronization between Convex cloud and local SQLite."
+description: "The atomic Delta ingestor that keeps SQLite synchronized with the Convex cloud backend."
 ---
 
 # Sync Engine
 
-The Sync Engine is the core data pipeline that keeps the local SQLite database in sync with the Convex cloud backend. It uses a **delta-based** approach — only downloading records that have changed since the last successful sync.
+The Sync Engine (`lib/sync-engine.ts`) is the bridge between the Convex cloud backend and the local SQLite cache. It receives **Delta Payloads** containing tasks and instances that have changed since the last sync, and atomically upserts them into the local database.
 
-## How It Works
+---
 
-```mermaid
-sequenceDiagram
-    participant App as React Native App
-    participant SE as Sync Engine
-    participant DB as Local SQLite
-    participant CX as Convex Cloud
-    
-    App->>SE: Trigger sync (foreground/background)
-    SE->>SE: Read sync_token from SecureStore
-    SE->>CX: Query with sync_token
-    CX-->>SE: DeltaPayload {tasks[], instances[], new_token}
-    SE->>DB: withTransactionAsync()
-    Note over SE,DB: Freshness Guard checks each record
-    SE->>DB: UPSERT tasks (INSERT OR REPLACE)
-    SE->>DB: UPSERT instances (INSERT OR REPLACE)
-    SE->>SE: Persist new sync_token to SecureStore
-```
+## Delta Payload Structure
 
-## The Delta Payload
-
-Every sync cycle transmits a `DeltaPayload` containing only the records modified since the last sync token:
+Every sync cycle, the Convex backend computes a differential payload based on the client's last known sync token:
 
 ```typescript
-interface DeltaPayload {
-  tasks: any[];       // Modified task records
-  instances: any[];   // Modified instance records  
-  sync_token: number; // Epoch timestamp for next delta
+export interface DeltaPayload {
+  tasks: any[];       // Tasks modified since last sync
+  instances: any[];   // Instances modified since last sync
+  sync_token: number; // New watermark for next sync cycle
 }
 ```
 
-## Freshness Guards
+The sync token is stored in `expo-secure-store` (encrypted, persisted across app restarts) — not in SQLite, which can be wiped during Nuke and Pave operations.
 
-The Sync Engine implements a two-tier **Freshness Guard** system to prevent stale Convex data from overwriting newer local edits.
+---
 
-### Task-Level Guard
+## The Freshness Guard
 
-Before upserting a task, the engine compares the incoming `updated_at` timestamp against the local record:
+The Freshness Guard is the critical anti-corruption mechanism that prevents background sync from overwriting the user's fresh edits with stale cloud data.
+
+**The problem it solves:** A user edits a task at `T=100`. The background sync fires at `T=101` with data from `T=90` (because the Convex query was slow). Without the Freshness Guard, the sync would silently overwrite the user's edit.
 
 ```typescript
+// For each incoming task from Convex:
 const existing = await db.getFirstAsync<{ updated_at: number }>(
   `SELECT updated_at FROM local_tasks WHERE id = ?`, [task._id]
 );
 
+const incomingTime = task.updated_at || task._creationTime || 0;
+
 if (existing && existing.updated_at > incomingTime) {
-  // DISCARD: Local data is newer than the cloud payload
+  // LOCAL IS NEWER — discard the stale Convex payload
+  Logger.warn(`Freshness Guard: Discarding STALE payload for task ${task._id}`);
   skippedTaskIds.add(task._id);
   continue;
 }
 ```
 
-### Instance-Level Guard
+The guard operates at two levels:
 
-Instances have an additional protection layer: if a local instance has been **manually edited** (flagged via `is_manual_edit`), incoming cloud data that doesn't have this flag is discarded:
+| Level | Protection |
+| :--- | :--- |
+| **Task-level** | Compares `updated_at` timestamps. If local is newer, the entire task is skipped AND its child instances are also skipped. |
+| **Instance-level** | Checks the `is_manual_edit` flag. If the local instance has been manually edited but the incoming payload does not reflect that edit, the incoming data is discarded. |
+
+---
+
+## Atomic Transaction Safety
+
+All multi-row writes are wrapped in a single `withTransactionAsync()` call. If any row fails, the entire batch rolls back atomically:
 
 ```typescript
-if (existingInstance?.is_manual_edit === 1 && !instance.is_manual_edit) {
-  // DISCARD: Local manual edit takes priority
-  continue;
-}
+await db.withTransactionAsync(async () => {
+  // 1. Upsert all tasks (INSERT OR REPLACE)
+  for (const task of payload.tasks) { ... }
+
+  // 2. Upsert all instances (INSERT OR REPLACE)
+  for (const instance of payload.instances) { ... }
+});
+
+// 3. Persist sync token ONLY after successful transaction
+await SecureStore.setItemAsync(SYNC_TOKEN_KEY, payload.sync_token.toString());
 ```
 
 <Info>
-The Freshness Guard permanently eliminates the **"Phantom Overwrite" bug** — where a background sync silently reverts a user's recent manual edit with stale cloud data.
+The sync token is written **outside** the transaction, **after** it succeeds. This means if the transaction fails, the token is not updated, and the next sync cycle will re-fetch the same data — guaranteeing at-least-once delivery without data loss.
 </Info>
+
+---
 
 ## Automatic Corruption Recovery
 
-If the transaction fails with a `malformed` or `disk I/O` error, the engine triggers an automatic recovery protocol:
+If the transaction throws a `malformed` or `disk I/O` error, the engine enters an automatic recovery protocol:
 
-1. **Purge** all data records (without dropping tables)
-2. **Clear** the sync token from SecureStore
-3. **Alert** the user and force an app restart
-4. On restart, the HydrationSync engine detects the missing token and enters **"Amnesia Mode"** — downloading the complete dataset from Convex
-
-```typescript
-if (errorString.includes('malformed') || errorString.includes('disk i/o')) {
-  await purgeAllDataRecords(db);
-  await clearSyncToken();
-  Alert.alert("Critical System Sync", "...", 
-    [{ text: "OK", onPress: () => BackHandler.exitApp() }]
-  );
-}
+```mermaid
+flowchart TD
+    A["Transaction fails with 'malformed'"] --> B["purgeAllDataRecords()"]
+    B --> C["clearSyncToken()"]
+    C --> D["Alert user: 'Data inconsistency detected'"]
+    D --> E["Force app exit via BackHandler.exitApp()"]
+    E --> F["On next launch: Amnesia Mode triggers full re-sync"]
 ```
 
-## Sync Token Persistence
+This prevents the app from entering a death loop where corrupted data causes every subsequent transaction to fail.
 
-The sync token is stored in **Expo SecureStore** (backed by Android Keystore), not in SQLite. This ensures:
+---
 
-- The token survives database corruption and Nuke & Pave rebuilds
-- It cannot be tampered with by rooted users inspecting the `.db` file
-- It is encrypted at rest on the device
+## HydrationEngine
+
+The `HydrationEngine` is an invisible React component mounted at the root of the app tree. It runs the `useHydrationSync()` hook, which:
+
+1. Monitors the authenticated session state
+2. Reads the local sync token from SecureStore
+3. If the token is missing (Amnesia Mode), fetches a full payload from Convex
+4. If the token exists, fetches only the delta since the last sync
+5. Passes the payload to `ingestDeltaPayload()` for atomic upsert
+6. After successful ingestion, triggers `scheduleNextAlarm()` to re-arm the hardware
+
+```typescript
+// components/system/HydrationEngine.tsx
+export function HydrationEngine() {
+  useHydrationSync(); // Runs invisibly, pushing to SQLite on the background thread
+  return null;        // Renders nothing — pure side-effect component
+}
+```

@@ -1,123 +1,129 @@
 ---
 title: "Local Database"
-description: "SQLite schema, Nuke & Pave migrations, and the Instance-Dependent Architecture."
+description: "The disposable SQLite cache with Nuke and Pave migrations and Instance-Dependent Architecture."
 ---
 
 # Local Database
 
-CommitT uses **Expo SQLite** as a local cache layer on the device. The database file (`commit.db`) mirrors a subset of the Convex cloud data for offline access and high-speed reads by the native Kotlin enforcement layer.
+The local database (`lib/local-db.ts`) is a SQLite cache powered by `expo-sqlite`. It mirrors a subset of the Convex cloud data for offline access and instant UI rendering. The database file is named `commit.db` and uses WAL journaling mode for concurrent read performance.
 
-<Warning>
-The local database is a **disposable cache**, not a source of truth. Convex is the canonical data store. If the local database is ever corrupted, it is destroyed and rebuilt from scratch.
-</Warning>
+---
 
-## Schema Version: V12 (Instance-Dependent)
+## Schema Version 12 (Instance-Dependent Architecture)
 
-The current schema version is **V12**, which introduced the "Instance-Dependent Architecture" — a fundamental design shift that eliminated an entire class of database corruption bugs.
-
-### The Problem (V1–V11)
-
-Earlier versions used `FOREIGN KEY` constraints between `task_instances` and `local_tasks`. This required toggling `PRAGMA foreign_keys` on and off during writes, which:
-
-1. **Cannot be changed inside a transaction** — SQLite silently ignores the PRAGMA
-2. **Creates race conditions** when concurrent writers share a connection
-3. Was the **root cause** of `database disk image is malformed` errors
-
-### The Solution (V12)
-
-V12 removes ALL foreign key constraints. Orphaned instances (instances whose parent task has been deleted) are treated as **first-class citizens**:
-
-```sql
--- task_instances: Orphan-safe — no FK to local_tasks.
-CREATE TABLE task_instances (
-    id TEXT PRIMARY KEY,
-    task_id TEXT NOT NULL,        -- No REFERENCES clause
-    convex_id TEXT NOT NULL,
-    title TEXT DEFAULT '',
-    scheduled_timestamp INTEGER NOT NULL,
-    start_time INTEGER NOT NULL,
-    end_time INTEGER NOT NULL,
-    status TEXT DEFAULT 'pending',
-    config_json TEXT NOT NULL DEFAULT '{}',
-    checkpoints TEXT NOT NULL DEFAULT '[]',
-    penalty_json TEXT DEFAULT NULL,
-    conditions_json TEXT DEFAULT NULL,
-    penalty_waiver_json TEXT DEFAULT NULL,
-    is_manual_edit INTEGER DEFAULT 0,
-    strict_until INTEGER DEFAULT NULL,
-    created_at INTEGER NOT NULL
-);
-```
-
-<Info>
-**Why orphaned instances matter:** The Convex backend intentionally preserves manually-edited and strict-locked task instances even after their parent task is deleted. This prevents users from escaping penalties by deleting a task after failing it.
-</Info>
-
-## Migration Strategy: Nuke & Pave
-
-There are **no incremental migrations**. The strategy is binary:
-
-```mermaid
-flowchart TD
-    A["App Launches"] --> B{"Read PRAGMA user_version"}
-    B -->|"Version matches V12"| C["Hot Path: Do nothing (~0ms)"]
-    B -->|"Version mismatch"| D["Cold Path: Nuke & Pave"]
-    B -->|"Read fails (corruption)"| D
-    D --> E["DROP all tables"]
-    E --> F["CREATE tables with V12 schema"]
-    F --> G["PRAGMA wal_checkpoint(TRUNCATE)"]
-    G --> H["VACUUM"]
-    H --> I["HydrationSync enters Amnesia Mode"]
-    I --> J["Full re-download from Convex (~2-3s)"]
-```
-
-This eliminates the **"Frankenstein Schema" problem** — where partially-applied incremental migrations leave the database in an inconsistent state.
-
-## Tables
-
-### `local_tasks`
-Mirror of the Convex `tasks` collection. Contains the master commitment definitions including recurrence rules, penalty contracts, and strict-mode configuration.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | TEXT (PK) | Convex document ID |
-| `title` | TEXT | Commitment title |
-| `recurrence_json` | TEXT | JSON-serialized recurrence rules |
-| `penalty_json` | TEXT | JSON-serialized penalty contract |
-| `penalty_waiver_json` | TEXT | JSON-serialized waiver challenge rules |
-| `strict_until` | INTEGER | Epoch ms — mutations blocked until this time |
-| `updated_at` | INTEGER | Used by Freshness Guards |
-
-### `task_instances`
-Individual occurrences of commitments. These are the records actively read by the native Kotlin Accessibility Service for enforcement decisions.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | TEXT (PK) | Convex document ID |
-| `task_id` | TEXT | Parent task reference (no FK constraint) |
-| `start_time` | INTEGER | Epoch ms — commitment window opens |
-| `end_time` | INTEGER | Epoch ms — commitment window closes |
-| `status` | TEXT | `pending`, `proceeding`, `completed`, `failed` |
-| `config_json` | TEXT | Verification style, alarm settings |
-| `is_manual_edit` | INTEGER | `1` if user manually edited (Freshness Guard protected) |
-
-## WAL Journaling
-
-The database operates in **WAL (Write-Ahead Logging) mode** for concurrent read/write performance:
+The current schema defines two core tables with **zero foreign key constraints**:
 
 ```sql
 PRAGMA journal_mode = 'wal';
+
+-- Master commitment definitions
+CREATE TABLE local_tasks (
+  id TEXT PRIMARY KEY,
+  convex_id TEXT UNIQUE NOT NULL,
+  assigner_id TEXT NOT NULL,
+  assignee_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  visibility TEXT NOT NULL,
+  recurrence_json TEXT NOT NULL,
+  conditions_json TEXT NOT NULL,
+  config_json TEXT NOT NULL DEFAULT '{}',
+  penalty_json TEXT DEFAULT NULL,
+  penalty_waiver_json TEXT DEFAULT NULL,
+  strict_until INTEGER DEFAULT NULL,
+  strict_duration_days INTEGER DEFAULT NULL,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  synced_at INTEGER
+);
+
+-- Individual commitment occurrences (orphan-safe)
+CREATE TABLE task_instances (
+  id TEXT PRIMARY KEY,
+  task_id TEXT NOT NULL,          -- NO FOREIGN KEY constraint
+  convex_id TEXT NOT NULL,
+  title TEXT DEFAULT '',
+  scheduled_timestamp INTEGER NOT NULL,
+  start_time INTEGER NOT NULL,
+  end_time INTEGER NOT NULL,
+  status TEXT DEFAULT 'pending',
+  config_json TEXT NOT NULL DEFAULT '{}',
+  checkpoints TEXT NOT NULL DEFAULT '[]',
+  penalty_json TEXT DEFAULT NULL,
+  conditions_json TEXT DEFAULT NULL,
+  penalty_waiver_json TEXT DEFAULT NULL,
+  is_manual_edit INTEGER DEFAULT 0,
+  strict_until INTEGER DEFAULT NULL,
+  created_at INTEGER NOT NULL
+);
 ```
 
 <Warning>
-The native Kotlin Accessibility Service opens a **READONLY** connection to `commit.db`. This is critical — if the service opened a read-write connection, it would compete for the WAL writer lock with the JavaScript thread, causing immediate corruption on eMMC storage devices.
+There are **no foreign key constraints** in this schema. This is intentional. The `task_id` column in `task_instances` references `local_tasks.id` logically but not physically. Orphaned instances (whose parent task was deleted) are first-class citizens that continue to enforce penalties.
 </Warning>
 
-## Surgical Purge vs Nuclear Option
+---
 
-| Operation | What it does | When to use |
-|---|---|---|
-| **Surgical Purge** | `DELETE FROM` all tables, keep schema intact | Manual Resync, Amnesia Recovery |
-| **Nuclear Option** | `DROP` + `CREATE` + `VACUUM` | Terminal corruption, schema version mismatch |
+## Why No Foreign Keys?
 
-The Surgical Purge preserves file descriptor integrity — native Android services keep their database handles alive, preventing POSIX Error 9 (Bad File Descriptor).
+The removal of FK constraints was a direct response to a production database corruption bug. The prior schema required toggling `PRAGMA foreign_keys` on and off around every write:
+
+| Problem | Impact |
+| :--- | :--- |
+| `PRAGMA foreign_keys` cannot be changed inside a transaction | SQLite silently ignores it, leaving inconsistent enforcement |
+| Concurrent writers share the same connection | Race conditions when one writer enables FKs while another disables them |
+| Root cause of `database disk image is malformed` errors | WAL corruption from competing PRAGMA state changes |
+
+By removing FKs entirely, all PRAGMA toggles were eliminated, and write paths became race-free.
+
+---
+
+## Nuke and Pave Migration Strategy
+
+There are **no incremental migrations**. If the on-device `PRAGMA user_version` does not match the current `DATABASE_VERSION` constant, the entire database is destroyed and rebuilt:
+
+```typescript
+const DATABASE_VERSION = 12;
+
+export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
+  let currentVersion: number;
+
+  try {
+    const result = await db.getFirstAsync<{ user_version: number }>(
+      "PRAGMA user_version"
+    );
+    currentVersion = result?.user_version ?? 0;
+  } catch (e) {
+    // PRAGMA read failed — database is corrupted beyond recovery
+    currentVersion = -1;
+  }
+
+  // Hot path: schema is current, nothing to do (~0ms)
+  if (currentVersion === DATABASE_VERSION) return;
+
+  // Cold path: wipe everything and deploy the unified schema
+  await db.execAsync(UNIFIED_SCHEMA_V12);
+  await db.execAsync(`
+    PRAGMA wal_checkpoint(TRUNCATE);
+    VACUUM;
+  `);
+}
+```
+
+The `VACUUM` command physically reconstructs the entire database file from scratch. This eliminates ghost WAL boundaries that caused Android's native `CursorWindow` to misread corrupted lengths (triggering 124MB OOM allocations on the JVM).
+
+---
+
+## Three Recovery Tiers
+
+<Steps>
+  <Step title="Surgical Purge">
+    Clears all data rows without dropping tables. Preserves file descriptors so the Kotlin Accessibility Service keeps its database handle alive. Used by Manual Resync.
+  </Step>
+  <Step title="Nuke and Pave">
+    Drops all tables, deploys the unified schema, and runs `VACUUM`. Used on schema version mismatch or terminal corruption. Requires a full re-sync from Convex (Amnesia Mode).
+  </Step>
+  <Step title="OS-Level Clear">
+    If both tiers above fail, the user must clear the app data through Android Settings. This destroys the SQLite file entirely and forces a fresh install state.
+  </Step>
+</Steps>

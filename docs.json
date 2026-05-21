@@ -149,6 +149,104 @@
                 ]
               },
               {
+                "group": "Client Side",
+                "icon": "display",
+                "pages": [
+                  {
+                    "group": "Routing and Screens",
+                    "pages": [
+                      "client-side/routing/root-layout",
+                      "client-side/routing/auth-flow",
+                      "client-side/routing/dashboard",
+                      "client-side/routing/commitment-wizard",
+                      "client-side/routing/time-location",
+                      "client-side/routing/app-blocker",
+                      "client-side/routing/calendar-schedules",
+                      "client-side/routing/penalties-flow",
+                      "client-side/routing/waivers-flow",
+                      "client-side/routing/settings-permissions",
+                      "client-side/routing/strict-mode",
+                      "client-side/routing/preset-editing",
+                      "client-side/routing/verification-flow"
+                    ]
+                  },
+                  {
+                    "group": "State Management",
+                    "pages": [
+                      "client-side/state/task-draft-store",
+                      "client-side/state/calendar-store",
+                      "client-side/state/preset-store",
+                      "client-side/state/commit-store",
+                      "client-side/state/verification-store",
+                      "client-side/state/heal-store",
+                      "client-side/state/preset-edit-store",
+                      "client-side/state/app-store",
+                      "client-side/state/task-store",
+                      "client-side/state/chaos-store"
+                    ]
+                  },
+                  {
+                    "group": "Core Infrastructure",
+                    "pages": [
+                      "client-side/infrastructure/triple-write",
+                      "client-side/infrastructure/sync-engine",
+                      "client-side/infrastructure/sync-lock",
+                      "client-side/infrastructure/local-database",
+                      "client-side/infrastructure/local-db-commits",
+                      "client-side/infrastructure/local-db-instances",
+                      "client-side/infrastructure/logger",
+                      "client-side/infrastructure/scheduler-bridge",
+                      "client-side/infrastructure/auth-client",
+                      "client-side/infrastructure/time-utilities",
+                      "client-side/infrastructure/validation"
+                    ]
+                  },
+                  {
+                    "group": "Hooks",
+                    "pages": [
+                      "client-side/hooks/hydration-sync",
+                      "client-side/hooks/preset-hydration",
+                      "client-side/hooks/commit-task",
+                      "client-side/hooks/task-actions",
+                      "client-side/hooks/tasks",
+                      "client-side/hooks/verification-engine",
+                      "client-side/hooks/upcoming-verification",
+                      "client-side/hooks/location",
+                      "client-side/hooks/permissions",
+                      "client-side/hooks/calendar-events",
+                      "client-side/hooks/calendar-range",
+                      "client-side/hooks/event-detail",
+                      "client-side/hooks/penalty-sync",
+                      "client-side/hooks/waiver-sync",
+                      "client-side/hooks/task-selection",
+                      "client-side/hooks/app-discovery",
+                      "client-side/hooks/accountability-prefill",
+                      "client-side/hooks/fresh-photo-url"
+                    ]
+                  },
+                  {
+                    "group": "Components",
+                    "pages": [
+                      "client-side/components/hydration-engine",
+                      "client-side/components/security-shield",
+                      "client-side/components/connection-watchdog",
+                      "client-side/components/heal-overlay",
+                      "client-side/components/ui-components",
+                      "client-side/components/dev-tools"
+                    ]
+                  },
+                  {
+                    "group": "Providers and Contexts",
+                    "pages": [
+                      "client-side/providers/resurrection",
+                      "client-side/providers/convex-wrapper",
+                      "client-side/providers/app-theme",
+                      "client-side/providers/tab-context"
+                    ]
+                  }
+                ]
+              },
+              {
                 "group": "Convex Backend",
                 "icon": "server",
                 "pages": [

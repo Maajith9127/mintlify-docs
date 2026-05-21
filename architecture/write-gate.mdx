@@ -1,15 +1,17 @@
 ---
 title: "Write Gate"
-description: "The global mutex that serializes all database writes and hardware sync operations."
+description: "The global mutex that serializes all database writes and the Saga-pattern Triple-Write Orchestrator."
 ---
 
-# Write Gate & Sync Lock
+# Write Gate and Sync Lock
 
-SQLite is a **single-writer database**. If multiple JavaScript operations attempt concurrent transactions, the native bridge throws `SQLITE_BUSY` or `SQLITE_LOCKED` errors. CommitT solves this with two complementary systems.
+SQLite is a **single-writer database**. If multiple JavaScript operations attempt concurrent transactions, the native bridge throws `SQLITE_BUSY` or `SQLITE_LOCKED` errors. CommitT solves this with two complementary systems: a **Promise-chain mutex** and a **Saga-pattern orchestrator**.
+
+---
 
 ## Sync Lock Mutex (V2)
 
-The `SyncLock` is a **singleton Promise-chain mutex** that serializes ALL database writes and hardware alarm sync triggers across the entire application.
+The `SyncLock` (`lib/sync-lock.ts`) is a **singleton Promise-chain mutex** that serializes ALL database writes and hardware alarm sync triggers across the entire application.
 
 ```typescript
 import { syncLock } from '@/lib/sync-lock';
@@ -19,14 +21,16 @@ const result = await syncLock.execute(
   "Saga:CreateCommitment",  // Source name for diagnostics
   async () => {
     await db.withTransactionAsync(async () => {
-      // Your write operations here
+      // Write operations here
     });
   },
   15_000  // Timeout: 15 seconds
 );
 ```
 
-### How It Works
+### How the Queue Works
+
+Operations are chained onto a single Promise. Each new caller waits for all preceding callers to finish before executing:
 
 ```mermaid
 sequenceDiagram
@@ -47,7 +51,7 @@ sequenceDiagram
 
 ### Timeout Circuit Breaker
 
-Every lock holder has a **hard time limit** (default: 30 seconds). If an operation exceeds this, the lock is forcibly released:
+Every lock holder has a **hard time limit** (default: 30 seconds). If an operation exceeds this, the lock is forcibly released via `Promise.race`:
 
 ```typescript
 const result = await Promise.race([
@@ -64,24 +68,24 @@ const result = await Promise.race([
 ```
 
 <Warning>
-The timeout does NOT abort the underlying operation (you can't cancel a native SQLite transaction). It simply releases the lock so the next writer doesn't starve. The timed-out operation's result is silently discarded.
+The timeout does NOT abort the underlying operation (you cannot cancel a native SQLite transaction). It simply releases the lock so the next writer does not starve. The timed-out operation's result is silently discarded.
 </Warning>
 
 ### Manual Resync Awareness
 
-The `SyncLock` exposes a public `isManualResyncActive` flag that prevents the HydrationSync engine from launching competing downloads during a manual resync:
+The `SyncLock` exposes a public `isManualResyncActive` flag. When set to `true`, the HydrationSync engine suppresses all reconciliation attempts to avoid fighting the manual resync for the lock:
 
 ```
 Manual Resync starts → sets flag → acquires lock → nukes DB → downloads → ingests → clears flag
-                                                                                      ↑
-HydrationSync wakes up → checks flag → sees true → gracefully defers                  │
-                                                                                      │
-Without this flag: HydrationSync sees empty token → panics → "AMNESIA!" → fights for lock → deadlock
+                                                                                      |
+HydrationSync wakes up → checks flag → sees true → gracefully defers                  |
+                                                                                      |
+Without this flag: HydrationSync sees empty token → panics → "AMNESIA!" → fights for lock
 ```
 
 ### Cold Boot Reset
 
-On app startup, the lock is explicitly reset to clear any theoretical stale state from a prior crash:
+On app startup, the lock is explicitly reset to clear any stale state from a prior crash:
 
 ```typescript
 syncLock.reset(); // Called in SQLiteProvider's onInit
@@ -89,17 +93,11 @@ syncLock.reset(); // Called in SQLiteProvider's onInit
 
 This handles the edge case where Android ROMs (notably Lenovo) keep the process alive after a swipe-kill when an Accessibility Service is active.
 
+---
+
 ## Triple-Write Orchestrator
 
-The `TripleWriteOrchestrator` is a **Saga pattern** implementation that coordinates multi-step write operations with automatic rollback on failure.
-
-Every user action that modifies data must write to **three independent systems**:
-
-| Step | Target | Purpose |
-|---|---|---|
-| **1** | Convex Cloud | Persist to the source of truth |
-| **2** | Local SQLite | Update the local cache for instant UI |
-| **3** | Hardware Alarms | Re-sync Android AlarmManager |
+The `TripleWriteOrchestrator` (`lib/triple-write-orchestrator.ts`) is a **Saga pattern** implementation that coordinates multi-step write operations with automatic rollback on failure.
 
 ```typescript
 const saga = new TripleWriteOrchestrator(context);
@@ -107,7 +105,7 @@ const saga = new TripleWriteOrchestrator(context);
 saga
   .addStep("Convex Mutation", 
     async (ctx) => await convexMutation(ctx),
-    async (ctx, result) => await convexRollback(result) // Compensator
+    async (ctx, result) => await convexRollback(result) // Compensating function
   )
   .addStep("Local SQLite Write",
     async (ctx, prev) => await sqliteInsert(prev),
@@ -115,22 +113,40 @@ saga
   )
   .addStep("Hardware Alarm Sync",
     async (ctx) => await scheduleNextAlarm()
+    // No compensating function — alarms are idempotent
   );
 
 const { success, error, rollbackFailed } = await saga.execute();
 ```
 
+### Per-Step Timeouts
+
+Each step races against its own timeout (default: 15 seconds). If a Convex mutation hangs due to a slow network, the timeout fires, and the orchestrator skips to the rollback phase:
+
+```typescript
+private executeWithTimeout<TResult>(step, previousResults): Promise<TResult> {
+  return Promise.race([
+    step.execute(this.contextSnapshot, previousResults),
+    new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`"${step.name}" timed out after ${step.timeoutMs}ms.`));
+      }, step.timeoutMs);
+    })
+  ]);
+}
+```
+
 ### Rollback Behavior
 
-If Step 2 (SQLite) fails, the orchestrator automatically runs Step 1's **compensating function** to undo the Convex mutation. Steps are rolled back in reverse order.
-
-If a compensating function itself fails, the `rollbackFailed` flag is set to `true`, signaling the HydrationSync engine to perform a full reconciliation on the next cycle.
+If Step 2 (SQLite) fails, the orchestrator automatically runs Step 1's **compensating function** to undo the Convex mutation. Steps are rolled back in reverse order:
 
 ```mermaid
 flowchart LR
-    A["Step 1: Convex ✅"] --> B["Step 2: SQLite ❌"]
+    A["Step 1: Convex"] --> B["Step 2: SQLite FAILS"]
     B --> C["ROLLBACK: Undo Step 1"]
     C --> D{"Rollback succeeded?"}
     D -->|Yes| E["Return error to user"]
     D -->|No| F["Flag for HydrationSync reconciliation"]
 ```
+
+If a compensating function itself fails, the `rollbackFailed` flag is set to `true`, signaling the HydrationSync engine to perform a full reconciliation on the next cycle.
