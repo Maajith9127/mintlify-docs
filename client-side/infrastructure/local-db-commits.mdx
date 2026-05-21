@@ -1,33 +1,89 @@
 ---
-title: Local DB Commits
-description: Specialized SQLite transaction boundaries for task CRUD.
+title: "Local DB Commits"
+description: "Specialized SQLite transaction boundaries for task CRUD -- the Vault Guard."
 ---
 
 # Local DB Commits
 
-The local-db-commits.ts module is the Vault Guard -- a specialized repository that handles all task-level CRUD operations against the local SQLite database.
+**Source:** `lib/local-db-commits.ts` (248 lines, 10.7KB)
+
+The local-db-commits module is the "Vault Guard" -- a specialized repository that handles all task-level CRUD operations against the local SQLite database using atomic transactions and the Unified Identity strategy.
 
 ---
 
 ## Unified Identity Strategy
 
-To prevent Split-Brain duplication, the module uses the official Convex _id as the local primary key. This ensures that the Triple-Write Saga and the Hydration Engine always target the same physical rows.
+To prevent "Split-Brain" duplication, the module uses the official Convex _id as the local primary key. The remoteId parameter in every function IS the Convex _id, and it is used as both the id and convex_id columns:
+
+```typescript
+await db.runAsync(
+  `INSERT OR REPLACE INTO local_tasks (id, convex_id, ...) VALUES (?, ?, ...)`,
+  [remoteId, remoteId, ...] // Same ID in both columns
+);
+```
 
 ---
 
 ## Core Operations
 
-| Function | Purpose | Transaction? |
-| :--- | :--- | :--- |
-| insertTaskToLocalDb() | Creates a new task with all projected instances | Atomic |
-| updateTaskInLocalDb() | Updates task master rules and overwrites future instances | Atomic |
-| updateStrictModeInLocalDb() | Activates/extends Strict Mode on task and instances | Atomic |
-| updateInstanceInLocalDb() | Updates a single instance (status, checkpoints, waiver) | Single statement |
-| 
-ukeLocalDb() | Deletes all data from both tables for testing/re-sync | Atomic |
+### insertTaskToLocalDb()
+
+Creates a new task with all projected instances in a single atomic transaction:
+
+1. INSERT OR REPLACE into local_tasks with all 17 columns
+2. Call syncInstancesToLocalDb() to batch-insert all backend-projected instances
+3. Both operations wrapped in db.withTransactionAsync()
+
+### updateTaskInLocalDb()
+
+Updates task master rules and overwrites the future instance trajectory:
+
+1. UPDATE local_tasks SET with all mutable columns
+2. DELETE FROM task_instances WHERE task_id = ? AND is_manual_edit = 0 (protects manual edits)
+3. Call syncInstancesToLocalDb() to repopulate with newly projected instances
+
+### updateStrictModeInLocalDb()
+
+Activates or extends Strict Mode:
+
+1. UPDATE local_tasks SET strict_until and strict_duration_days
+2. DELETE non-manual instances
+3. Re-sync instances (which now inherit the strict_until timestamp)
+
+### updateInstanceInLocalDb()
+
+Updates a single instance with dynamic field selection:
+
+```typescript
+const fields: string[] = [];
+const values: any[] = [];
+if (updates.status) { fields.push("status = ?"); values.push(updates.status); }
+if (updates.conditions) { fields.push("conditions_json = ?"); values.push(JSON.stringify(updates.conditions)); }
+// ... dynamic field accumulation
+await db.runAsync(`UPDATE task_instances SET ${fields.join(", ")} WHERE convex_id = ?`, values);
+```
+
+### nukeLocalDb()
+
+Nuclear option: DELETE FROM both tables in a transaction.
 
 ---
 
-## Instance Trajectory Sync
+## High-Performance Batched Instance Insertion
 
-When a task is created or updated, the module synchronizes the full future instance trajectory using db.prepareAsync() for high-performance batched insertion. Manually-edited instances (is_manual_edit = 1) are protected from the purge during updates.
+The syncInstancesToLocalDb() function uses prepared statements for batched insertion:
+
+```typescript
+const statement = await db.prepareAsync(
+  `INSERT OR REPLACE INTO task_instances (...) VALUES (?, ?, ...)`
+);
+try {
+  for (const instance of backendInstances) {
+    await statement.executeAsync([...]);
+  }
+} finally {
+  await statement.finalizeAsync();
+}
+```
+
+Prepared statements avoid re-parsing the SQL for each instance, providing significant performance gains when projecting 50+ future instances.

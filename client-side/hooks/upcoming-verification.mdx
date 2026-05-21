@@ -1,20 +1,55 @@
 ---
-title: useUpcomingVerification
-description: Computes the next pending verification for the Dashboard upcoming card.
+title: "useUpcomingVerification"
+description: "Server-authoritative subscription to the next pending verification event."
 ---
 
 # useUpcomingVerification
 
-The useUpcomingVerification hook (hooks/commits/useUpcomingVerification.ts) computes the next pending verification instance and makes it available to the Dashboard's upcoming card.
+**Source:** `hooks/commits/useUpcomingVerification.ts` (40 lines)
+
+The useUpcomingVerification hook subscribes to the Convex backend's dedicated "next" query and pushes the result into the global useVerificationStore. It is a headless hook -- it returns null and exists purely for its side effects.
 
 ---
 
-## Query Logic
+## Server-Authoritative Design
 
-The hook queries 	ask_instances from SQLite where:
-- status = 'pending'
-- start_time > Date.now()
-- Ordered by start_time ASC
-- Limited to 1 result
+Unlike the previous implementation that polled locally every 30 seconds with a 7-day horizon cap, this hook delegates scheduling entirely to the server:
 
-The result is consumed by the Dashboard to display a countdown timer and quick-access button.
+| Old Approach | New Approach |
+| :--- | :--- |
+| Local SQLite query every 30s | Convex reactive subscription |
+| Capped at 7-day lookahead | Zero-horizon (works for tasks 2+ weeks away) |
+| Client-side time filtering | Server handles schedule resolution |
+| Heartbeat-based polling | Push-based (updates only on data change) |
+
+---
+
+## Implementation
+
+```typescript
+export function useUpcomingVerification() {
+  const setUpcomingEvent = useVerificationStore((state) => state.setUpcomingEvent);
+  const { data: session } = authClient.useSession();
+
+  const nextInstance = useQuery(
+    api.api.instances.read.next,
+    session?.user?.id ? {} : "skip"
+  );
+
+  useEffect(() => {
+    if (nextInstance !== undefined) {
+      setUpcomingEvent(nextInstance); // Includes null = "no upcoming tasks"
+    }
+  }, [nextInstance, setUpcomingEvent]);
+
+  return null; // Headless Hook
+}
+```
+
+Convex automatically re-runs the query when time passes or the underlying data changes, providing real-time updates without client-side timers.
+
+---
+
+## Store Integration
+
+The result is written to useVerificationStore.upcomingEvent, which is consumed by the Dashboard's upcoming verification card to display countdown timers and quick-access navigation.

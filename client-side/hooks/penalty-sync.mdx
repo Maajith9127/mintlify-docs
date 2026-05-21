@@ -1,14 +1,55 @@
 ---
-title: usePenaltySync
-description: Syncs penalty configuration from the wizard to the draft store.
+title: "usePenaltySync"
+description: "Syncs penalty configuration from penalty sub-screens to the draft store."
 ---
 
 # usePenaltySync
 
-The usePenaltySync hook (hooks/commits/usePenaltySync.ts) synchronizes the penalty configuration between the (penalties) route group screens and the useTaskDraftStore.
+**Source:** `hooks/commits/usePenaltySync.ts`
+
+The usePenaltySync hook synchronizes the penalty configuration between the (penalties) route group sub-screens and the useTaskDraftStore.
 
 ---
 
 ## Sync Direction
 
-The hook reads penalty state from the sub-screens and writes it back to the draft store's penalty field. This keeps the wizard hub in sync with the penalty configuration screens.
+The hook operates as a bidirectional bridge:
+
+**Read direction:** When the penalty sub-screen mounts, it reads the current penalty config from useTaskDraftStore to pre-populate the form fields.
+
+**Write direction:** As the user configures penalty settings (photo, email recipient, amount), each change is immediately written back to the draft store's penalty field.
+
+---
+
+## Penalty Object Structure
+
+```typescript
+penalty: {
+  type: "embarrassing_photo" | "send_email" | "send_money" | "direct_commit",
+  config: {
+    // embarrassing_photo
+    channel: "email" | "sms",
+    emailTo: string,
+    photoUrl: string,
+
+    // send_email
+    recipientEmail: string,
+    subject: string,
+    body: string,
+
+    // send_money
+    amount: number,
+    currency: string,
+
+    // direct_commit
+    blockDurationMinutes: number,
+    targetApps: string[]
+  }
+}
+```
+
+---
+
+## Cleanup Behavior
+
+If the user navigates back from the penalty screen without selecting a penalty type, the hook clears the penalty field on the draft store to prevent stale configurations from persisting.

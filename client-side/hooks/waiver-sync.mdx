@@ -1,14 +1,46 @@
 ---
-title: useWaiverSync
-description: Syncs waiver configuration from the wizard to the draft store.
+title: "useWaiverSync"
+description: "Syncs waiver configuration from waiver sub-screens to the draft store."
 ---
 
 # useWaiverSync
 
-The useWaiverSync hook (hooks/commits/useWaiverSync.ts) synchronizes the waiver configuration between the (penaltywaiver) route group screens and the useTaskDraftStore.
+**Source:** `hooks/commits/useWaiverSync.ts`
+
+The useWaiverSync hook synchronizes the waiver configuration between the (penaltywaiver) route group screens and the useTaskDraftStore.
 
 ---
 
 ## Sync Direction
 
-The hook reads waiver state from the sub-screens and writes it back to the draft store's penalty_waiver field. This keeps the wizard hub in sync with the waiver configuration screens.
+Identical pattern to usePenaltySync:
+
+**Read direction:** Pre-populates waiver form fields from the draft store on mount.
+
+**Write direction:** Writes each configuration change back to the draft store's penalty_waiver field in real-time.
+
+---
+
+## Waiver Object Structure
+
+```typescript
+penalty_waiver: {
+  type: "captcha" | "paragraph",
+  config: {
+    // captcha
+    count: number,          // Number of CAPTCHAs to solve
+    difficulty: "easy" | "medium" | "hard",
+
+    // paragraph
+    text: string,           // Text to transcribe
+    minAccuracy: number     // Minimum character accuracy (0-1)
+  },
+  deadline_minutes: number  // Time allowed to complete the challenge
+}
+```
+
+---
+
+## Dependency on Penalty
+
+The waiver config is only meaningful if a penalty is configured. If the user removes the penalty from the draft, the waiver config is automatically cleared to prevent orphaned waiver configurations.

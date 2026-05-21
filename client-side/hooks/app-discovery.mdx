@@ -1,24 +1,46 @@
 ---
-title: useAppDiscovery
-description: Fetches installed apps from the AppListerModule native bridge.
+title: "useAppDiscovery"
+description: "Fetches installed Android apps from the AppListerModule native bridge."
 ---
 
 # useAppDiscovery
 
-The useAppDiscovery hook (hooks/useAppDiscovery.ts) fetches the list of all installed applications from the Android device via the AppListerModule native bridge.
+**Source:** `hooks/useAppDiscovery.ts` (54 lines)
+
+The useAppDiscovery hook fetches the complete list of installed applications from the Android device via the AppListerModule Kotlin native bridge.
 
 ---
 
-## Native Bridge
+## Native Bridge Call
 
-The hook calls AppLister.getInstalledApps() which uses Android's PackageManager to enumerate all installed packages. Each package includes:
+The hook calls the AppListerModule's getInstalledApps function, which uses Android's PackageManager API to enumerate all installed packages:
 
-- packageName -- e.g., com.instagram.android
-- label -- e.g., Instagram
-- icon -- Base64-encoded app icon
+```typescript
+const apps = await AppLister.getInstalledApps();
+```
 
 ---
 
-## Performance
+## Return Data Shape
 
-The app list is cached in component state after the first fetch. The native module uses JSI for synchronous, high-performance data transfer to avoid the React Native bridge serialization overhead.
+Each app entry contains:
+
+| Field | Type | Example |
+| :--- | :--- | :--- |
+| packageName | string | com.instagram.android |
+| label | string | Instagram |
+| icon | string | data:image/png;base64,iVBOR... |
+
+The icon is a Base64-encoded PNG of the app's launcher icon, rendered directly in Image components.
+
+---
+
+## Caching Strategy
+
+The app list is fetched once on mount and cached in component state. Subsequent renders return the cached list without re-querying the native module. The list is only refreshed if the component remounts (e.g., navigating away and back).
+
+---
+
+## Performance: JSI Bridge
+
+The AppListerModule uses JSI (JavaScript Interface) rather than the traditional React Native bridge for data transfer. This eliminates JSON serialization overhead and enables synchronous, high-performance enumeration of hundreds of installed packages without blocking the JS thread.

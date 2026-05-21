@@ -1,31 +1,98 @@
 ---
-title: Local Database Schema
-description: V12 Instance-Dependent SQLite schema and Nuke and Pave migrations.
+title: "Local Database Schema"
+description: "V12 Instance-Dependent SQLite schema and Nuke and Pave migration strategy."
 ---
 
 # Local Database Schema
 
-The local database (lib/local-db.ts) defines the V12 Instance-Dependent schema with zero foreign key constraints and a Nuke and Pave migration strategy.
+**Source:** `lib/local-db.ts` (14.8KB)
+
+The local database defines the V12 Instance-Dependent schema -- two core tables with zero foreign key constraints and a Nuke and Pave migration strategy.
 
 ---
 
-## Schema Version 12
+## Schema Version: 12
 
-Two core tables with no FK constraints:
-
-- **local_tasks** -- Mirror of Convex 	asks collection. Stores recurrence, conditions, penalties, and waivers as JSON columns.
-- **task_instances** -- Individual commitment occurrences. Orphan-safe: the 	ask_id column has no FK constraint, allowing instances to survive parent deletion.
+```typescript
+const DATABASE_VERSION = 12;
+```
 
 ---
 
-## Nuke and Pave
+## Table: local_tasks
 
-There are no incremental migrations. If PRAGMA user_version does not match DATABASE_VERSION = 12, the entire database is destroyed and rebuilt atomically. The VACUUM command physically reconstructs the file, eliminating ghost WAL boundaries.
+The master task entity table. Mirrors the Convex tasks collection with JSON columns for complex nested structures:
+
+| Column | Type | Purpose |
+| :--- | :--- | :--- |
+| id | TEXT PRIMARY KEY | Convex _id (Unified Identity) |
+| convex_id | TEXT | Duplicate for legacy query compatibility |
+| assigner_id | TEXT | User who created the commitment |
+| assignee_id | TEXT | User who must fulfill it |
+| title | TEXT | Human-readable commitment name |
+| description | TEXT | Optional description |
+| visibility | TEXT | private, public, or partner_only |
+| recurrence_json | TEXT | JSON: days, time windows, repeat config |
+| conditions_json | TEXT | JSON: location, digital, rule conditions |
+| config_json | TEXT | JSON: verification style, grace period |
+| penalty_json | TEXT | JSON: penalty type and configuration |
+| penalty_waiver_json | TEXT | JSON: waiver type and deadline |
+| strict_until | INTEGER | Epoch timestamp when strict lock expires |
+| strict_duration_days | INTEGER | Original lock duration for display |
+| created_at | INTEGER | Creation epoch timestamp |
+| updated_at | INTEGER | Last modification epoch timestamp |
+| synced_at | INTEGER | Last sync with Convex epoch timestamp |
+
+---
+
+## Table: task_instances
+
+Individual commitment occurrences. Orphan-safe with zero FK constraints:
+
+| Column | Type | Purpose |
+| :--- | :--- | :--- |
+| id | TEXT PRIMARY KEY | Convex instance _id (Unified Identity) |
+| task_id | TEXT | Parent task ID (NO FK constraint) |
+| convex_id | TEXT | Duplicate for query compatibility |
+| scheduled_timestamp | INTEGER | When this instance was projected |
+| start_time | INTEGER | Window start epoch |
+| end_time | INTEGER | Window end epoch |
+| status | TEXT | pending, proceeding, proceeded, failed, penalized, waived, waiver_active |
+| title | TEXT | Inherited from parent task |
+| config_json | TEXT | JSON: verification style, alarm timing |
+| checkpoints | TEXT | JSON: checkpoint verification statuses |
+| conditions_json | TEXT | JSON: per-instance condition statuses |
+| penalty_json | TEXT | JSON: frozen penalty snapshot |
+| penalty_waiver_json | TEXT | JSON: frozen waiver snapshot |
+| strict_until | INTEGER | Inherited strict lock timestamp |
+| is_manual_edit | INTEGER | 0 or 1: protects from bulk purge |
+| created_at | INTEGER | Local insertion timestamp |
+
+---
+
+## Nuke and Pave Migration
+
+There are no incremental migrations. The migration function checks `PRAGMA user_version` against DATABASE_VERSION:
+
+```
+if (currentVersion !== DATABASE_VERSION) {
+    DROP TABLE IF EXISTS local_tasks;
+    DROP TABLE IF EXISTS task_instances;
+    CREATE TABLE local_tasks (...);
+    CREATE TABLE task_instances (...);
+    PRAGMA user_version = 12;
+    VACUUM;  // Physically reconstruct the file
+}
+```
+
+VACUUM eliminates ghost WAL boundaries from the old schema, preventing the Kotlin Accessibility Service from reading stale page headers.
 
 ---
 
 ## Three Recovery Tiers
 
-1. **Surgical Purge** -- DELETE FROM without dropping tables. Preserves file descriptors for the Kotlin Accessibility Service.
-2. **Nuke and Pave** -- Drops all tables, deploys unified schema, runs VACUUM. Requires full re-sync from Convex.
-3. **OS-Level Clear** -- User clears app data through Android Settings. Last resort.
+| Tier | Method | Scope | Preserves File Descriptors |
+| :--- | :--- | :--- | :--- |
+| 1. Surgical Purge | DELETE FROM | Data only | Yes |
+| 2. Nuke and Pave | DROP + CREATE + VACUUM | Schema + data | No |
+| 3. OS-Level Clear | Android Settings clear data | Everything | No |

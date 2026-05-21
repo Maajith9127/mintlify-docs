@@ -1,23 +1,59 @@
 ---
-title: useFreshPhotoUrl
-description: Generates time-limited signed URLs for verification photo uploads.
+title: "useFreshPhotoUrl"
+description: "Generates time-limited signed URLs for verification photo uploads to Convex Storage."
 ---
 
 # useFreshPhotoUrl
 
-The useFreshPhotoUrl hook (hooks/useFreshPhotoUrl.ts) generates time-limited signed URLs for verification photo uploads to Convex Storage.
+**Source:** `hooks/useFreshPhotoUrl.ts` (86 lines)
+
+The useFreshPhotoUrl hook handles the complete photo upload lifecycle for embarrassing photo penalties, generating time-limited signed URLs and uploading the captured image to Convex Storage.
 
 ---
 
-## Usage
+## Upload Pipeline
 
-When the penalty type is embarrassing_photo, this hook generates a fresh upload URL before the Triple-Write executes. The URL is time-limited to prevent replay attacks.
+```
+Camera Capture (local file URI)
+    │
+    ├── 1. Request signed upload URL from Convex
+    │       → convex.mutation(api.storage.generateUploadUrl)
+    │
+    ├── 2. Upload photo file to Convex Storage
+    │       → fetch(signedUrl, { method: "POST", body: blob })
+    │
+    ├── 3. Receive Storage ID
+    │       → storageId = response.storageId
+    │
+    └── 4. Embed Storage ID in penalty config
+            → penalty.config.photoStorageId = storageId
+```
 
 ---
 
-## Flow
+## Time-Limited URLs
 
-1. Requests a signed upload URL from the Convex backend
-2. Uploads the photo file to Convex Storage
-3. Returns the storage ID that is embedded in the penalty config
-4. The storage ID is frozen onto the task instance as part of the immutable penalty snapshot
+The signed upload URL is valid for a short window (typically 60 seconds). This prevents replay attacks where a captured URL could be reused to upload arbitrary content at a later time.
+
+---
+
+## Blob Conversion
+
+The hook converts the local file URI (from the camera or gallery) into a Blob for upload:
+
+```typescript
+const response = await fetch(localFileUri);
+const blob = await response.blob();
+```
+
+---
+
+## Integration with useCommitTask
+
+The useFreshPhotoUrl hook is called by useCommitTask before the Triple-Write executes. The returned storage ID is embedded in the penalty config, which is then frozen onto each generated task instance as part of the immutable penalty snapshot.
+
+---
+
+## Error Handling
+
+If the upload fails (network error, storage quota exceeded), the hook returns null for the storage ID. The useCommitTask hook checks for this and aborts the commit with a user-facing error message rather than creating a commitment with a broken penalty reference.

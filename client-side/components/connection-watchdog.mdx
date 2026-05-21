@@ -1,25 +1,52 @@
 ---
-title: ConnectionWatchdog
-description: Monitors and resurrects dead Convex WebSocket connections.
+title: "ConnectionWatchdog"
+description: "DEPRECATED -- Legacy zombie socket detector replaced by HydrationSync."
 ---
 
 # ConnectionWatchdog
 
-The ConnectionWatchdog (components/system/ConnectionWatchdog.tsx) monitors the health of the Convex WebSocket connection and triggers recovery when the connection dies.
+**Source:** `components/system/ConnectionWatchdog.tsx` (51 lines -- tombstone file)
+
+<Warning>
+This component has been DEPRECATED and removed from the provider tree. The file is kept as a tombstone to prevent accidental re-creation of the same anti-pattern.
+</Warning>
 
 ---
 
-## Detection
+## Why It Was Removed (April 2026)
 
-The watchdog periodically checks the Convex client's connection status. If the WebSocket has been disconnected for longer than a threshold period, it triggers the Resurrection protocol.
+The ConnectionWatchdog was a legacy system that attempted to detect zombie WebSocket connections and fix them by calling convexClient.clearAuth() directly. This approach was fundamentally broken for four reasons:
+
+### 1. Bypassed the ResurrectionProvider
+
+The centralized lifecycle system (ResurrectionProvider to ConvexClientWrapper) creates a brand-new ConvexReactClient on resurrection. The Watchdog instead called clearAuth() on the SAME dead client, leaving it in a half-alive state that corrupted subsequent queries.
+
+### 2. Killed In-Flight Sagas
+
+Calling clearAuth() mid-mutation destroyed the WebSocket transport while Triple-Write Sagas were waiting for Convex responses, causing 15-second timeouts, ROLLBACK cascades, and "Local Sync Failed" modals.
+
+### 3. Panicked During Cold Starts
+
+Convex serverless deployments naturally go to sleep after inactivity. The Watchdog's 16-second probe timeout (2x 8s probes) was far too aggressive for the 10-30 second cold-start window. It would nuke auth, and when the server finally woke up, the first query hit a "Server Error" (auth token cleared) causing a RED SCREEN crash.
+
+### 4. Probed a Non-Existent Function
+
+The __health_check__ query was never deployed to the Convex backend. The probe always failed with "function not found", making it useless as a health signal.
 
 ---
 
-## Recovery
+## Replacement
 
-When a dead connection is detected:
-1. Logs the failure with timestamp and duration
-2. Increments the ResurrectionProvider's iteration counter
-3. This causes ConvexClientWrapper to destroy the old client and create a new one
-4. The new client establishes a fresh WebSocket connection
-5. HydrationSync automatically re-syncs on the new connection
+All zombie socket detection is now handled by useHydrationSync (inside the HydrationEngine), which already:
+
+- Monitors foreground transitions via AppState
+- Sends real Convex queries as health probes (not fake health checks)
+- Calls resurrect() from the ResurrectionProvider on failure
+- Creates a brand-new ConvexReactClient (the correct fix)
+- Implements Smart Blame Logic to distinguish network loss from zombie sockets
+
+---
+
+## Lesson Learned
+
+Never bypass the centralized lifecycle system. Connection recovery must flow through the ResurrectionProvider to ensure proper client teardown and recreation.

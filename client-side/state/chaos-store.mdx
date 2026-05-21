@@ -1,26 +1,55 @@
 ---
-title: Chaos Store
-description: Development-only store for injecting failures and testing resilience.
+title: "Chaos Store"
+description: "Development-only store for injecting failures and testing system resilience."
 ---
 
 # Chaos Store
 
-The useChaosStore is a development-only store used by the ChaosFab floating action button to inject failures and test system resilience.
+**Source:** `stores/useChaosStore.ts` (1.8KB)
+
+The useChaosStore is a development-only Zustand store used by the ChaosFab floating action button to inject controlled failures and test system resilience across all layers.
 
 ---
 
 ## Capabilities
 
-| Action | Effect |
-| :--- | :--- |
-| **Corrupt Database** | Injects malformed data into SQLite to trigger recovery protocols |
-| **Kill WebSocket** | Closes the Convex client connection to test reconnection |
-| **Simulate Network Drop** | Blocks outbound requests to test offline behavior |
-| **Trigger Resurrection** | Increments the resurrection counter to force a full client rebirth |
-| **Clear Sync Token** | Deletes the SecureStore token to trigger Amnesia Mode |
+| Action | Target Layer | Effect |
+| :--- | :--- | :--- |
+| **Corrupt Database** | SQLite | Injects malformed data to trigger Nuke and Pave recovery |
+| **Kill WebSocket** | Convex | Closes the active Convex client connection to test reconnection and resurrection |
+| **Simulate Network Drop** | Network | Blocks outbound requests to test offline behavior and sync deferral |
+| **Trigger Resurrection** | Provider Tree | Increments the ResurrectionProvider iteration counter, forcing a full client rebirth |
+| **Clear Sync Token** | SecureStore | Deletes the encrypted sync token to trigger Amnesia Mode on next sync cycle |
+| **Force Amnesia** | SQLite + SecureStore | Combines database purge and token clear to simulate a fresh install |
 
 ---
 
-## Safety
+## State Shape
 
-This store is only accessible via the (dev)/chaos route, which is excluded from production builds. The ChaosFab button only renders in development mode.
+```typescript
+interface ChaosState {
+  isNetworkBlocked: boolean;   // Whether outbound requests are being intercepted
+  lastAction: string | null;   // Name of the last chaos action executed
+  actionCount: number;         // Total number of chaos actions fired this session
+}
+```
+
+---
+
+## Safety Guards
+
+- The store is only accessible via the (dev)/chaos route
+- The ChaosFab button only renders when __DEV__ is true
+- The (dev) route group is excluded from production builds via app.config.js
+- All chaos actions are logged with [CHAOS] prefix for easy log filtering
+
+---
+
+## Testing Strategy
+
+The Chaos Store enables systematic resilience testing:
+
+1. **Corrupt Database** → Verify Nuke and Pave triggers and HealOverlay appears
+2. **Kill WebSocket** → Verify ConnectionWatchdog (now HydrationSync) triggers resurrection
+3. **Clear Sync Token** → Verify Amnesia Mode performs full re-sync without data loss
+4. **Trigger Resurrection** → Verify ConvexClientWrapper correctly destroys old client and creates new one

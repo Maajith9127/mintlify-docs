@@ -1,0 +1,178 @@
+---
+title: "Folder Structure"
+description: "Complete directory tree of apps/native/ mapped to documentation sections."
+---
+
+# Folder Structure
+
+The complete directory layout of the `apps/native/` package, with each folder mapped to its documentation section.
+
+---
+
+## Directory Tree
+
+```
+apps/native/
+├── app/                          # 📱 Expo Router file-based screens
+│   ├── _layout.tsx               #    → Root Layout and Provider Tree
+│   ├── index.tsx                  #    → Cold Start / Onboarding
+│   ├── (auth)/                   #    → Authentication Flow
+│   │   ├── signin.tsx
+│   │   └── welcome.tsx
+│   ├── (main)/                   #    → Dashboard and Main Tabs
+│   │   ├── _layout.tsx           #       Bottom tab navigator + singleton modals
+│   │   ├── commits.tsx           #       Active commitments list
+│   │   ├── schedules.tsx         #       Calendar grid (CalendarKit)
+│   │   ├── presets.tsx           #       Preset management
+│   │   ├── notifications.tsx     #       Alerts and waivers
+│   │   └── profile.tsx           #       Account + settings
+│   ├── (create-commit)/          #    → Commitment Wizard (Hub-and-Spoke)
+│   │   ├── _layout.tsx           #       Preset hydration trigger
+│   │   ├── final.tsx             #       The Hub (summary + commit button)
+│   │   ├── time-set.tsx          #       Time window configuration
+│   │   ├── location-set.tsx      #       Map-based geofencing
+│   │   ├── choose.tsx            #       App/website blocker
+│   │   ├── partner-select.tsx    #       Accountability partner
+│   │   ├── captcha-setup.tsx     #       CAPTCHA waiver config
+│   │   ├── picture-set.tsx       #       Photo verification
+│   │   ├── penalties.tsx         #       Penalty router
+│   │   ├── penaltywaivers.tsx    #       Waiver router
+│   │   └── _lib/                 #       Shared wizard utilities
+│   ├── (edit-preset)/            #    → Preset Editing
+│   │   ├── edit-location-preset.tsx
+│   │   ├── edit-digital-preset.tsx
+│   │   ├── edit-rule-preset.tsx
+│   │   └── search-preset-location.tsx
+│   ├── (penalties)/              #    → Penalties Configuration
+│   │   ├── embarrassing-photo.tsx
+│   │   ├── email-setup.tsx
+│   │   └── money.tsx
+│   ├── (penaltywaiver)/          #    → Penalty Waivers
+│   │   └── setup.tsx
+│   ├── (strict-mode)/            #    → Strict Mode Setup
+│   │   └── setup.tsx
+│   ├── (verify-commit)/          #    → Verification Flow
+│   ├── (settings)/               #    → Settings and Permissions
+│   │   └── permissions.tsx
+│   └── (dev)/                    #    → Developer Tools (dev-only)
+│       └── chaos.tsx
+│
+├── stores/                       # 🗃️ Zustand State Stores
+│   ├── useTaskDraftStore.ts      #    → Task Draft Store (26KB, wizard state)
+│   ├── useCalendarStore.ts       #    → Calendar Store (events, view mode)
+│   ├── usePresetStore.ts         #    → Preset Store (hydrated presets)
+│   ├── usePresetEditStore.ts     #    → Preset Edit Store (isolated editing)
+│   ├── useCommitStore.ts         #    → Commit Store (list selection)
+│   ├── useTaskStore.ts           #    → Task Store (read-only cache)
+│   ├── useVerificationStore.ts   #    → Verification Store (GPS, CAPTCHA)
+│   ├── useHealStore.ts           #    → Heal Store (recovery progress)
+│   ├── useAppStore.ts            #    → App Store (foreground/background)
+│   └── useChaosStore.ts          #    → Chaos Store (dev-only)
+│
+├── lib/                          # ⚙️ Core Infrastructure
+│   ├── triple-write-orchestrator.ts  # → Triple-Write Orchestrator (Saga)
+│   ├── sync-engine.ts            #    → Sync Engine (delta ingestion)
+│   ├── sync-lock.ts              #    → Sync Lock Mutex (Promise-chain)
+│   ├── local-db.ts               #    → Local Database Schema (V12)
+│   ├── local-db-commits.ts       #    → Local DB Commits (task CRUD)
+│   ├── local-db-instances.ts     #    → Local DB Instances (instance ops)
+│   ├── logger.ts                 #    → Logger (console hijack + disk)
+│   ├── scheduler.ts              #    → Scheduler Bridge (AlarmManager)
+│   ├── auth-client.ts            #    → Auth Client (Better Auth)
+│   ├── convex-client.ts          #    → Convex Client factory
+│   ├── time.ts                   #    → Time Utilities
+│   └── validation/               #    → Validation (draft + time slots)
+│       ├── taskDraft.ts
+│       ├── timeSlot.ts
+│       └── index.ts
+│
+├── hooks/                        # 🪝 React Hooks
+│   ├── useHydrationSync.ts       #    → HydrationSync (background sync)
+│   ├── useCommitTask.ts          #    → CommitTask (Triple-Write trigger)
+│   ├── usePresetHydration.ts     #    → PresetHydration (one-shot fetch)
+│   ├── useLocation.ts            #    → Location (GPS + permissions)
+│   ├── usePermissions.ts         #    → Permissions (8-point audit)
+│   ├── useAppDiscovery.ts        #    → AppDiscovery (installed apps)
+│   ├── useAccountabilityPrefill.ts # → AccountabilityPrefill
+│   ├── useFreshPhotoUrl.ts       #    → FreshPhotoUrl (signed uploads)
+│   ├── commits/                  #    Task-specific hooks
+│   │   ├── useTasks.ts           #    → Tasks (Convex query + store sync)
+│   │   ├── useTaskActions.ts     #    → TaskActions (CRUD via Triple-Write)
+│   │   ├── useUpcomingVerification.ts # → UpcomingVerification (next event)
+│   │   ├── useVerificationEngine.ts   # → VerificationEngine (active session)
+│   │   ├── usePenaltySync.ts     #    → PenaltySync (wizard sync)
+│   │   ├── useWaiverSync.ts      #    → WaiverSync (wizard sync)
+│   │   └── useTaskSelection.ts   #    → TaskSelection (bulk select)
+│   ├── calendar/                 #    Calendar-specific hooks
+│   │   ├── useCalendarEvents.ts  #    → CalendarEvents (instance mapping)
+│   │   └── useCalendarRange.ts   #    → CalendarRange (visible dates)
+│   └── modal/                    #    Modal-specific hooks
+│       └── useEventDetail.ts     #    → EventDetail (modal data layer)
+│
+├── components/                   # 🧩 React Components
+│   ├── system/                   #    Invisible system components
+│   │   ├── HydrationEngine.tsx   #    → HydrationEngine (background sync)
+│   │   ├── SecurityShield.tsx    #    → SecurityShield (root detection)
+│   │   └── ConnectionWatchdog.tsx #   → DEPRECATED (tombstone file)
+│   ├── ui/                       #    Reusable UI primitives
+│   │   ├── blocklist/            #       App/website blocklist UI
+│   │   ├── buttons/              #       AlarmFab, AddButton, etc.
+│   │   ├── captcha/              #       CAPTCHA challenge rendering
+│   │   ├── commits/              #       ConditionCard, task items
+│   │   ├── location/             #       Map overlays, geofence viz
+│   │   ├── modal/                #       EventDetailModal, HealOverlay
+│   │   ├── overlay/              #       Full-screen blocking overlays
+│   │   ├── penalty/              #       Penalty selection cards
+│   │   ├── skeletons/            #       Loading skeleton animations
+│   │   ├── time/                 #       Time picker, day selector
+│   │   └── waivers/              #       Waiver challenge UI
+│   ├── calendar/                 #    CalendarKit configuration
+│   ├── auth/                     #    AuthForm component
+│   └── dev/                      #    ChaosFab, DbDebugFab (dev-only)
+│
+├── providers/                    # 🔌 React Context Providers
+│   └── ResurrectionProvider.tsx  #    → ResurrectionProvider
+│
+├── contexts/                     # 🎨 React Contexts
+│   ├── app-theme-context.tsx     #    → App Theme Context
+│   └── TabContext.tsx            #    → Tab Context
+│
+├── modules/                      # 🤖 Kotlin Native Modules (JSI)
+│   ├── scheduler-module/         #    AlarmManager hardware bridge
+│   ├── blocker-module/           #    Accessibility-based app blocking
+│   ├── enforcement-module/       #    Permission deep-links
+│   ├── app-lister-module/        #    Package enumeration
+│   ├── alarm-module/             #    Alarm triggers
+│   ├── logcat-module/            #    System log capture
+│   └── recovery-module/          #    Crash recovery
+│
+├── constants/                    # 📐 Design tokens and config
+│   └── theme.ts                  #    Colors, spacing, typography
+│
+├── data/                         # 📊 Static data files
+│
+├── plugins/                      # 🔧 Expo config plugins
+│   └── withAlarmPermissions/     #    Injects SCHEDULE_EXACT_ALARM
+│
+├── assets/                       # 🖼️ Images and static assets
+│   └── images/
+│
+└── android/                      # 🤖 Native Android project
+    └── app/src/                  #    Kotlin source for native modules
+```
+
+---
+
+## How to Read This Tree
+
+Each file or directory in the tree above is annotated with an arrow (→) pointing to its corresponding documentation page in this guide. The tree is organized by **responsibility domain**:
+
+| Domain | Directory | Doc Section |
+| :--- | :--- | :--- |
+| **Screens** | app/ | Routing and Screens |
+| **State** | stores/ | State Management |
+| **Infrastructure** | lib/ | Core Infrastructure |
+| **Hooks** | hooks/ | Hooks |
+| **Components** | components/ | Components |
+| **Providers** | providers/, contexts/ | Providers and Contexts |
+| **Native** | modules/ | Native Modules (separate guide) |

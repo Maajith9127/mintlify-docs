@@ -1,18 +1,41 @@
 ---
-title: useAccountabilityPrefill
-description: Auto-populates penalty and waiver fields from saved presets.
+title: "useAccountabilityPrefill"
+description: "Auto-populates penalty and waiver fields from saved accountability presets."
 ---
 
 # useAccountabilityPrefill
 
-The useAccountabilityPrefill hook (hooks/useAccountabilityPrefill.ts) auto-populates penalty and waiver fields on the task draft from saved accountability presets.
+**Source:** `hooks/useAccountabilityPrefill.ts` (56 lines)
+
+The useAccountabilityPrefill hook auto-populates penalty and waiver fields on the task draft from the user's saved accountability preset, providing a zero-friction commitment creation experience.
 
 ---
 
 ## Flow
 
-1. Checks if the user has a saved accountability preset in Convex
-2. If found, pre-fills the penalty and penalty_waiver fields on the draft store
-3. Sets isAccountabilityPrefilled flag to 	rue to prevent re-population on re-renders
+1. On mount, checks if the user has a saved accountability preset in Convex
+2. If a preset exists AND the draft's isAccountabilityPrefilled flag is false:
+   - Copies the preset's penalty config into the draft's penalty field
+   - Copies the preset's waiver config into the draft's penalty_waiver field
+   - Sets isAccountabilityPrefilled to true
+3. If no preset exists, does nothing (user configures manually)
 
-This provides a zero-friction experience for users who always use the same penalty configuration.
+---
+
+## Guard Flag
+
+The isAccountabilityPrefilled flag on the draft store prevents re-population on re-renders. Without this guard, navigating between spoke screens would overwrite any manual penalty changes the user made since the initial prefill.
+
+```typescript
+if (!draft.isAccountabilityPrefilled && savedPreset) {
+  setDraftPenalty(savedPreset.penalty);
+  setDraftWaiver(savedPreset.waiver);
+  setIsAccountabilityPrefilled(true);
+}
+```
+
+---
+
+## Where It Runs
+
+This hook is called inside the (create-commit)/_layout.tsx alongside usePresetHydration. It runs at the layout level so the prefill occurs before any spoke screen mounts, ensuring the Hub screen immediately shows the pre-populated penalty summary.

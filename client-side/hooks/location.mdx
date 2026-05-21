@@ -1,19 +1,78 @@
 ---
-title: useLocation
-description: GPS position tracking and permission management.
+title: "useLocation"
+description: "GPS position tracking with three-branch permission handling."
 ---
 
 # useLocation
 
-The useLocation hook (hooks/useLocation.ts) manages GPS position tracking and location permission state.
+**Source:** `hooks/useLocation.ts` (102 lines)
+
+The useLocation hook manages GPS position tracking with a three-branch permission handling strategy that adapts to the user's current permission state.
 
 ---
 
-## Capabilities
+## Permission State Machine
 
-| Feature | Implementation |
-| :--- | :--- |
-| **Permission Check** | Uses expo-location to request ACCESS_FINE_LOCATION |
-| **Current Position** | One-shot getCurrentPositionAsync() for map centering |
-| **Continuous Tracking** | watchPositionAsync() at 1Hz for real-time verification |
-| **Accuracy Filtering** | Discards readings with accuracy > 50m to prevent GPS drift |
+The hook handles three distinct permission states:
+
+```
+getForegroundPermissionsAsync()
+    │
+    ├── CASE A: status === "granted"
+    │       → Fetch location immediately
+    │
+    ├── CASE B: status !== "granted" AND canAskAgain === true
+    │       → Show system permission dialog
+    │       → If granted, fetch location
+    │
+    └── CASE C: status !== "granted" AND canAskAgain === false
+            → Permission permanently blocked
+            → Show Alert with "Open Settings" button
+            → Deep-link to Android Settings via Linking.openSettings()
+```
+
+---
+
+## Location Fetch
+
+When permission is granted, the hook fetches the current position with high accuracy:
+
+```typescript
+const location = await Location.getCurrentPositionAsync({
+  accuracy: Location.Accuracy.High,
+});
+```
+
+---
+
+## Callback Pattern
+
+The requestLocation function accepts an optional onSuccess callback, allowing callers to run additional logic (like animating the map camera) immediately after coordinates are available:
+
+```typescript
+const coords = await requestLocation((coords) => {
+  mapRef.current?.animateCamera({ center: coords });
+});
+```
+
+---
+
+## Return Value
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| hasPermission | boolean or null | null = not yet checked, true = granted, false = denied |
+| currentLocation | LocationCoords or null | Latest GPS coordinates |
+| isLocating | boolean | True while a position request is in flight |
+| requestLocation | function | Triggers the permission check and location fetch |
+
+---
+
+## LocationCoords Type
+
+```typescript
+interface LocationCoords {
+  latitude: number;
+  longitude: number;
+}
+```

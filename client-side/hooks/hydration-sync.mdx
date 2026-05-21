@@ -1,42 +1,95 @@
 ---
-title: useHydrationSync
-description: Background hook that pulls deltas from Convex and feeds them to the Sync Engine.
+title: "useHydrationSync"
+description: "Background hook that pulls deltas from Convex and feeds them to the Sync Engine."
 ---
 
 # useHydrationSync
 
-The useHydrationSync hook (hooks/useHydrationSync.ts) is the background synchronization engine that keeps the local SQLite database in sync with the Convex cloud backend.
+**Source:** `hooks/useHydrationSync.ts` (269 lines, 10.8KB)
+
+The useHydrationSync hook is the single source of truth for local-to-cloud state reconciliation. It sits at the absolute root of the application tree (inside HydrationEngine) and is responsible for boot sync, foreground re-sync, version mismatch recovery, and proactive zombie socket resurrection.
 
 ---
 
-## Lifecycle
+## Configuration Constants
 
-This hook is mounted once via the invisible HydrationEngine component at the root of the app tree. It runs continuously, monitoring authentication state and triggering sync cycles.
+| Constant | Value | Purpose |
+| :--- | :--- | :--- |
+| FOREGROUND_DEBOUNCE_MS | 10,000ms | Minimum gap between two consecutive sync cycles |
+| MAX_HEALTH_CHECK_RETRIES | 3 | Maximum SQLite health check retries before giving up |
+| HEALTH_CHECK_RETRY_DELAY_MS | 1,500ms | Delay between health check retries |
+| MAX_CONSECUTIVE_AMNESIA_ATTEMPTS | 3 | Circuit breaker for repeated Amnesia detections |
+| ZOMBIE_THRESHOLD_MS | 120,000ms | Background gap that triggers proactive resurrection |
 
----
-
-## Sync Trigger Conditions
-
-| Trigger | Behavior |
-| :--- | :--- |
-| **App launch** | Checks for sync token; if missing, enters Amnesia Mode (full download) |
-| **Foreground resume** | Monitors useAppStore.isActive; triggers delta sync on resume |
-| **Authentication change** | Re-syncs when session state changes |
-
----
-
-## Amnesia Mode
-
-If the sync token is missing (cleared during Nuke and Pave or first install), the hook fetches a complete payload from Convex with no timestamp filter. This rebuilds the entire local database from scratch.
+<Warning>
+ZOMBIE_THRESHOLD_MS was originally set to 5,000ms during testing. This value was catastrophically too low for production because the permissions setup flow sends the user to Android Settings 4+ times, each round-trip taking 5-15 seconds. Every return triggered a Resurrection, spawning orphaned ConvexReactClients that corrupted the SQLite WAL journal on Lenovo K12 Note's eMMC storage within 60 seconds.
+</Warning>
 
 ---
 
-## Manual Resync Awareness
+## Execution Phases
 
-Before running, the hook checks syncLock.isManualResyncActive. If a manual resync is in progress, the hook gracefully defers to avoid fighting for the lock.
+### Phase 1: SQLite Health Check (with Retry)
+
+Before any network call, the hook verifies the local database is healthy by running `PRAGMA user_version`. If the database responds with "malformed", the hook aborts immediately and flags corruption. Otherwise, it retries up to 3 times with 1.5 second delays.
+
+### Phase 2: Sync Token Resolution
+
+The hook reads the sync token from expo-secure-store:
+- **Token exists (Warm Boot):** Sends the token as a watermark to fetch only changes since last sync
+- **Token missing (Amnesia Mode):** Fetches the complete payload from Convex with no filter, rebuilding the entire local database
+
+### Phase 3: Cloud API Handshake
+
+Calls `convex.query(api.sync.delta.getDeltaPayload)` with a 15-second timeout via Promise.race. If the timeout fires, the hook enters Smart Blame Logic to determine if the failure is due to network loss or a zombie WebSocket.
+
+### Phase 4: Atomic Ingestion
+
+If the payload contains any tasks or instances, the hook acquires the SyncLock and calls `ingestDeltaPayload(db, payload)` to atomically upsert the data into SQLite. After successful ingestion, it triggers `scheduleNextAlarm()` to re-arm the hardware AlarmManager.
 
 ---
 
-## Post-Sync Actions
+## Smart Blame Logic
 
-After successful delta ingestion, the hook triggers scheduleNextAlarm() to re-arm the hardware AlarmManager with the latest instance schedule.
+When a Convex query times out, the hook distinguishes between two failure modes:
+
+```
+TIMEOUT fires
+    │
+    ├── Ping google.com with HEAD request
+    │       │
+    │       ├── SUCCESS → Internet is up, but Convex is dead
+    │       │       │
+    │       │       ├── iteration === 0 → Soft Resurrection (new client)
+    │       │       └── iteration > 0  → Nuclear Logout (session wipe)
+    │       │
+    │       └── FAILURE → Network is down
+    │               └── Suppress reset (wait for connectivity)
+```
+
+---
+
+## AppState Listener
+
+The hook subscribes to React Native's AppState events. When the app transitions from background to foreground:
+
+1. Calculates the background gap duration
+2. If gap exceeds ZOMBIE_THRESHOLD_MS (120 seconds), forces a proactive resurrection
+3. Otherwise, runs a normal executeReconciliation cycle
+
+---
+
+## Version Mismatch Recovery
+
+If the Convex query throws a "Base version doesn't match" error (caused by a backend redeployment), the hook:
+1. Clears the sync token
+2. Resets the debounce timer
+3. Schedules a retry in 2 seconds (which will enter Amnesia Mode due to cleared token)
+
+---
+
+## Return Value
+
+```typescript
+return { isSyncing, isFullyHydrated, sessionStatus: !!session?.user?.id };
+```

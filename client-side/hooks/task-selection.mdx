@@ -1,25 +1,51 @@
 ---
-title: useTaskSelection
-description: Multi-select state for bulk task operations on the Dashboard.
+title: "useTaskSelection"
+description: "Multi-select state for bulk task operations on the Dashboard."
 ---
 
 # useTaskSelection
 
-The useTaskSelection hook (hooks/commits/useTaskSelection.ts) manages multi-select state for bulk task operations on the Dashboard.
+**Source:** `hooks/commits/useTaskSelection.ts`
+
+The useTaskSelection hook manages multi-select state for bulk task operations on the Dashboard commits screen.
 
 ---
 
-## Capabilities
+## Selection State
 
-| Feature | Description |
+The hook maintains a Set of selected task IDs internally, exposing it as a stable array for React rendering:
+
+```typescript
+const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+```
+
+---
+
+## Available Actions
+
+| Action | Behavior |
 | :--- | :--- |
-| **Toggle Selection** | Tap a task to toggle it in/out of the selection set |
-| **Select All** | Selects all visible tasks |
-| **Clear Selection** | Deselects all tasks |
-| **Bulk Delete** | Deletes all selected tasks via sequential Triple-Writes |
+| toggleSelect(id) | Adds or removes a task from the selection set |
+| selectAll(tasks) | Adds all visible task IDs to the selection set |
+| clearSelection() | Empties the selection set and exits multi-select mode |
+| bulkDelete() | Iterates through selected IDs, calling deleteTask() via Triple-Write for each |
 
 ---
 
-## Usage
+## Multi-Select Mode
 
-The Dashboard commits.tsx screen uses this hook to enable long-press multi-select mode with visual selection indicators.
+The Dashboard enters multi-select mode when the user long-presses a task card. Visual indicators (checkmarks, highlighted backgrounds) appear on selected items. The mode exits automatically when the selection is cleared or all selected tasks are deleted.
+
+---
+
+## Bulk Delete Strategy
+
+Bulk deletion iterates through the selected IDs sequentially (not in parallel) to avoid overwhelming the SyncLock. Each deletion goes through the full Triple-Write pipeline:
+
+```
+for (const id of selectedIds) {
+  await deleteTask(id);  // Convex → SQLite → Re-arm alarms
+}
+```
+
+Sequential execution ensures each deletion's rollback can complete before the next starts.

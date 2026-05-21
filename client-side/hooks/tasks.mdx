@@ -1,25 +1,69 @@
 ---
-title: useTasks
-description: Reads committed tasks from local SQLite for the Dashboard.
+title: "useTasks"
+description: "Convex reactive query for tasks with Zustand store synchronization."
 ---
 
 # useTasks
 
-The useTasks hook (hooks/commits/useTasks.ts) reads committed tasks from the local SQLite database and populates useTaskStore.
+**Source:** `hooks/commits/useTasks.ts` (54 lines)
+
+The useTasks hook fetches all tasks assigned to the current user from the Convex backend using a real-time reactive query, sorts them by recency, and synchronizes the result to the global useTaskStore for cross-screen access.
 
 ---
 
-## Query
+## Data Source
 
-The hook runs a SQLite query against the local_tasks table, joining with 	ask_instances to compute active instance counts and upcoming verification times.
+Unlike most hooks in the app that read from local SQLite, useTasks queries the Convex backend directly via the reactive `useQuery` hook:
+
+```typescript
+const tasks = useQuery(
+  api.api.commitments.read.byAssignee,
+  session?.user?.id ? { assignee_id: session.user.id } : "skip"
+);
+```
+
+The "skip" sentinel prevents unauthenticated queries from firing before the session is resolved.
 
 ---
 
-## Refresh Strategy
+## Global Store Synchronization
 
-The hook re-runs its query when:
-- The component mounts
-- The HydrationSync engine completes a delta ingestion
-- A task is created, edited, or deleted via useTaskActions
+After fetching, the hook pushes data into the global Zustand store for snappier cross-screen access:
 
-This ensures the Dashboard always reflects the latest local state.
+```typescript
+useEffect(() => {
+  if (tasks) {
+    setTasks(tasks); // useTaskStore.setTasks
+  }
+}, [tasks, setTasks]);
+```
+
+This allows screens like the Calendar and Notifications tabs to read task metadata without their own Convex subscription.
+
+---
+
+## Sorting
+
+Tasks are sorted by most recently updated/created in descending order:
+
+```typescript
+const sortedTasks = useMemo(() => {
+  if (!tasks) return [];
+  return [...tasks].sort((a, b) => {
+    const aTime = a.updated_at ?? a.created_at ?? 0;
+    const bTime = b.updated_at ?? b.created_at ?? 0;
+    return bTime - aTime;
+  });
+}, [tasks]);
+```
+
+---
+
+## Return Value
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| tasks | Task[] | Sorted array of commitments |
+| isLoading | boolean | True while the initial Convex query is in flight |
+| hasTasks | boolean | Convenience flag for empty state rendering |
+| session | Session | Exposed session object for child hooks |

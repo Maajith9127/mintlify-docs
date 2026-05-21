@@ -1,41 +1,81 @@
 ---
-title: Preset Editing
-description: Location, blocklist, and rule preset CRUD screens.
+title: "Preset Editing"
+description: "Location, blocklist, and rule preset CRUD screens with isolated state."
 ---
 
 # Preset Editing
 
-The (edit-preset) route group contains screens for creating, editing, and deleting presets. Presets are reusable configurations that can be attached to time slots with a single tap.
+**Source:** `app/(edit-preset)/`
+
+The (edit-preset) route group contains screens for creating, editing, and deleting presets. Presets are reusable configurations that can be attached to time slots with a single tap during commitment creation.
 
 ---
 
 ## Preset Types
 
-| Type | File | Data Stored |
+| Type | Screen File | Data Stored |
 | :--- | :--- | :--- |
-| **Location** | edit-location-preset.tsx | GPS coordinates, radius, address, name |
+| **Location** | edit-location-preset.tsx | GPS coordinates, geofence radius, address string, name |
 | **Digital (Blocklist)** | edit-digital-preset.tsx | App package names, website URLs, preset name |
-| **Rule** | edit-rule-preset.tsx | Verification style, alarm timing, grace period, intensity |
+| **Rule** | edit-rule-preset.tsx | Verification style, alarm timing, grace period, intensity level |
 
 ---
 
 ## Location Preset Editor
 
-The most complex preset editor (~400 lines). Integrates Google Maps with:
+The most complex preset editor (~400 lines). It integrates Google Maps with:
 
-- Full-screen map view with draggable pin
-- Address search via Google Places API (search-preset-location.tsx sub-screen)
-- Radius slider for geofence configuration
-- Name input for preset identification
-
----
-
-## Isolated State
-
-Preset editing uses usePresetEditStore -- a separate Zustand store that is completely isolated from the main usePresetStore and useTaskDraftStore. This ensures that editing a preset does not affect any in-progress wizard flow.
+- **Full-screen MapView** with a draggable pin marker for precise placement
+- **Address search** via Google Places API on the search-preset-location.tsx sub-screen
+- **Radius slider** for geofence configuration (10m - 500m range)
+- **Name input** for human-readable preset identification
+- **Preview circle** rendered on the map showing the geofence boundary
 
 ---
 
-## Persistence
+## Digital Preset Editor
 
-On save, presets are written directly to the Convex backend. The usePresetStore is then re-hydrated on the next wizard layout mount via usePresetHydration().
+The blocklist preset editor reuses the same three-tab interface (Apps, Websites, Search) from the app blocker spoke screen:
+
+- **Apps tab:** Lists installed apps via AppListerModule with toggle selection
+- **Websites tab:** Manual URL input with domain validation
+- **Package search:** Full-text search across installed package names
+
+---
+
+## Rule Preset Editor
+
+Configures verification behavior presets:
+
+| Field | Options |
+| :--- | :--- |
+| Verification Style | just_show_up, stay_throughout |
+| Alarm Timing | at_start, before_start (with minutes offset) |
+| Grace Period | 0-30 minutes |
+| Intensity | low, medium, high |
+
+---
+
+## Isolated State Architecture
+
+Preset editing uses usePresetEditStore -- a completely separate Zustand store isolated from both usePresetStore (read-only hydrated presets) and useTaskDraftStore (active wizard state).
+
+This guarantees that:
+- Editing a preset mid-wizard does not corrupt the in-progress commitment draft
+- Canceling a preset edit leaves all other stores untouched
+- The isDirty flag on the edit store enables "unsaved changes" confirmation dialogs
+
+---
+
+## Persistence Flow
+
+```
+User saves preset
+    │
+    ├── 1. Convex mutation: create or update preset document
+    │
+    ├── 2. Clear usePresetEditStore
+    │
+    └── 3. usePresetStore re-hydrated on next wizard layout mount
+            via usePresetHydration()
+```

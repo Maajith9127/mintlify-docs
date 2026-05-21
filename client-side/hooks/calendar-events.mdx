@@ -1,23 +1,79 @@
 ---
-title: useCalendarEvents
-description: Generates calendar event blocks from task instances.
+title: "useCalendarEvents"
+description: "Transforms task instances into CalendarKit event blocks with status-based coloring."
 ---
 
 # useCalendarEvents
 
-The useCalendarEvents hook (hooks/calendar/useCalendarEvents.ts) transforms raw 	ask_instances rows from SQLite into CalendarKit-compatible event objects for the Schedules grid.
+**Source:** `hooks/calendar/useCalendarEvents.ts` (78 lines)
+
+The useCalendarEvents hook transforms raw task instances from the Convex backend into CalendarKit-compatible event objects with status-based color coding and flicker-free loading.
 
 ---
 
-## Transformation Pipeline
+## Data Pipeline
 
-1. Queries 	ask_instances within the visible date range from useCalendarRange
-2. Maps each instance to a CalendarKit event object with start, end, 	itle, and color
-3. Groups overlapping events for stacked rendering
-4. Returns the event array consumed by the CalendarKit component
+```
+Convex Query (byRange)
+    │
+    ├── instances[] from server
+    │
+    ├── Color Assignment (per task_id)
+    │       → Deterministic color from TASK_COLORS palette
+    │
+    ├── Status Resolution
+    │       → Checks verification_style + checkpoint statuses
+    │       → Overrides color for proceeded/failed/waiver_active
+    │
+    └── CalendarEvent[] mapping
+            → { id, title, start, end, color, originalData }
+```
 
 ---
 
-## Performance
+## Color Logic
 
-The hook memoizes the event array based on the visible date range and instance data. Re-computation only occurs when the date range scrolls or instance data changes.
+Each task gets a deterministic color from the TASK_COLORS palette, assigned by insertion order. Status overrides change the event color:
+
+| Status | Color | Hex |
+| :--- | :--- | :--- |
+| Default (pending/proceeding) | Task-specific palette color | varies |
+| proceeded / waived | Success Green | #4CD964 |
+| failed / penalized | Danger Red | #FF3B30 |
+| waiver_active | Warning Orange | #FF9F0A |
+
+---
+
+## Verification Resolution
+
+For "just_show_up" verification style, the hook resolves the effective status by checking if all checkpoint verification statuses are "verified":
+
+```typescript
+if (style === "just_show_up" && Array.isArray(inst.checkpoints)) {
+  const cp = inst.checkpoints[0];
+  const statuses = cp.verification_status || {};
+  const allVerified = Object.keys(statuses).every(
+    key => statuses[key] === "verified"
+  );
+  if (allVerified) effectiveStatus = "proceeded";
+}
+```
+
+---
+
+## Flicker Prevention
+
+The hook caches the previous event array in a useRef. When the Convex query is refetching (instances === undefined), it returns the cached events instead of an empty array, preventing visual flicker during tab switches or foreground transitions.
+
+---
+
+## Return Value
+
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| events | CalendarEvent[] | Mapped events for CalendarKit rendering |
+| isLoading | boolean | True while instances are being fetched |
+
+<Info>
+Events are returned locally and NOT pushed to the CalendarStore Zustand store. This design prevents cascade re-renders in other components (like EventDetailModal) that previously subscribed to the events array.
+</Info>
