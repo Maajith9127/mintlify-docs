@@ -250,7 +250,16 @@ const config = {
                   "backend/packages/mobile"
                 ]}
               ]},
-              { "group": "Native Modules", "icon": "microchip", "pages": ["native-modules/overview"] }
+              { "group": "Native Modules", "icon": "microchip", "pages": [
+                "native-modules/overview",
+                "native-modules/alarm-module",
+                "native-modules/app-lister-module",
+                "native-modules/blocker-module",
+                "native-modules/enforcement-module",
+                "native-modules/logcat-module",
+                "native-modules/recovery-module",
+                "native-modules/scheduler-module"
+              ]}
             ]
           }
         ]
