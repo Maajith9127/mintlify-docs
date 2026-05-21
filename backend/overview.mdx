@@ -1,0 +1,85 @@
+---
+title: "Backend & Packages Overview"
+description: "Interactive map of the packages/ directory and the Convex backend codebase."
+icon: "server"
+---
+
+# Backend & Packages Overview
+
+This is your interactive launchpad for the `packages/` directory, with a primary focus on the Convex serverless backend. Click any card to explore the documentation stubs for these systems.
+
+---
+
+## The Monorepo Packages
+
+```text
+packages/
+├── backend/                # Convex Serverless Backend
+├── config/                 # Shared TypeScript/ESLint configs
+├── env/                    # Shared Environment Variables & Validation
+├── telemetry/              # Cross-platform Telemetry & Logging
+├── monitoring-extension/   # WXT Browser Extension (Distraction Blocker)
+├── monitoring-mobile/      # React Native Mobile Monitoring
+└── docs/                   # Internal documentation source
+```
+
+---
+
+## backend/convex/ — Convex Serverless Backend
+
+The central nervous system of CommitT, hosted on Convex. This directory handles all database transactions, scheduled cron jobs, push notifications, and AI verification.
+
+<CardGroup cols={2}>
+  <Card title="API Endpoints" icon="network-wired" href="/backend/api/overview">
+    Public-facing mutations and queries for the mobile and web clients.
+  </Card>
+  <Card title="Core Business Logic" icon="brain" href="/backend/core/overview">
+    Rules engines, verification handlers, and penalty orchestrators.
+  </Card>
+  <Card title="Database & Schema" icon="database" href="/backend/db/overview">
+    Convex schema definitions and data access layers.
+  </Card>
+  <Card title="Execution & Cron Jobs" icon="clock" href="/backend/execution/overview">
+    Scheduled background jobs, sagas, and time-based triggers.
+  </Card>
+  <Card title="AI & Computer Vision" icon="eye" href="/backend/ai/overview">
+    Integration with OpenAI and custom vision models for proof verification.
+  </Card>
+  <Card title="Middleware & Auth" icon="shield" href="/backend/middleware/overview">
+    Authentication guards, rate limiting, and request validation.
+  </Card>
+  <Card title="Shared Lib & Types" icon="code" href="/backend/lib/overview">
+    Shared utilities, constants, and TypeScript definitions.
+  </Card>
+</CardGroup>
+
+---
+
+## Core Packages
+
+These packages contain code shared across the monorepo (used by the native app, the web dashboard, and the backend).
+
+<CardGroup cols={2}>
+  <Card title="Config Package" icon="gear" href="/backend/packages/config">
+    Centralized TypeScript, Prettier, and ESLint configurations.
+  </Card>
+  <Card title="Env Package" icon="lock" href="/backend/packages/env">
+    Zod-validated environment variables shared across all apps.
+  </Card>
+  <Card title="Telemetry Package" icon="chart-line" href="/backend/packages/telemetry">
+    Shared logging and metrics infrastructure.
+  </Card>
+</CardGroup>
+
+---
+
+## Monitoring Packages
+
+<CardGroup cols={2}>
+  <Card title="Monitoring Extension" icon="puzzle-piece" href="/backend/packages/extension">
+    WXT-based browser extension for desktop distraction blocking.
+  </Card>
+  <Card title="Monitoring Mobile" icon="mobile" href="/backend/packages/mobile">
+    Shared React Native monitoring utilities.
+  </Card>
+</CardGroup>

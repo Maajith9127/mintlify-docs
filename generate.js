@@ -232,7 +232,24 @@ const config = {
                   "client-side/providers/tab-context"
                 ]}
               ]},
-              { "group": "Convex Backend", "icon": "server", "pages": ["backend/schema"] },
+              { "group": "Convex Backend & Packages", "icon": "server", "pages": [
+                "backend/overview",
+                "backend/schema",
+                { "group": "Convex Endpoints", "pages": ["backend/api/overview"] },
+                { "group": "Convex Core Logic", "pages": ["backend/core/overview"] },
+                { "group": "Convex Database", "pages": ["backend/db/overview"] },
+                { "group": "Convex Execution", "pages": ["backend/execution/overview"] },
+                { "group": "Convex AI", "pages": ["backend/ai/overview"] },
+                { "group": "Convex Middleware", "pages": ["backend/middleware/overview"] },
+                { "group": "Convex Lib", "pages": ["backend/lib/overview"] },
+                { "group": "Shared Packages", "pages": [
+                  "backend/packages/config",
+                  "backend/packages/env",
+                  "backend/packages/telemetry",
+                  "backend/packages/extension",
+                  "backend/packages/mobile"
+                ]}
+              ]},
               { "group": "Native Modules", "icon": "microchip", "pages": ["native-modules/overview"] }
             ]
           }
