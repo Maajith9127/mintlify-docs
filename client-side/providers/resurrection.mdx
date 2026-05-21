@@ -1,6 +1,6 @@
 ---
-title: ResurrectionProvider
-description: System reset capability that triggers full client rebirth.
+title: "ResurrectionProvider"
+description: "System reset capability that triggers full client rebirth."
 ---
 
 # ResurrectionProvider
@@ -11,21 +11,20 @@ The ResurrectionProvider (providers/ResurrectionProvider.tsx) is the outermost p
 
 ## API
 
-`	ypescript
+```typescript
 const { iteration, resurrect } = useResurrection();
-`
+```
 
 | Field | Type | Purpose |
 | :--- | :--- | :--- |
-| iteration | 
-umber | Counter that increments on each resurrection |
-| esurrect | () => void | Triggers a full system reset |
+| iteration | number | Counter that increments on each resurrection |
+| resurrect | function | Triggers a full system reset |
 
 ---
 
 ## How It Works
 
-When esurrect() is called, the iteration counter increments. The ConvexClientWrapper consumes this counter via useMemo, which causes the Convex client to be destroyed and re-created. The old client's WebSocket and file descriptors are explicitly closed to prevent WAL corruption.
+When resurrect() is called, the iteration counter increments. The ConvexClientWrapper consumes this counter via useMemo, which causes the Convex client to be destroyed and re-created. The old client's WebSocket and file descriptors are explicitly closed to prevent WAL corruption.
 
 ---
 

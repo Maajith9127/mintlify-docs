@@ -1,6 +1,6 @@
 ---
-title: useEventDetail
-description: Drives the verification modal with instance details, map embed, and penalties.
+title: "useEventDetail"
+description: "Drives the verification modal with instance details, map embed, and penalties."
 ---
 
 # useEventDetail
@@ -27,7 +27,7 @@ The hook returns a structured object that the EventDetailModal consumes directly
 | :--- | :--- | :--- |
 | instance | ParsedInstance | Full instance data with parsed JSON fields |
 | parentTask | ParsedTask | Parent task metadata (if not orphaned) |
-| 	imeRemaining | string | Human-readable countdown |
-| canVerify | oolean | Whether the verification button should be active |
-| onVerify | () => void | Navigates to the verification flow |
-| onDelete | () => void | Triggers instance deletion via Triple-Write |
+| timeRemaining | string | Human-readable countdown |
+| canVerify | boolean | Whether the verification button should be active |
+| onVerify | function | Navigates to the verification flow |
+| onDelete | function | Triggers instance deletion via Triple-Write |

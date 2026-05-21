@@ -1,24 +1,24 @@
 ---
-title: Local DB Instances
-description: Instance-level SQLite operations for task occurrences.
+title: "Local DB Instances"
+description: "Instance-level SQLite operations for task occurrences."
 ---
 
 # Local DB Instances
 
-The local-db-instances.ts module is the Temporal Auditor -- it manages the lifecycle of individual task occurrences within the local SQLite cache.
+The local-db-instances.ts module is the "Temporal Auditor" -- it manages the lifecycle of individual task occurrences within the local SQLite cache.
 
 ---
 
 ## Orphan Survival
 
-The schema has zero foreign key constraints. Instances are first-class citizens that can exist with or without a parent task. When updating an orphaned instance, the module falls back to the raw Convex 	ask_id:
+The schema has zero foreign key constraints. Instances are first-class citizens that can exist with or without a parent task. When updating an orphaned instance, the module falls back to the raw Convex task_id:
 
-`	ypescript
+```typescript
 const parentTask = await db.getFirstAsync(
-  SELECT id FROM local_tasks WHERE convex_id = ?, [instance.task_id]
+  "SELECT id FROM local_tasks WHERE convex_id = ?", [instance.task_id]
 );
 const localTaskId = parentTask?.id ?? instance.task_id; // Fallback for orphans
-`
+```
 
 ---
 
@@ -33,4 +33,4 @@ const localTaskId = parentTask?.id ?? instance.task_id; // Fallback for orphans
 
 ## Atomic Clobber and Spawn
 
-Updates use a delete then insert strategy within a transaction. This guarantees that even if the column set changes between versions, the row is always fresh and complete.
+Updates use a "delete then insert" strategy within a transaction. This guarantees that even if the column set changes between versions, the row is always fresh and complete.

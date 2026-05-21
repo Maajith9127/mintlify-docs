@@ -1,6 +1,6 @@
 ---
-title: Scheduler Bridge
-description: JS-side interface to the Kotlin AlarmManager native module.
+title: "Scheduler Bridge"
+description: "JS-side interface to the Kotlin AlarmManager native module."
 ---
 
 # Scheduler Bridge
@@ -11,12 +11,12 @@ The Scheduler Bridge (lib/scheduler.ts) is the JavaScript-side interface to the 
 
 ## Core Function
 
-`	ypescript
+```typescript
 export async function scheduleNextAlarm(): Promise<void>
-`
+```
 
 This function:
-1. Queries 	ask_instances from SQLite for upcoming pending instances
+1. Queries task_instances from SQLite for upcoming pending instances
 2. Serializes the instance data into a JSON payload
 3. Passes it to the Kotlin SchedulerModule via the native bridge
 4. The Kotlin module registers exact alarms via AlarmManager.setExactAndAllowWhileIdle()

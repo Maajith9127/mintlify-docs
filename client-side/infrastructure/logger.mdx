@@ -1,6 +1,6 @@
 ---
-title: Logger
-description: Console hijack system with persistent daily log files on disk.
+title: "Logger"
+description: "Console hijack system with persistent daily log files on disk."
 ---
 
 # Logger
@@ -24,9 +24,9 @@ The Logger operates in tandem with the native LogcatRecorder module:
 
 The installPolyfill() method replaces console.log, console.warn, and console.error with interceptors that both call the original console method and queue the log entry for disk persistence:
 
-`	ypescript
+```typescript
 Logger.installPolyfill(); // Called once in _layout.tsx before providers mount
-`
+```
 
 ---
 

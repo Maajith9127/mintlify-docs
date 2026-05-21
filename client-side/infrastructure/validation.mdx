@@ -1,6 +1,6 @@
 ---
-title: Validation
-description: Runtime validation for task drafts and time slots.
+title: "Validation"
+description: "Runtime validation for task drafts and time slots."
 ---
 
 # Validation
@@ -13,15 +13,15 @@ The Validation module (lib/validation/) provides runtime validation for task dra
 
 | File | Purpose |
 | :--- | :--- |
-| 	askDraft.ts | Validates the complete TaskDraft object before commit |
-| 	imeSlot.ts | Validates individual time slot configurations |
+| taskDraft.ts | Validates the complete TaskDraft object before commit |
+| timeSlot.ts | Validates individual time slot configurations |
 | index.ts | Barrel export and validation orchestration |
 
 ---
 
 ## Task Draft Validation
 
-The alidateTaskDraft() function checks:
+The validateTaskDraft() function checks:
 - Title is non-empty
 - At least one time window is configured
 - All time windows have valid start/end times (start before end)
@@ -33,7 +33,7 @@ The alidateTaskDraft() function checks:
 
 ## Time Slot Validation
 
-The alidateTimeSlot() function checks:
+The validateTimeSlot() function checks:
 - Start time is before end time
 - Time window does not overlap with existing windows on the same day
 - Slot-level conditions (if attached) have valid configurations

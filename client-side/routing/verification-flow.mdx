@@ -1,6 +1,6 @@
 ---
-title: Verification Flow
-description: Active verification session with GPS check, photo capture, and CAPTCHA.
+title: "Verification Flow"
+description: "Active verification session with GPS check, photo capture, and CAPTCHA."
 ---
 
 # Verification Flow
@@ -50,4 +50,4 @@ The useVerificationStore tracks real-time verification state:
 
 ## Failure Handling
 
-If the user fails to verify within the grace period, the instance status transitions to ailed, and the penalty waiver offer is triggered (if configured). A durable Convex scheduled function is armed as the penalty deadline.
+If the user fails to verify within the grace period, the instance status transitions to "failed", and the penalty waiver offer is triggered (if configured). A durable Convex scheduled function is armed as the penalty deadline.

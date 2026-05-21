@@ -1,6 +1,6 @@
 ---
-title: Settings and Permissions
-description: The 8-point hardware permission audit screen.
+title: "Settings and Permissions"
+description: "The 8-point hardware permission audit screen."
 ---
 
 # Settings and Permissions
@@ -15,7 +15,7 @@ The screen renders eight ConditionCard components, each backed by the usePermiss
 
 | Permission | Android API | Purpose |
 | :--- | :--- | :--- |
-| **Camera** | ndroid.permission.CAMERA | Live photo and video verification |
+| **Camera** | android.permission.CAMERA | Live photo and video verification |
 | **Location** | ACCESS_FINE_LOCATION | Geofencing and location-based tasks |
 | **Notifications** | POST_NOTIFICATIONS | Reminders and randomized check-ins |
 | **Alarms** | SCHEDULE_EXACT_ALARM | Wake-up commitments and schedules |
@@ -43,4 +43,4 @@ Tapping a permission card calls Enforcement.openSettings(type) from the enforcem
 
 ## Commitment Gate
 
-The inal.tsx hub screen checks all 8 permissions before allowing the user to submit. If any permission is missing, the user is forced to this audit page before being allowed to commit.
+The final.tsx hub screen checks all 8 permissions before allowing the user to submit. If any permission is missing, the user is forced to this audit page before being allowed to commit.

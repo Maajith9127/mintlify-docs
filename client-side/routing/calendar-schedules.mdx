@@ -1,6 +1,6 @@
 ---
-title: Calendar and Schedules
-description: Calendar grid rendering, event interaction, and drag-and-drop.
+title: "Calendar and Schedules"
+description: "Calendar grid rendering, event interaction, and drag-and-drop."
 ---
 
 # Calendar and Schedules
@@ -11,7 +11,7 @@ The Schedules tab (schedules.tsx) renders a weekly calendar grid using CalendarK
 
 ## CalendarKit Integration
 
-The calendar displays task instances as colored event blocks on a time grid. Events are generated from local SQLite data via the useCalendarEvents hook, which maps 	ask_instances rows into CalendarKit-compatible event objects.
+The calendar displays task instances as colored event blocks on a time grid. Events are generated from local SQLite data via the useCalendarEvents hook, which maps task_instances rows into CalendarKit-compatible event objects.
 
 ---
 
@@ -39,4 +39,4 @@ Events can be dragged vertically to change their time and horizontally to change
 
 ## Architectural Decision: freezeOnBlur
 
-The tab navigator has reezeOnBlur: false specifically because of CalendarKit. When React Native freezes a component tree, it severs Reanimated gesture listener bindings. Upon thawing, native gestures fail to lock parent ScrollViews, causing events to float while the background scrolls. Disabling freeze prevents this class of interaction bugs.
+The tab navigator has freezeOnBlur set to false specifically because of CalendarKit. When React Native freezes a component tree, it severs Reanimated gesture listener bindings. Upon thawing, native gestures fail to lock parent ScrollViews, causing events to float while the background scrolls. Disabling freeze prevents this class of interaction bugs.

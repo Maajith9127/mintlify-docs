@@ -1,6 +1,6 @@
 ---
-title: useTaskActions
-description: CRUD actions for tasks: delete, edit, move, and strict-mode lock.
+title: "useTaskActions"
+description: "CRUD actions for tasks: delete, edit, move, and strict-mode lock."
 ---
 
 # useTaskActions
@@ -16,7 +16,7 @@ The useTaskActions hook (hooks/commits/useTaskActions.ts) provides all CRUD oper
 | deleteTask(id) | Convex delete, SQLite delete, Re-arm alarms | Checks strict_until before allowing deletion |
 | editTask(id, draft) | Convex update, SQLite update, Re-arm alarms | Preserves manually-edited instances |
 | moveInstance(id, newTime) | Convex update, SQLite update, Re-arm alarms | Used by calendar drag-and-drop |
-| ctivateStrictMode(id, days) | Convex lock, SQLite lock, Re-arm alarms | Sets strict_until on task and all instances |
+| activateStrictMode(id, days) | Convex lock, SQLite lock, Re-arm alarms | Sets strict_until on task and all instances |
 
 ---
 

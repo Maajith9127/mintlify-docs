@@ -1,6 +1,6 @@
 ---
-title: Authentication Flow
-description: Sign-in, welcome, and OAuth callback screens.
+title: "Authentication Flow"
+description: "Sign-in, welcome, and OAuth callback screens."
 ---
 
 # Authentication Flow
@@ -11,23 +11,23 @@ The authentication flow consists of three screens that gate access to the protec
 
 ## Screen Sequence
 
-`mermaid
+```mermaid
 flowchart LR
-    A[index.tsx (Onboarding)] --> B[signin.tsx]
-    B --> C[welcome.tsx]
-    C --> D[(main)/commits.tsx]
-    D -.->|Sign Out| B
-`
+    A["index.tsx (Onboarding)"] --> B["signin.tsx"]
+    B --> C["welcome.tsx"]
+    C --> D["(main)/commits.tsx"]
+    D -.->|"Sign Out"| B
+```
 
 ---
 
 ## index.tsx -- The Cold Start Screen
 
-This is the atmospheric landing page shown on first launch. It performs a session check via uthClient.useSession():
+This is the atmospheric landing page shown on first launch. It performs a session check via authClient.useSession():
 
-- **If session exists and user is at root (/):** Immediately redirects to /(main)/commits via outer.replace().
-- **If no session:** Renders the branded onboarding view with Reanimated entrance animations (FadeInDown, ZoomIn, FadeInUp) and a primary Initialize Session button.
-- **Pathname guard:** Redirect only fires when pathname === /, preventing accidental stack resets when the app re-mounts from background while deep in sub-screens.
+- **If session exists and user is at root (/):** Immediately redirects to /(main)/commits via router.replace().
+- **If no session:** Renders the branded onboarding view with Reanimated entrance animations (FadeInDown, ZoomIn, FadeInUp) and a primary "Initialize Session" button.
+- **Pathname guard:** Redirect only fires when pathname === "/", preventing accidental stack resets when the app re-mounts from background while deep in sub-screens.
 
 ---
 
@@ -44,4 +44,4 @@ Shown after successful authentication. Displays the user's name from the active 
 | Action | Behavior |
 | :--- | :--- |
 | **Get Started** | Routes to /(main)/commits |
-| **Sign Out** | Calls uthClient.signOut() and GoogleSignin.signOut(), then replaces the route with /(auth)/signin |
+| **Sign Out** | Calls authClient.signOut() and GoogleSignin.signOut(), then replaces the route with /(auth)/signin |

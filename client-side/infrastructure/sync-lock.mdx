@@ -1,6 +1,6 @@
 ---
-title: Sync Lock Mutex
-description: Singleton Promise-chain mutex serializing all database writes.
+title: "Sync Lock Mutex"
+description: "Singleton Promise-chain mutex serializing all database writes."
 ---
 
 # Sync Lock Mutex
@@ -19,13 +19,13 @@ SQLite via expo-sqlite is a single-writer database. If Background Hydration and 
 
 Operations are chained onto a single Promise. Each caller waits for all preceding callers to finish:
 
-`	ypescript
+```typescript
 const result = await syncLock.execute(
-  Saga:CreateCommitment,
+  "Saga:CreateCommitment",
   async () => { /* database writes */ },
   15_000 // timeout
 );
-`
+```
 
 ---
 
@@ -37,7 +37,7 @@ Every lock holder has a hard time limit (default: 30 seconds). If exceeded, the 
 
 ## Manual Resync Awareness
 
-The isManualResyncActive flag prevents HydrationSync from fighting the Manual Resync saga for the lock, breaking the Loop of Doom deadlock pattern.
+The isManualResyncActive flag prevents HydrationSync from fighting the Manual Resync saga for the lock, breaking the "Loop of Doom" deadlock pattern.
 
 ---
 

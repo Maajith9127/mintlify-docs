@@ -1,6 +1,6 @@
 ---
-title: App Blocker Screen
-description: App/website selection with AppListerModule native bridge and search.
+title: "App Blocker Screen"
+description: "App/website selection with AppListerModule native bridge and search."
 ---
 
 # App Blocker Screen
@@ -25,10 +25,10 @@ The screen presents three tabs:
 
 The app list is fetched via the AppListerModule Kotlin native module, which uses Android's PackageManager to enumerate all installed packages at high speed via JSI:
 
-`	ypescript
+```typescript
 const { apps } = useAppDiscovery();
-// Returns: [{ packageName: com.instagram.android, label: Instagram, icon: base64... }, ...]
-`
+// Returns: [{ packageName: "com.instagram.android", label: "Instagram", icon: "base64..." }, ...]
+```
 
 ---
 
@@ -36,13 +36,13 @@ const { apps } = useAppDiscovery();
 
 Selected apps and websites are written to the draft store via setBlocklist() or setSlotBlocklist():
 
-`	ypescript
+```typescript
 setSlotBlocklist(slotIndex, {
-  apps: [com.instagram.android, com.twitter.android],
-  websites: [youtube.com, reddit.com],
+  apps: ["com.instagram.android", "com.twitter.android"],
+  websites: ["youtube.com", "reddit.com"],
   id: presetId // Optional: reference to saved preset
 });
-`
+```
 
 If both arrays become empty, the digital commitment condition is automatically removed from the draft.
 

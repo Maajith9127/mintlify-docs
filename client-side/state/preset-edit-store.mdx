@@ -1,6 +1,6 @@
 ---
-title: Preset Edit Store
-description: Isolated editing state for preset CRUD without affecting the wizard.
+title: "Preset Edit Store"
+description: "Isolated editing state for preset CRUD without affecting the wizard."
 ---
 
 # Preset Edit Store
@@ -19,6 +19,6 @@ Preset editing must not interfere with an in-progress wizard flow. If the user i
 
 | Field | Type | Purpose |
 | :--- | :--- | :--- |
-| editingPreset | Preset \| null | The preset currently being edited |
-| isNew | oolean | Whether creating a new preset or editing existing |
-| isDirty | oolean | Whether unsaved changes exist |
+| editingPreset | Preset or null | The preset currently being edited |
+| isNew | boolean | Whether creating a new preset or editing existing |
+| isDirty | boolean | Whether unsaved changes exist |

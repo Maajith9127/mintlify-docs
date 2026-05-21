@@ -1,6 +1,6 @@
 ---
-title: Time Utilities
-description: Date formatting, epoch conversion, and timezone helpers.
+title: "Time Utilities"
+description: "Date formatting, epoch conversion, and timezone helpers."
 ---
 
 # Time Utilities
@@ -13,11 +13,11 @@ The Time Utilities module (lib/time.ts) provides standardized date and time help
 
 | Function | Purpose |
 | :--- | :--- |
-| ormatTimeRange(start, end) | Formats an epoch range into 6:00 AM - 8:00 AM display string |
-| 	oLocalEpoch(date) | Converts a Date object to epoch milliseconds in the local timezone |
-| romEpoch(ms) | Converts epoch milliseconds to a dayjs object |
+| formatTimeRange(start, end) | Formats an epoch range into "6:00 AM - 8:00 AM" display string |
+| toLocalEpoch(date) | Converts a Date object to epoch milliseconds in the local timezone |
+| fromEpoch(ms) | Converts epoch milliseconds to a dayjs object |
 | isToday(epoch) | Checks if an epoch timestamp falls on the current calendar day |
-| getRelativeDay(epoch) | Returns Today, Tomorrow, or the formatted date string |
+| getRelativeDay(epoch) | Returns "Today", "Tomorrow", or the formatted date string |
 
 ---
 

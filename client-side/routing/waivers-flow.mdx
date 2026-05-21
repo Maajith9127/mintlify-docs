@@ -1,6 +1,6 @@
 ---
-title: Penalty Waivers Flow
-description: CAPTCHA, paragraph transcription, and waiver setup screens.
+title: "Penalty Waivers Flow"
+description: "CAPTCHA, paragraph transcription, and waiver setup screens."
 ---
 
 # Penalty Waivers Flow
@@ -33,16 +33,16 @@ The setup.tsx screen allows the user to configure:
 
 Waiver configuration syncs to the draft store via useWaiverSync:
 
-`	ypescript
+```typescript
 penalty_waiver: {
-  type: captcha,
-  config: { count: 5, difficulty: medium },
+  type: "captcha",
+  config: { count: 5, difficulty: "medium" },
   deadline_minutes: 60
 }
-`
+```
 
 ---
 
 ## Waiver Lifecycle
 
-When a commitment fails, the waiver challenge is offered. A durable Convex scheduled function (the penalty bomb) is armed with the deadline. The only way to defuse it is by completing the challenge, which calls ctx.scheduler.cancel(penalty_job_id).
+When a commitment fails, the waiver challenge is offered. A durable Convex scheduled function (the penalty "bomb") is armed with the deadline. The only way to defuse it is by completing the challenge, which calls ctx.scheduler.cancel(penalty_job_id).

@@ -1,6 +1,6 @@
 ---
-title: Dashboard and Main Tabs
-description: The bottom tab navigator: Commits, Schedules, Notifications, Presets, Profile.
+title: "Dashboard and Main Tabs"
+description: "The bottom tab navigator: Commits, Schedules, Notifications, Presets, Profile."
 ---
 
 # Dashboard and Main Tabs
@@ -18,8 +18,7 @@ The bottom tab navigator renders five screens using a custom BottomTabBar compon
 | **Commits** | commits.tsx | Active commitments list with heterogeneous FlatList |
 | **Schedules** | schedules.tsx | Calendar grid with CalendarKit integration |
 | **Presets** | presets.tsx | Location, blocklist, and rule preset management |
-| **Alerts** | 
-otifications.tsx | Upcoming, Waivers, and Verified sub-tabs |
+| **Alerts** | notifications.tsx | Upcoming, Waivers, and Verified sub-tabs |
 | **Profile** | profile.tsx | Settings, resync, account management |
 
 <Info>
@@ -32,7 +31,7 @@ The Schedules tab is configured with lazy: false, meaning CalendarKit pre-loads 
 
 The layout renders a unified sticky header bar that dynamically adapts its title and actions based on the current pathname:
 
-- **Commits:** Shows CommitT brand title
+- **Commits:** Shows "CommitT" brand title
 - **Schedules:** Shows the current month name with a dropdown chevron that opens the DatePickerModal
 - **Presets / Alerts / Profile:** Shows the respective section title
 
@@ -47,10 +46,10 @@ Two modals live at the layout level so any tab can trigger them via Zustand with
 
 ---
 
-## The Add New Flow
+## The "Add New" Flow
 
 When the user taps the header Add button, the layout:
 
-1. Calls esetDraft() on useTaskDraftStore to clear any stale wizard state
-2. Sets ssigner_id and ssignee_id to the current session user
+1. Calls resetDraft() on useTaskDraftStore to clear any stale wizard state
+2. Sets assigner_id and assignee_id to the current session user
 3. Routes to /(create-commit)/final (the wizard hub)

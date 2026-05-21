@@ -1,17 +1,17 @@
 ---
-title: useCommitTask
-description: The master hook that executes the Triple-Write when the user commits.
+title: "useCommitTask"
+description: "The master hook that executes the Triple-Write when the user commits."
 ---
 
 # useCommitTask
 
-The useCommitTask hook (hooks/useCommitTask.ts) is the master orchestrator that fires when the user presses Commit on the wizard hub. It is the largest hook in the application (~450 lines).
+The useCommitTask hook (hooks/useCommitTask.ts) is the master orchestrator that fires when the user presses "Commit" on the wizard hub. It is the largest hook in the application (~450 lines).
 
 ---
 
 ## Execution Sequence
 
-1. **Validate** the draft via alidateTaskDraft()
+1. **Validate** the draft via validateTaskDraft()
 2. **Acquire** the SyncLock mutex
 3. **Execute** the Triple-Write Orchestrator:
    - Step 1: Convex mutation to create/update the task and generate instances
@@ -31,4 +31,4 @@ If the penalty type is embarrassing_photo, this hook handles the photo upload to
 
 ## Error Handling
 
-On failure, the Triple-Write Orchestrator automatically rolls back completed steps. If rollback itself fails, the ollbackFailed flag signals HydrationSync to perform a full reconciliation on the next cycle.
+On failure, the Triple-Write Orchestrator automatically rolls back completed steps. If rollback itself fails, the rollbackFailed flag signals HydrationSync to perform a full reconciliation on the next cycle.

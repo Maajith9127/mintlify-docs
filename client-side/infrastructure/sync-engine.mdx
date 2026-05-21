@@ -1,6 +1,6 @@
 ---
-title: Sync Engine
-description: Delta payload ingestion with Freshness Guard and corruption recovery.
+title: "Sync Engine"
+description: "Delta payload ingestion with Freshness Guard and corruption recovery."
 ---
 
 # Sync Engine
@@ -11,13 +11,13 @@ The Sync Engine (lib/sync-engine.ts) receives delta payloads from the Convex bac
 
 ## Delta Payload
 
-`	ypescript
+```typescript
 interface DeltaPayload {
   tasks: any[];       // Tasks modified since last sync
   instances: any[];   // Instances modified since last sync
   sync_token: number; // New watermark for next cycle
 }
-`
+```
 
 The sync token is stored in expo-secure-store (encrypted), not in SQLite.
 

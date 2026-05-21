@@ -1,6 +1,6 @@
 ---
-title: Time and Location Setup
-description: Day picker, time windows, map-based geofencing, and per-slot attachments.
+title: "Time and Location Setup"
+description: "Day picker, time windows, map-based geofencing, and per-slot attachments."
 ---
 
 # Time and Location Setup
@@ -11,7 +11,7 @@ These two spoke screens handle the temporal and spatial dimensions of a commitme
 
 ## time-set.tsx -- Temporal Configuration
 
-The time setup screen is one of the most complex screens in the app (~450 lines). It manages:
+The time setup screen is one of the most complex screens in the app. It manages:
 
 ### Day Selection
 A horizontal row of day buttons (Mo, Tu, We, Th, Fr, Sa, Su). Selecting days automatically triggers setRecurrence() on the draft store, which switches the recurrence type to weekly and computes the instance count.
@@ -19,21 +19,21 @@ A horizontal row of day buttons (Mo, Tu, We, Th, Fr, Sa, Su). Selecting days aut
 ### Time Windows
 Each day can have multiple time windows (e.g., 6:00 AM - 8:00 AM and 5:00 PM - 7:00 PM). Time windows are managed as an array on the recurrence object:
 
-`	ypescript
+```typescript
 recurrence: {
-  type: weekly,
+  type: "weekly",
   days_of_week: [1, 3, 5], // Mon, Wed, Fri
   time_windows: [
-    { start: 06:00, end: 08:00 },
-    { start: 17:00, end: 19:00 }
+    { start: "06:00", end: "08:00" },
+    { start: "17:00", end: "19:00" }
   ]
 }
-`
+```
 
 ### Repeat Toggle
 A toggle that switches between one-time and recurring commitments:
-- **Checked (Repeat):** Sets ends.type to never for indefinite weekly recurrence
-- **Unchecked (One Week):** Sets ends.type to after with count calculated from days * slots
+- **Checked (Repeat):** Sets ends.type to "never" for indefinite weekly recurrence
+- **Unchecked (One Week):** Sets ends.type to "after" with count calculated from days times slots
 
 ### Per-Slot Attachments
 Under each time slot, the user can independently attach:
@@ -52,5 +52,5 @@ The location screen integrates Google Maps with a geofencing radius selector:
 - **Map View:** Full-screen Google Maps with the user's current location centered
 - **Search:** Address search via Google Places API
 - **Radius:** Adjustable geofence radius (default: 50m)
-- **Inverse Mode:** Outside vs Within toggle for location condition relation
+- **Inverse Mode:** "Outside" vs "Within" toggle for location condition relation
 - **State Update:** On confirm, calls setSlotLocation() or setLocation() on the draft store

@@ -1,6 +1,6 @@
 ---
-title: ConvexClientWrapper
-description: Manages Convex client lifecycle with graceful teardown on resurrection.
+title: "ConvexClientWrapper"
+description: "Manages Convex client lifecycle with graceful teardown on resurrection."
 ---
 
 # ConvexClientWrapper
@@ -13,11 +13,11 @@ The ConvexClientWrapper is an internal component in _layout.tsx that manages the
 
 The client is created via useMemo keyed on the iteration counter from ResurrectionProvider:
 
-`	ypescript
+```typescript
 const convexClient = useMemo(() => {
   return new ConvexReactClient(convexUrl, { unsavedChangesWarning: false });
 }, [iteration]);
-`
+```
 
 ---
 

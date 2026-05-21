@@ -1,6 +1,6 @@
 ---
-title: Strict Mode Setup
-description: The immutability lock activation screen.
+title: "Strict Mode Setup"
+description: "The immutability lock activation screen."
 ---
 
 # Strict Mode Setup
@@ -13,9 +13,9 @@ The (strict-mode)/setup.tsx screen allows the user to activate Strict Mode on a 
 
 When activated, Strict Mode sets a strict_until timestamp on both the task and its instances. Until that timestamp passes, the Convex backend rejects all mutations (edits, deletions) on the locked entities:
 
-`
+```
 strict_until = Date.now() + (duration_days * 24 * 60 * 60 * 1000)
-`
+```
 
 ---
 

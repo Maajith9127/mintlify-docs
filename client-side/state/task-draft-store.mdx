@@ -1,6 +1,6 @@
 ---
-title: Task Draft Store
-description: The 800+ line Zustand store powering the commitment wizard state machine.
+title: "Task Draft Store"
+description: "The 800+ line Zustand store powering the commitment wizard state machine."
 ---
 
 # Task Draft Store
@@ -13,14 +13,14 @@ The useTaskDraftStore is the largest Zustand store in the application (~800 line
 
 The store manages a single TaskDraft object that mirrors the Convex schema with UI-only extensions:
 
-`	ypescript
+```typescript
 type TaskDraft = {
   id: string;
   assigner_id: string | null;
   assignee_id: string | null;
   title: string;
   description?: string;
-  visibility: private | public | partner_only;
+  visibility: "private" | "public" | "partner_only";
   recurrence: Recurrence;
   conditions: Condition[];
   config: TaskConfig;
@@ -29,9 +29,9 @@ type TaskDraft = {
   cameraTarget: CameraTarget | null;
   isAccountabilityPrefilled: boolean;
 };
-`
+```
 
-All types are derived directly from the Convex schema via Doc<tasks>, ensuring type safety across the stack.
+All types are derived directly from the Convex schema via Doc types, ensuring type safety across the stack.
 
 ---
 
@@ -45,7 +45,7 @@ All types are derived directly from the Convex schema via Doc<tasks>, ensuring t
 | setSlotRule(index, rule) | Attaches a verification rule to a specific time slot |
 | setBlocklist(updates) | Sets the global digital commitment condition |
 | setLocation(updates) | Sets the global location condition |
-| esetDraft() | Clears all state back to defaults for a new commitment |
+| resetDraft() | Clears all state back to defaults for a new commitment |
 
 ---
 
@@ -57,4 +57,4 @@ Every state mutation is logged with a pretty-printed JSON dump of the full draft
 
 ## Slot-Level Conditions
 
-The most complex feature is per-slot condition management. Each 	ime_window in the recurrence object can have its own independent conditions array, allowing different locations, blocklists, and rules for different time slots within the same commitment.
+The most complex feature is per-slot condition management. Each time_window in the recurrence object can have its own independent conditions array, allowing different locations, blocklists, and rules for different time slots within the same commitment.

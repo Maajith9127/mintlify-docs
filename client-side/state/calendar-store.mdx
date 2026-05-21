@@ -1,6 +1,6 @@
 ---
-title: Calendar Store
-description: Calendar grid state, view modes, date selection, and drag-drop tracking.
+title: "Calendar Store"
+description: "Calendar grid state, view modes, date selection, and drag-drop tracking."
 ---
 
 # Calendar Store
@@ -14,10 +14,10 @@ The useCalendarStore manages all state for the calendar grid and event interacti
 | Field | Type | Purpose |
 | :--- | :--- | :--- |
 | selectedDate | string | Currently focused date (ISO string) |
-| iewMode | day \| week | Calendar grid display mode |
-| selectedEventId | string \| null | ID of the event the user tapped (triggers EventDetailModal) |
-| selectedEvent | object \| null | Full event data for the selected event |
-| isDragging | oolean | Whether a drag-and-drop operation is in progress |
+| viewMode | string | Calendar grid display mode (day or week) |
+| selectedEventId | string or null | ID of the event the user tapped (triggers EventDetailModal) |
+| selectedEvent | object or null | Full event data for the selected event |
+| isDragging | boolean | Whether a drag-and-drop operation is in progress |
 
 ---
 

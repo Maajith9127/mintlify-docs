@@ -1,6 +1,6 @@
 ---
-title: Penalties Configuration
-description: Embarrassing photo, email, money, and direct commit penalty sub-screens.
+title: "Penalties Configuration"
+description: "Embarrassing photo, email, money, and direct commit penalty sub-screens."
 ---
 
 # Penalties Configuration
@@ -24,17 +24,17 @@ The (penalties) route group contains sub-screens for configuring each penalty ty
 
 Penalty configuration is synced to the draft store via usePenaltySync:
 
-`	ypescript
+```typescript
 // The penalty object on the draft store
 penalty: {
-  type: embarrassing_photo,
+  type: "embarrassing_photo",
   config: {
-    channel: email,
-    emailTo: friend@example.com,
-    photoUrl: file:///captured_photo.jpg
+    channel: "email",
+    emailTo: "friend@example.com",
+    photoUrl: "file:///captured_photo.jpg"
   }
 }
-`
+```
 
 ---
 

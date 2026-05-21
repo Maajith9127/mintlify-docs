@@ -1,6 +1,6 @@
 ---
-title: HydrationEngine
-description: Invisible root component that runs background sync.
+title: "HydrationEngine"
+description: "Invisible root component that runs background sync."
 ---
 
 # HydrationEngine
@@ -11,12 +11,12 @@ The HydrationEngine (components/system/HydrationEngine.tsx) is an invisible Reac
 
 ## Implementation
 
-`	ypescript
+```typescript
 export function HydrationEngine() {
   useHydrationSync();
   return null; // Renders nothing -- pure side-effect component
 }
-`
+```
 
 ---
 

@@ -1,11 +1,11 @@
 ---
-title: Root Layout and Provider Tree
-description: The entry point of the app and its deeply nested provider architecture.
+title: "Root Layout and Provider Tree"
+description: "The entry point of the app and its deeply nested provider architecture."
 ---
 
 # Root Layout and Provider Tree
 
-The root layout (pp/_layout.tsx) is the absolute entry point of the CommitT application. Before any screen renders, it wraps the entire component tree in a deeply nested provider architecture. Each layer depends on the one above it, and the order cannot be changed without breaking the system.
+The root layout (`app/_layout.tsx`) is the absolute entry point of the CommitT application. Before any screen renders, it wraps the entire component tree in a deeply nested provider architecture. Each layer depends on the one above it, and the order cannot be changed without breaking the system.
 
 ---
 
@@ -17,8 +17,8 @@ The root layout (pp/_layout.tsx) is the absolute entry point of the CommitT app
 | 2 | SQLiteProvider | Initializes the local commit.db database. Runs migrateDbIfNeeded() on mount to detect schema mismatches and execute Nuke and Pave. |
 | 3 | ConvexClientWrapper | Manages the lifecycle of the ConvexReactClient. Destroys and re-creates the client on each resurrection iteration. |
 | 4 | SecurityShield | Root and jailbreak detection via JailMonkey. If a compromised device is detected, the entire tree below is unmounted and replaced with a violation screen. |
-| 5 | GestureHandlerRootView | Required by eact-native-gesture-handler for drag-and-drop and swipe gestures across the app. |
-| 6 | KeyboardProvider | Powers eact-native-keyboard-controller for smooth keyboard avoidance animations. |
+| 5 | GestureHandlerRootView | Required by react-native-gesture-handler for drag-and-drop and swipe gestures across the app. |
+| 6 | KeyboardProvider | Powers react-native-keyboard-controller for smooth keyboard avoidance animations. |
 | 7 | AppThemeProvider | Dark-mode theming and design token management. |
 | 8 | HeroUINativeProvider | HeroUI component library initialization. |
 | 9 | ThemeProvider | React Navigation theme (forced to pure black background). |
@@ -43,8 +43,8 @@ Three invisible components are mounted alongside the navigation stack:
 
 Before any provider mounts, the root layout activates the global Logger polyfill:
 
-`	ypescript
+```typescript
 Logger.installPolyfill();
-`
+```
 
 This intercepts every console.log, console.warn, and console.error call across the entire app and writes them to persistent daily log files on disk. This is critical for Release builds where logcat access is unavailable.
