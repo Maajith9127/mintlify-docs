@@ -1,18 +1,37 @@
 ---
 title: "Recovery & Alarm Modules"
-description: "Catastrophic thread reset and basic native UI toasts."
+description: "Catastrophic thread reset and native utility hooks."
 ---
 
 # Recovery & Alarm Modules
 
-These are lightweight but essential utility modules that provide specific system hooks.
+These modules encapsulate lightweight, isolated native capabilities that operate strictly outside the boundaries of the React Native architecture.
 
 ## Recovery Module
 
-Contains a single function: `nuclearReset()`.
+The `RecoveryModule` implements a single operation: `nuclearReset()`.
 
-If the React Native Javascript thread detects a catastrophic state corruption (like an unrecoverable infinite loop during database sync), it can call this module to execute a hard `Process.killProcess(Process.myPid())`. This instantly terminates the app at the Linux kernel level, forcing Android to reboot the application into a clean memory state.
+If the JavaScript thread detects a catastrophic state corruption (e.g., an unrecoverable infinite loop during local database synchronization), it executes this hook to force a hard kernel-level termination.
+
+```mermaid
+sequenceDiagram
+    participant JS as React Native Thread
+    participant Rec as RecoveryModule.kt
+    participant Kernel as Linux Kernel
+
+    JS->>Rec: invoke nuclearReset()
+    Note over Rec: Logs fatal termination intent
+    Rec->>Kernel: Process.killProcess(Process.myPid())
+    Note over Kernel: Hardware-level process termination
+    Kernel-->>JS: Process Destroyed Instantly
+```
+
+This ensures Android immediately flushes the application's memory allocation, allowing the operating system to restart the application into a clean, uncorrupted state.
 
 ## Alarm Module
 
-A lightweight module for native feedback. Primarily used to trigger synchronous `Toast` messages without relying on React Native's async rendering bridge, and provides localized readonly SQLite queries for debug screens. (Note: Actual heavy Alarm execution is handled by the dedicated `SchedulerModule`).
+The `AlarmModule` functions as an instantaneous native feedback utility. 
+
+While the actual heavy lifting of hardware WakeLocks and alarm firing is administered by the `SchedulerModule`, the `AlarmModule` provides simpler utility hooks:
+*   **showToast**: Triggers a native Android Toast message synchronously, bypassing the latency of the React Native rendering bridge.
+*   **getLocalTasks**: A diagnostic capability designed to quickly read from the `local_tasks` SQLite table and dump the contents to the screen, verifying database hydration states without executing complex Javascript database queries.

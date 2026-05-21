@@ -5,35 +5,69 @@ description: "The Core Infrastructure Orchestrator utilizing Android AlarmManage
 
 # Scheduler Module
 
-The `scheduler-module` is the central "Brain" of the CommitT native system. It bypasses React Native entirely to calculate wake windows and instruct the Android Kernel exactly when to fire hardware-level alarms.
+The `scheduler-module` serves as the primary orchestration engine of the CommitT native system. It bypasses the React Native layer entirely to calculate wake windows and explicitly command the Android Kernel's `AlarmManager` to fire hardware-level wakeups.
 
-## The Architecture: Vault vs. Sticky Note
+## Architecture: Vault vs. Sticky Note
 
-To survive phone restarts and File-Based Encryption (FBE) lockouts, the Scheduler utilizes a dual-layered storage architecture.
+To survive unpredicted phone restarts and File-Based Encryption (FBE) lockouts, the Scheduler implements a dual-layered storage architecture.
 
 ### 1. The Vault (SQLite)
-The main `commit.db` database. It holds the canonical schedule but is subject to strict Android Credential Encryption (CE). If a user restarts their phone, this database remains completely locked and inaccessible until they enter their PIN.
+The primary `commit.db` database. It holds the canonical schedule but is subject to strict Android Credential Encryption (CE). If a user restarts their device, this database remains completely locked and inaccessible at the kernel level until the user enters their PIN.
 
 ### 2. The Sticky Note (Device Protected Storage)
-To ensure alarms fire even while the device is locked post-reboot, the Scheduler writes the next 20 upcoming alarms into Android's Device Encrypted (DE) `SharedPreferences`. This unencrypted "Sticky Note" allows `BootReceiver` to successfully schedule the `AlarmManager` before the user unlocks their phone.
+To guarantee alarms fire even while the device is locked post-reboot, the Scheduler caches the 20 nearest upcoming alarms into Android's Device Encrypted (DE) `SharedPreferences`. This unencrypted "Sticky Note" allows the `BootReceiver` to successfully schedule the `AlarmManager` before the user unlocks their phone.
 
----
+```mermaid
+sequenceDiagram
+    participant OS as Android OS (Kernel)
+    participant BR as BootReceiver
+    participant Cache as DE SharedPreferences (Sticky Note)
+    participant AM as AlarmManager
+    participant Vault as SQLite (Vault)
 
-## Connection Strategy & Bug Mitigations
+    OS->>BR: BOOT_COMPLETED Intent
+    Note over OS,BR: Device remains locked (FBE Active)
+    BR->>Cache: Request serialized fallback payloads
+    Cache-->>BR: Return 20 nearest tasks
+    BR->>AM: Register intents via setExactAndAllowWhileIdle()
+    Note over AM: Hardware alarms armed successfully
+    OS->>User: User inputs PIN / Biometrics
+    Note over OS,Vault: Credential Encryption unlocked
+    User->>Vault: Native app queries SQLite natively
+```
 
-The native Kotlin SQLite connection historically suffered from fatal WAL (Write-Ahead Logging) contention with the Javascript `expo-sqlite` driver. 
+## Connection Strategy & Concurrency Mitigations
+
+The native Kotlin SQLite connection historically suffered from fatal Write-Ahead Logging (WAL) contention against the Javascript `expo-sqlite` driver. 
 
 **The Stale-Proof Formula:**
-*   **READONLY Mode**: The `AlarmScheduler` strictly opens the database in `OPEN_READONLY` mode. This prevents it from holding a WAL writer lock, which previously caused `database disk image is malformed` errors and infinite Nuke & Pave loops.
-*   **Fresh Snapshots**: The connection is opened and closed on *every single* `scheduleNextAlarm` call. Caching the connection resulted in "Stale WAL Snapshots" where the Native side couldn't see tasks updated by the JS side.
-
----
+1.  **READONLY Mode**: The `AlarmScheduler` strictly opens the database in `OPEN_READONLY` mode. This prevents it from holding a WAL writer lock. Previously, competing write locks on slow eMMC storage caused `database disk image is malformed` errors and infinite Nuke and Pave loops.
+2.  **Fresh Snapshots**: The connection is opened and closed on every invocation of `scheduleNextAlarm`. Caching the connection resulted in "Stale WAL Snapshots," where the Native side became permanently blind to tasks updated by the Javascript thread.
 
 ## The Pre-Alarm Math Engine
 
-The `findNextTrigger` algorithm dynamically calculates staggered `PRE_ALARM` offsets, `CHECKPOINT_ALARM` structural pings, and the final `END_ALARM`. 
+The `findNextTrigger` algorithm dynamically calculates staggered `PRE_ALARM` offsets, `CHECKPOINT_ALARM` structural pings, and the final `END_ALARM`.
+
+```mermaid
+graph TD
+    A[Fetch Upcoming Tasks from Database] --> B{Calculate Nearest Trigger}
+    B -->|Check 1| C[Pre-Alarms]
+    B -->|Check 2| D[Main Start]
+    B -->|Check 3| E[Checkpoints]
+    B -->|Check 4| F[End Window]
+    
+    C --> G{Is nearest in future?}
+    D --> G
+    E --> G
+    F --> G
+    
+    G -->|Yes| H[Select as Nearest Absolute Wake Time]
+    G -->|No| I[Proceed to next mathematical evaluation]
+    
+    H --> J[Dispatch to AlarmManager]
+```
 
 ### Hardware Kernel Registration
-Once the closest actionable trigger is found, the Scheduler routes it directly to the Android `AlarmManager`:
-*   **Android 12+ (Exact)**: Uses `setAlarmClock` if exact permissions are granted.
-*   **Degraded Fallback**: Uses `setAndAllowWhileIdle` if the user revokes exact scheduling privileges.
+Once the closest actionable trigger is calculated, the Scheduler routes it directly to the Android `AlarmManager`:
+*   **Android 12+ (Exact)**: Utilizes `setAlarmClock` if exact permissions are granted, ensuring millisecond precision.
+*   **Degraded Fallback**: Utilizes `setAndAllowWhileIdle` if the user revokes exact scheduling privileges, relying on OS-level batching.

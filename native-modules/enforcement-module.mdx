@@ -5,17 +5,40 @@ description: "System-level permissions auditing and configuration routing."
 
 # Enforcement Module
 
-The `enforcement-module` is the core security auditor for the React Native application. It acts as the bridge for checking deeply nested OS configurations that standard React Native permission libraries cannot accurately detect.
+The `enforcement-module` operates as the primary security auditor for the React Native application. It establishes a JSI bridge for inspecting deeply nested OS configurations that standard React Native permission libraries are incapable of accurately evaluating.
 
-## Permission Auditing
+## Auditing Protocol
 
-The `checkAllPermissions` JSI call evaluates the current state of:
-*   **Accessibility Services**: Checks `Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES` to ensure the Blocker module is actively armed.
-*   **Draw Overlays**: Verifies `canDrawOverlays` privileges required to render the full-screen penalty UI.
-*   **Location Constraints**: Validates that GPS permissions are explicitly set to "Allow all the time" (`ACCESS_BACKGROUND_LOCATION`). Simple "Allow while using" is rejected because it leads to fail-closed blockouts when the app enters the background.
-*   **Battery Optimization**: Confirms the app is whitelisted from Doze Mode execution limits.
-*   **Device Administration**: Checks `DevicePolicyManager` to verify anti-uninstall protections are active.
+The `checkAllPermissions` function executes a comprehensive state evaluation across critical Android systems:
 
-## Settings Routing
+```mermaid
+graph TD
+    A[React Native UI] -->|invoke checkAllPermissions| B(EnforcementModule.kt)
+    B --> C{Accessibility Service}
+    B --> D{Draw Overlays}
+    B --> E{Location Policy}
+    B --> F{Battery Optimization}
+    B --> G{Device Admin}
+    
+    C -->|Settings.Secure| H[Active]
+    D -->|canDrawOverlays| I[Active]
+    E -->|ACCESS_BACKGROUND_LOCATION| J[Active]
+    F -->|isIgnoringBatteryOptimizations| K[Exempted]
+    G -->|isAdminActive| L[Active]
+    
+    H --> M[Map Structure Returned]
+    I --> M
+    J --> M
+    K --> M
+    L --> M
+```
 
-Because OEMs (like Samsung, Xiaomi, and OnePlus) heavily customize their Settings menus, standard Android intents often fail. The `openSettings` function provides specialized deep-linking to route the user directly to the correct permission configuration page across different hardware variants.
+*   **Accessibility Services**: Validates `Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES` to guarantee the Blocker module is actively armed within the OS layer.
+*   **Draw Overlays**: Verifies `canDrawOverlays` privileges, an absolute requirement for rendering the un-dismissable full-screen penalty UI.
+*   **Location Constraints**: Validates that GPS permissions are explicitly set to "Allow all the time" (`ACCESS_BACKGROUND_LOCATION`). A standard "Allow while using" configuration is structurally rejected, as Android OS background tracking termination would initiate an inescapable fail-closed blockout sequence.
+*   **Battery Optimization**: Confirms the application is whitelisted from Android Doze Mode execution limits.
+*   **Device Administration**: Inspects the `DevicePolicyManager` to verify anti-uninstall protections are bound to the package.
+
+## Settings Routing Infrastructure
+
+Because OEMs (Samsung, Xiaomi, OnePlus) continuously alter their Settings menu architectures, standard Android intents frequently fail or misdirect users. The `openSettings` function provides specialized deep-linking to route the user directly to the correct permission configuration page across diverse hardware variants.

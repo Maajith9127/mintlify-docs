@@ -5,23 +5,41 @@ description: "The Infinite Black Box Flight Recorder."
 
 # Logcat Module
 
-The standard Android system logcat buffer is extremely small (64KB–1MB). Under heavy background execution (like GPS tracking or AlarmManager scheduling), this buffer wraps around in minutes, destroying critical evidence needed for debugging.
+The standard Android system logcat buffer is extremely volatile, typically ranging from 64KB to 1MB depending on OEM specifications. Under heavy background execution (such as 1Hz GPS tracking or accessibility service loops), this buffer wraps around in minutes, destroying critical evidence required for debugging distributed system failures.
 
-The `logcat-module` acts as an infinite flight recorder to preserve this state.
+The `logcat-module` operates as an infinite flight recorder to guarantee state preservation.
 
-## Architecture
+## Daemon Architecture
 
-1.  **Daemon Process**: Spawns a background thread that executes a shell `logcat -v threadtime --pid=<APP_PID>` command.
-2.  **Stream Pipe**: Reads every single stdout line in real-time.
-3.  **Persistence**: Appends the stream directly to an internal storage text file (`commit-logcat-YYYY-MM-DD.log`).
-4.  **Segmentation**: If a daily log exceeds 50MB, the module automatically closes the file and rotates to a new segment to ensure the files remain parsable by standard text editors.
+```mermaid
+graph TD
+    A[CommitT Main Process] -->|Init| B(LogcatRecorder.kt)
+    B -->|Spawn Background Thread| C[Runtime.getRuntime.exec]
+    C -->|logcat -v threadtime --pid| D(Standard Output Pipe)
+    
+    D --> E{Read Line}
+    E --> F[Check Daily Date Rollover]
+    E --> G[Check 50MB File Size Limit]
+    
+    F -->|Midnight Trigger| H[Create New File YYYY-MM-DD]
+    G -->|Limit Reached| I[Create Segment _001.log]
+    
+    H --> J[Append to Internal Storage]
+    I --> J
+    E --> J
+```
 
-## Capabilities
+1.  **Daemon Process**: Spawns an isolated background thread that executes a shell `logcat -v threadtime --pid=<APP_PID>` command.
+2.  **Stream Pipe**: Continuously reads every line of standard output in real-time without relying on system dumps.
+3.  **Persistence**: Appends the stream directly to an internal storage text file matrix (`commit-logcat-YYYY-MM-DD.log`).
+4.  **Segmentation**: If a daily log exceeds the 50MB threshold, the module automatically closes the writer and rotates to a new numerical segment to ensure files remain parsable by standard text editors.
 
-The resulting log files contain an identical mirror of what an `adb logcat` session would capture:
-*   React Native JavaScript console logs.
-*   `BlockerAccessibilityService` native enforcement triggers.
-*   `AlarmScheduler` execution paths.
-*   System memory / GC events.
+## Diagnostic Capabilities
 
-These logs persist across app kills and phone reboots, acting as the ultimate source of truth when debugging Triple-Write database corruptions or strict mode evasions.
+The resulting log files contain a flawless mirror of an external `adb logcat` session, preserving:
+*   React Native JavaScript console outputs.
+*   `BlockerAccessibilityService` native enforcement triggers and latency metrics.
+*   `AlarmScheduler` execution paths and OS-level rejections.
+*   System memory thresholds and Garbage Collection events.
+
+These logs securely persist across process terminations and device reboots, serving as the ultimate cryptographic source of truth when debugging Triple-Write database anomalies or strict mode evasions.

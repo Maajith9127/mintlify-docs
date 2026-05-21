@@ -5,36 +5,59 @@ description: "Accessibility-based anti-circumvention engine and live GPS tracker
 
 # Blocker Module
 
-The `blocker-module` is the core enforcement engine for the CommitT accountability platform. It uses an Android `AccessibilityService` to intercept application launches and user interactions in real-time.
+The `blocker-module` is the core enforcement infrastructure for the CommitT accountability platform. It utilizes an Android `AccessibilityService` to intercept application launches and user interactions in real-time.
 
 ## Dual Enforcement Vectors
 
-The service guarantees enforcement via two complementary systems:
+The service guarantees absolute enforcement via two complementary monitoring systems to prevent system-level evasion.
 
-1.  **Event-Driven Enforcement**: Responds instantly to `AccessibilityEvent` callbacks (like `WINDOW_STATE_CHANGED` and `WINDOW_CONTENT_CHANGED`) to intercept restricted apps the moment they appear.
-2.  **Pulse-Based Background Audit**: A 5-second heartbeat (`pulseRunnable`) periodically re-evaluates the foreground app. This catches edge cases where the OS drops accessibility events (e.g., split-screen transitions or PiP modes).
+```mermaid
+graph TD
+    A[Android OS] -->|AccessibilityEvent| B(Event-Driven Hook)
+    A -->|5000ms Handler| C(Pulse-Based Audit)
+    
+    B -->|WINDOW_STATE_CHANGED| D{Evaluate Target Package}
+    B -->|WINDOW_CONTENT_CHANGED| D
+    C -->|Read current top window| D
+    
+    D -->|Approved| E[Allow Execution]
+    D -->|Restricted| F[Initialize Block Protocol]
+```
 
----
+1.  **Event-Driven Enforcement**: Responds instantly to `AccessibilityEvent` callbacks to intercept restricted apps the precise millisecond they render.
+2.  **Pulse-Based Background Audit**: A continuous 5-second background heartbeat (`pulseRunnable`) periodically re-evaluates the foreground package. This mitigates edge cases where the OS drops accessibility events (e.g., split-screen transitions, Picture-in-Picture mode).
 
 ## Location Enforcement (Fail-Closed)
 
-When a commitment includes a geofence, the Blocker maintains a real-time 1Hz GPS stream. 
-*   **Strict Live Enforcement**: Decisions are gated exclusively on *live* coordinates. It never falls back to `getLastKnownLocation()`.
-*   **Staleness Threshold**: If a GPS fix is older than 30 seconds (accounting for Android's 20-second background OS throttling), the Blocker defaults to a **fail-closed** policy and blocks access for safety.
+When a commitment includes a geofence, the Blocker maintains a real-time 1Hz GPS tracking stream.
 
----
+*   **Strict Live Enforcement**: Spatial access decisions are gated exclusively on live coordinates. The service never defaults to cached `getLastKnownLocation()` data, preventing spoofing via background disconnects.
+*   **Staleness Threshold**: If a GPS fix is older than 30 seconds (accounting for Android's 20-second background OS polling limitations), the Blocker defaults to a **fail-closed** policy, restricting access until cryptographic location certainty is restored.
 
 ## Maximum Escalation (Device Lock & Purge)
 
-If a user attempts a deep security violation (such as attempting to uninstall CommitT or disable the accessibility service), the Blocker initiates a **Maximum Escalation** sequence.
+If a user attempts a deep security violation (e.g., attempting to uninstall CommitT or disable the accessibility service), the Blocker initiates a **Maximum Escalation** sequence.
 
-On Samsung / OneUI devices, it executes a 3-Phase Purge:
-1.  **Recents**: Fires `GLOBAL_ACTION_RECENTS` to instantly break the user's interaction with the Settings app.
-2.  **Purge**: Scans the view hierarchy for the "Close all" button and executes an automated click to clear background memory.
-3.  **Lock**: Physically turns off the screen via `GLOBAL_ACTION_LOCK_SCREEN`, forcing re-authentication.
+On heavily modified OEM variants like Samsung's OneUI, it executes a strict 3-Phase Purge:
 
----
+```mermaid
+sequenceDiagram
+    participant User
+    participant SystemUI as Settings / PackageInstaller
+    participant Blocker
+    participant OS as Android Kernel
 
-## Thread Safety & WAL Synchronization
+    User->>SystemUI: Attempt uninstallation
+    SystemUI->>Blocker: Event Triggered
+    Note over Blocker: Violation Detected
+    Blocker->>OS: 1. GLOBAL_ACTION_RECENTS
+    Note over Blocker,OS: Breaks interaction loop instantly
+    Blocker->>OS: 2. Inject automated click on 'Close all'
+    Note over Blocker,OS: Purges the crime scene from memory
+    Blocker->>OS: 3. GLOBAL_ACTION_LOCK_SCREEN
+    OS->>User: Screen powers off, hardware lock engaged
+```
 
-Similar to the Scheduler, the Blocker explicitly uses a `OPEN_READONLY` SQLite connection to avoid WAL writer contention with the React Native UI. To prevent stale reads, the connection is forcefully closed and refreshed on every 5-second pulse.
+## Concurrency and SQLite Stability
+
+Identical to the Scheduler architecture, the Blocker explicitly opens its SQLite database connection in `OPEN_READONLY` mode. This prevents WAL writer contention against the React Native user interface. To eliminate stale reads, the connection is forcefully closed and a fresh WAL snapshot is acquired on every 5-second pulse.

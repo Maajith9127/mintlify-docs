@@ -5,19 +5,27 @@ description: "High-speed JSI extraction of installed applications."
 
 # App Lister Module
 
-React Native and Expo do not provide built-in APIs for querying the device's installed application list. To support the "Digital Commitment" feature, CommitT uses a custom Kotlin module to interface directly with the Android `PackageManager`.
+React Native and Expo do not provide built-in APIs capable of querying the device's installed application matrix. To support the digital blocklist feature, CommitT leverages a custom Kotlin module to interface directly with the Android `PackageManager`.
 
-## Core Functionality
+## Core Pipeline
 
-The `AppListerModule` exposes a single asynchronous function `getInstalledApps()` to the JavaScript layer. 
+The `AppListerModule` exposes a single asynchronous function `getInstalledApps()` to the JavaScript execution environment.
 
-It returns:
-*   Human-readable app names.
-*   Unique Package IDs.
-*   Base64-encoded PNG icons.
+```mermaid
+graph TD
+    A[JavaScript Thread] -->|invoke JSI| B(AppListerModule.kt)
+    B --> C[Query PackageManager]
+    C --> D{Filter: Has Launch Intent?}
+    D -->|No| E[Discard System Daemon]
+    D -->|Yes| F[Extract ApplicationInfo]
+    F --> G[Rasterize Vector Drawable]
+    G --> H[Scale to 100x100 Bitmap]
+    H --> I[Compress to Base64 PNG]
+    I --> J[Return Array to JavaScript]
+```
 
 ### Smart Filtering
-The module avoids dumping hundreds of useless system services by filtering via `getLaunchIntentForPackage()`. If an app cannot be manually opened by a user from the launcher (e.g., hidden background daemons), it is excluded from the blocklist options, keeping the UI clean and performant.
+The module avoids returning hundreds of background system services by filtering exclusively via `getLaunchIntentForPackage()`. If an application cannot be manually launched by a user from the home screen launcher, it is systematically excluded from the blocklist options. This guarantees UI cleanliness and operational performance.
 
-### Memory Optimization
-To prevent Out-Of-Memory (OOM) crashes when extracting 300+ apps, the native layer rasterizes the `BitmapDrawable` vectors and scales all icons down to a strict 100x100 pixel grid. This keeps the Base64 payloads small (~10KB each) and safe for React Native bridge transit.
+### Memory Optimization Protocols
+To prevent Out-Of-Memory (OOM) crashes when extracting vectors for upwards of 300 applications, the native layer enforces a strict rasterization standard. All `BitmapDrawable` assets are mathematically scaled down to a 100x100 pixel grid. This ensures each Base64 payload remains under 10KB, securing stability during the React Native bridge transit phase.
