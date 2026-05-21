@@ -152,6 +152,8 @@
                 "group": "Client Side",
                 "icon": "display",
                 "pages": [
+                  "client-side/overview",
+                  "client-side/folder-structure",
                   {
                     "group": "Routing and Screens",
                     "pages": [
