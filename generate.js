@@ -155,6 +155,7 @@ const config = {
             "pages": [
               { "group": "Architecture", "icon": "sitemap", "pages": ["architecture/overview","architecture/sync-engine","architecture/local-database","architecture/write-gate","architecture/state-management","architecture/app-routes"] },
               { "group": "Client Side", "icon": "display", "pages": [
+                "client-side/overview",
                 "client-side/folder-structure",
                 { "group": "Routing and Screens", "pages": [
                   "client-side/routing/root-layout",

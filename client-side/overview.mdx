@@ -1,0 +1,302 @@
+---
+title: "Client-Side Overview"
+description: "Interactive map of the apps/native/ codebase — click any module to dive into its documentation."
+icon: "map"
+---
+
+# Client-Side Overview
+
+This is your interactive launchpad for the entire `apps/native/` codebase. Every box below links to its deep-dive documentation page. Click to explore.
+
+---
+
+## The Monorepo at a Glance
+
+```
+apps/
+├── native/             ← You are here (React Native + Expo)
+├── web/                ← Tauri desktop dashboard
+├── extension/          ← Browser distraction blocker (WXT)
+└── BugReport/          ← Issue tracking templates
+```
+
+Everything below documents the **native** client — the core Android application.
+
+---
+
+## app/ — Screens and Routing
+
+File-based routing powered by Expo Router. Each folder maps to a route group with its own layout and navigation stack.
+
+<CardGroup cols={2}>
+  <Card title="Root Layout & Provider Tree" icon="layer-group" href="/client-side/routing/root-layout">
+    The entry point — 9-layer provider nesting, console hijack, and invisible system components.
+  </Card>
+  <Card title="Authentication Flow" icon="right-to-bracket" href="/client-side/routing/auth-flow">
+    Sign-in, OAuth, welcome screen, and session-based routing guards.
+  </Card>
+  <Card title="Dashboard & Main Tabs" icon="table-columns" href="/client-side/routing/dashboard">
+    Bottom tab navigator: Commits, Schedules, Presets, Alerts, Profile.
+  </Card>
+  <Card title="Commitment Wizard" icon="wand-magic-sparkles" href="/client-side/routing/commitment-wizard">
+    Hub-and-Spoke architecture for building commitments with spoke screens.
+  </Card>
+  <Card title="Time & Location Setup" icon="clock" href="/client-side/routing/time-location">
+    Day picker, time windows, Google Maps geofencing, per-slot attachments.
+  </Card>
+  <Card title="App Blocker Screen" icon="ban" href="/client-side/routing/app-blocker">
+    Three-tab interface: Apps (native bridge), Websites (manual), Search.
+  </Card>
+  <Card title="Calendar & Schedules" icon="calendar" href="/client-side/routing/calendar-schedules">
+    CalendarKit grid with drag-and-drop event management.
+  </Card>
+  <Card title="Penalties Flow" icon="triangle-exclamation" href="/client-side/routing/penalties-flow">
+    Photo, email, money, and direct-commit penalty sub-screens.
+  </Card>
+  <Card title="Waivers Flow" icon="shield-halved" href="/client-side/routing/waivers-flow">
+    CAPTCHA and paragraph transcription redemption challenges.
+  </Card>
+  <Card title="Settings & Permissions" icon="gear" href="/client-side/routing/settings-permissions">
+    8-point hardware permission audit with deep-link to Android Settings.
+  </Card>
+  <Card title="Strict Mode" icon="lock" href="/client-side/routing/strict-mode">
+    Immutability lock activation — edits and deletes rejected until expiry.
+  </Card>
+  <Card title="Preset Editing" icon="bookmark" href="/client-side/routing/preset-editing">
+    Location, blocklist, and rule preset CRUD with isolated state.
+  </Card>
+  <Card title="Verification Flow" icon="circle-check" href="/client-side/routing/verification-flow">
+    Active verification: GPS polling, photo capture, checkpoint checks.
+  </Card>
+</CardGroup>
+
+---
+
+## lib/ — Core Infrastructure
+
+The engine room. These modules handle data persistence, synchronization, and hardware coordination.
+
+<CardGroup cols={2}>
+  <Card title="Triple-Write Orchestrator" icon="arrows-split-up-and-left" href="/client-side/infrastructure/triple-write">
+    Saga-pattern engine: Convex → SQLite → AlarmManager with automatic rollback.
+  </Card>
+  <Card title="Sync Engine" icon="rotate" href="/client-side/infrastructure/sync-engine">
+    Delta payload ingestion with Freshness Guard and corruption recovery.
+  </Card>
+  <Card title="Sync Lock Mutex" icon="link" href="/client-side/infrastructure/sync-lock">
+    Singleton Promise-chain mutex serializing all database writes.
+  </Card>
+  <Card title="Local Database Schema" icon="database" href="/client-side/infrastructure/local-database">
+    V12 Instance-Dependent SQLite schema and Nuke & Pave migration strategy.
+  </Card>
+  <Card title="Local DB Commits" icon="code-commit" href="/client-side/infrastructure/local-db-commits">
+    Task-level CRUD with Unified Identity strategy and prepared statement batching.
+  </Card>
+  <Card title="Local DB Instances" icon="clone" href="/client-side/infrastructure/local-db-instances">
+    Instance lifecycle management with orphan survival and atomic clobber-and-spawn.
+  </Card>
+  <Card title="Logger" icon="file-lines" href="/client-side/infrastructure/logger">
+    Console hijack with persistent daily log files and auto-tracing.
+  </Card>
+  <Card title="Scheduler Bridge" icon="bell" href="/client-side/infrastructure/scheduler-bridge">
+    JS-side interface to the Kotlin AlarmManager native module.
+  </Card>
+  <Card title="Auth Client" icon="user-shield" href="/client-side/infrastructure/auth-client">
+    Better Auth client configuration and session management.
+  </Card>
+  <Card title="Time Utilities" icon="hourglass" href="/client-side/infrastructure/time-utilities">
+    Date formatting, epoch conversion, and timezone-safe helpers.
+  </Card>
+  <Card title="Validation" icon="spell-check" href="/client-side/infrastructure/validation">
+    Runtime validation for task drafts and time slot configurations.
+  </Card>
+</CardGroup>
+
+---
+
+## modules/ — Native Kotlin Bridges (JSI)
+
+Kotlin native modules that bypass the React Native bridge for direct hardware access via JSI.
+
+<CardGroup cols={2}>
+  <Card title="Scheduler Module" icon="alarm-clock" href="/client-side/infrastructure/scheduler-bridge">
+    AlarmManager + WakeLock orchestration. BootReceiver re-hydrates state on device restart.
+  </Card>
+  <Card title="App Lister Module" icon="list" href="/client-side/hooks/app-discovery">
+    High-speed JSI extraction of all installed packages via Android PackageManager.
+  </Card>
+  <Card title="Blocker Module" icon="eye-slash" href="/client-side/routing/app-blocker">
+    Accessibility-based anti-circumvention engine for app and website blocking.
+  </Card>
+  <Card title="Enforcement Module" icon="gavel" href="/client-side/routing/settings-permissions">
+    Permission deep-links and Device Admin management for enforcement settings.
+  </Card>
+  <Card title="Recovery Module" icon="heart-pulse" href="/client-side/components/heal-overlay">
+    Nuclear reset and self-healing connection recovery (process restart).
+  </Card>
+  <Card title="Logcat Module" icon="scroll" href="/client-side/infrastructure/logger">
+    Native in-memory buffer bridging Android logcat output to the JS Logger.
+  </Card>
+</CardGroup>
+
+---
+
+## stores/ — Zustand State Machines
+
+Client-side state managed by Zustand stores with logger middleware.
+
+<CardGroup cols={2}>
+  <Card title="Task Draft Store" icon="pen-to-square" href="/client-side/state/task-draft-store">
+    The 800+ line, 26KB store powering the entire commitment wizard state machine.
+  </Card>
+  <Card title="Calendar Store" icon="calendar-days" href="/client-side/state/calendar-store">
+    Calendar grid state, view modes, date selection, and event interaction tracking.
+  </Card>
+  <Card title="Preset Store" icon="bookmark" href="/client-side/state/preset-store">
+    Read-only store of hydrated location, blocklist, and rule presets from Convex.
+  </Card>
+  <Card title="Commit Store" icon="list-check" href="/client-side/state/commit-store">
+    Dashboard list selection, context menu, and deletion state.
+  </Card>
+  <Card title="Verification Store" icon="location-crosshairs" href="/client-side/state/verification-store">
+    Real-time GPS, geofence match, camera, and CAPTCHA verification state.
+  </Card>
+  <Card title="Heal Store" icon="heart-pulse" href="/client-side/state/heal-store">
+    Dual-mode recovery: healing spinner and crash confirmation with nuclear reset.
+  </Card>
+  <Card title="Preset Edit Store" icon="pen" href="/client-side/state/preset-edit-store">
+    Isolated editing state for preset CRUD without affecting the wizard.
+  </Card>
+  <Card title="App Store" icon="mobile-screen-button" href="/client-side/state/app-store">
+    Global foreground/background state for HydrationSync triggers.
+  </Card>
+  <Card title="Task Store" icon="box-archive" href="/client-side/state/task-store">
+    Read-only SQLite task cache for the Dashboard commits list.
+  </Card>
+  <Card title="Chaos Store" icon="bug" href="/client-side/state/chaos-store">
+    Dev-only store for injecting failures and testing system resilience.
+  </Card>
+</CardGroup>
+
+---
+
+## hooks/ — React Hooks
+
+Custom hooks that orchestrate data flow between stores, Convex, SQLite, and native modules.
+
+<CardGroup cols={2}>
+  <Card title="useHydrationSync" icon="arrows-rotate" href="/client-side/hooks/hydration-sync">
+    Background sync engine: boot sync, foreground re-sync, zombie detection, and Smart Blame Logic.
+  </Card>
+  <Card title="usePresetHydration" icon="download" href="/client-side/hooks/preset-hydration">
+    One-shot hook at wizard layout mount to pre-load all presets from Convex.
+  </Card>
+  <Card title="useCommitTask" icon="paper-plane" href="/client-side/hooks/commit-task">
+    Master orchestrator that fires the Triple-Write when the user commits (~450 lines).
+  </Card>
+  <Card title="useTaskActions" icon="hand-pointer" href="/client-side/hooks/task-actions">
+    CRUD actions: delete, edit, move, and strict-mode lock via Triple-Write.
+  </Card>
+  <Card title="useTasks" icon="list-ol" href="/client-side/hooks/tasks">
+    Convex reactive query for tasks with Zustand store synchronization.
+  </Card>
+  <Card title="useVerificationEngine" icon="shield-check" href="/client-side/hooks/verification-engine">
+    Drives active verification: GPS polling, photo capture, status transitions.
+  </Card>
+  <Card title="useUpcomingVerification" icon="forward" href="/client-side/hooks/upcoming-verification">
+    Server-authoritative subscription to the next pending event (zero-horizon).
+  </Card>
+  <Card title="useLocation" icon="location-dot" href="/client-side/hooks/location">
+    GPS tracking with three-branch permission handling (granted, askable, blocked).
+  </Card>
+  <Card title="usePermissions" icon="key" href="/client-side/hooks/permissions">
+    8-point Android permission audit and deep-link triggers.
+  </Card>
+  <Card title="useCalendarEvents" icon="calendar-check" href="/client-side/hooks/calendar-events">
+    Transforms instances into CalendarKit event blocks with status-based coloring.
+  </Card>
+  <Card title="useCalendarRange" icon="calendar-week" href="/client-side/hooks/calendar-range">
+    Computes visible date range for the calendar grid query scope.
+  </Card>
+  <Card title="useEventDetail" icon="rectangle-list" href="/client-side/hooks/event-detail">
+    Data layer for EventDetailModal: instance parsing, verification status, and actions.
+  </Card>
+  <Card title="usePenaltySync" icon="triangle-exclamation" href="/client-side/hooks/penalty-sync">
+    Bidirectional sync between penalty sub-screens and the draft store.
+  </Card>
+  <Card title="useWaiverSync" icon="shield" href="/client-side/hooks/waiver-sync">
+    Bidirectional sync between waiver sub-screens and the draft store.
+  </Card>
+  <Card title="useTaskSelection" icon="check-double" href="/client-side/hooks/task-selection">
+    Multi-select state for bulk task operations on the Dashboard.
+  </Card>
+  <Card title="useAppDiscovery" icon="magnifying-glass" href="/client-side/hooks/app-discovery">
+    JSI-powered installed app enumeration from AppListerModule.
+  </Card>
+  <Card title="useAccountabilityPrefill" icon="user-group" href="/client-side/hooks/accountability-prefill">
+    Auto-populates penalty and waiver fields from saved accountability presets.
+  </Card>
+  <Card title="useFreshPhotoUrl" icon="camera" href="/client-side/hooks/fresh-photo-url">
+    Time-limited signed URL generation for penalty photo uploads to Convex Storage.
+  </Card>
+</CardGroup>
+
+---
+
+## components/ — UI Components
+
+<CardGroup cols={2}>
+  <Card title="HydrationEngine" icon="water" href="/client-side/components/hydration-engine">
+    Invisible root component that runs useHydrationSync for background data sync.
+  </Card>
+  <Card title="SecurityShield" icon="shield" href="/client-side/components/security-shield">
+    Root/jailbreak detection gate that unmounts the entire app tree on compromised devices.
+  </Card>
+  <Card title="HealOverlay" icon="spinner" href="/client-side/components/heal-overlay">
+    Full-screen recovery modal: healing spinner during sync, crash confirmation on failure.
+  </Card>
+  <Card title="UI Components" icon="palette" href="/client-side/components/ui-components">
+    Reusable primitives: buttons, inputs, modals, sliders, skeletons, and layout containers.
+  </Card>
+  <Card title="Developer Tools" icon="bug" href="/client-side/components/dev-tools">
+    ChaosFab and DbDebugFab — floating debug buttons for resilience testing.
+  </Card>
+  <Card title="ConnectionWatchdog" icon="plug-circle-xmark" href="/client-side/components/connection-watchdog">
+    DEPRECATED — Legacy zombie detector. Replaced by HydrationSync.
+  </Card>
+</CardGroup>
+
+---
+
+## providers/ and contexts/ — React Providers
+
+<CardGroup cols={2}>
+  <Card title="ResurrectionProvider" icon="rotate-right" href="/client-side/providers/resurrection">
+    Catastrophic failure recovery — increments iteration counter for full client rebirth.
+  </Card>
+  <Card title="ConvexClientWrapper" icon="plug" href="/client-side/providers/convex-wrapper">
+    Manages Convex client lifecycle with graceful teardown on resurrection.
+  </Card>
+  <Card title="App Theme Context" icon="paintbrush" href="/client-side/providers/app-theme">
+    Uniwind dark-mode theming with the Hardened Saffron design token system.
+  </Card>
+  <Card title="Tab Context" icon="folder-open" href="/client-side/providers/tab-context">
+    Tab navigation state, visit tracking, state persistence, and preload optimization.
+  </Card>
+</CardGroup>
+
+---
+
+## plugins/ — Expo Config Plugins
+
+Expo config plugins that patch the AndroidManifest.xml at build time via AST transforms:
+
+- **withAlarmPermissions** — Injects `SCHEDULE_EXACT_ALARM` and `USE_EXACT_ALARM` permissions into the manifest, required for hardware alarm scheduling on Android 12+.
+
+---
+
+## Quick Reference: File to Documentation Map
+
+<Tip>
+For the full directory tree with line-by-line annotations, see the [Folder Structure](/client-side/folder-structure) page.
+</Tip>
