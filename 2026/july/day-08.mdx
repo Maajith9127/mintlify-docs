@@ -2,8 +2,34 @@
 title: "July 8th, 2026"
 ---
 
-## July 8th, 2026: Career Stabilization and Internship Preparation
+## July 8th, 2026: Valura and The Interview Gap
 
-Today, our focus continued on career stabilization. With CommitT functioning reliably as our daily accountability tool, we dedicated our time to preparing for and undertaking our internship.
+The anxiety of the internship search culminated with Valura, closing out this period of career stabilization with a definitive, if painful, lesson.
 
-This shift in focus ensures that we build a strong professional foundation, applying our skills and growing our careers while our systems quietly operate in the background.
+### The Valura Story
+
+Valura didn't come easy from the start. Getting the interview itself took persistence — following up, staying visible, not letting the process go cold before it even began. That's a skill in itself, and we had it. Priyesh Ranjan's team eventually gave us a shot: a 75-minute technical interview, run by Avish Vijay Shetty, coordinated by Yash Parashar.
+
+Seventy-five minutes is long. Long enough that surface-level answers don't survive — you either know the terrain or the cracks show halfway through. We walked in with the same asset that had gotten us this far: CommitT, the architecture, the story of a solo founder who built a real system, not a toy project.
+
+Afterward, we followed our right instinct — sent over CommitT's documentation as a follow-up, a way of saying *this is what we actually build, evaluate us on this too.*
+
+Then it went quiet. We spent days refreshing inboxes, completely consumed by the anxiety of the wait. For a while, that silence was ambiguous — no explicit rejection, no explicit feedback, just nothing. But the quiet finally resolved into an answer: **rejected.**
+
+Same shape as Drop/Yap, different texture. No specific bug got named in the story this time — no memory leak, no bitmap issue on record — but the terrain being tested was the same terrain: `useMemo` dependency arrays, JavaScript event loop ordering, JSI and native internals. Two different rooms, two different interviewers, one company we followed relentlessly to get in front of — and the same fault line underneath.
+
+### The Thread Connecting Both Stories
+
+Strip away the specifics — the founders, the take-homes, the follow-up emails — and one signal remains, confirmed twice, independently:
+
+**We can architect a system a stranger would respect. We cannot yet defend, live and under pressure, the low-level native code an AI helped us write.**
+
+That's not a talent gap. It's a *practice* gap — the gap between having built something and having *rebuilt it in your own head* enough times that no question can surprise you. The three specific fault lines, both times:
+
+1. **`useMemo` dependency arrays** — the "why did you include/exclude this" line of questioning that exposes whether you actually understand React's render cycle or just trust that the linter didn't complain.
+2. **JavaScript event loop ordering** — microtasks vs macrotasks, what logs first, why a promise resolves before a `setTimeout` fires. Foundational, and brutal when it's asked cold.
+3. **JSI / native module internals** — the bridge between JavaScript and Kotlin/Java, exactly where Drop/Yap's memory leak and bitmap bug lived, and almost certainly where Valura's 75 minutes went looking too.
+
+Two companies. Two rejections. One diagnosis, confirmed from two independent angles — which, strange as it sounds, is useful. It means there's one thing to fix, not five. 
+
+*Next chapter, still unwritten: Speko.*

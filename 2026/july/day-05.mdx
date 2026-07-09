@@ -2,8 +2,25 @@
 title: "July 5th, 2026"
 ---
 
-## July 5th, 2026: Career Stabilization and Internship Preparation
+## July 5th, 2026: The Drop/Yap Interview and The Reality Check
 
-Today, our focus continued on career stabilization. With CommitT functioning reliably as our daily accountability tool, we dedicated our time to preparing for and undertaking our internship.
+The anxiety of waiting finally broke with an actual opportunity, but it came with its own harsh lessons.
 
-This shift in focus ensures that we build a strong professional foundation, applying our skills and growing our careers while our systems quietly operate in the background.
+### The Drop/Yap Story
+
+Aditya, ex-Microsoft, was building something lean and fast-moving — the kind of founder who doesn't waste time on candidates who can't ship. We got a take-home: build a media pipeline app. Not a toy problem. It needed a custom Kotlin Media3 Transformer native module wired up to Deepgram STT — real native Android work, the kind that separates people who can glue APIs together from people who understand what's happening under the hood.
+
+We delivered. The architecture held up — the pipeline made sense, the pieces fit together, and on paper it looked like exactly the kind of systems thinking that shows up in CommitT itself: the Triple-Write Protocol, the Hardware Execution Shield, the instinct to design for edge cases before they bite you. Getting the take-home right earned us the next round.
+
+That's where the story turns.
+
+In the live interview, Aditya didn't just want to see that the code worked — he wanted to see if we *owned* it. He started probing the Kotlin. Why did you structure the native module this way? What happens here? Walk me through this.
+
+And that's where it cracked. The code had been AI-assisted, which meant it worked — but it hadn't been *internalized*. There's a difference between code you wrote line-by-line, debugging every failure yourself, and code you guided into existence and then shipped because it passed. Under live questioning, that difference is impossible to hide. Two specific wounds got opened:
+
+- **A memory leak** somewhere in the native module — the kind of thing that only surfaces when you're asked "what happens to this reference after the transform completes?" and you don't have an immediate, confident answer.
+- **A bitmap handling issue** — likely something to do with how image/video frames were being allocated, copied, or released across the JS-native boundary, another classic JSI blind spot.
+
+Neither of these were "you don't know Android." They were "you didn't build the mental model deep enough to defend a decision you made an AI make for you."
+
+Drop/Yap said no. It was a brutal, but necessary, reality check.
