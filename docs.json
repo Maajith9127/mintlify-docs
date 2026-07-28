@@ -598,6 +598,24 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "IG Brand",
+        "icon": "instagram",
+        "groups": [
+          {
+            "group": "Framework",
+            "pages": [
+              "ig-brand/overview"
+            ]
+          },
+          {
+            "group": "Coaching Logs",
+            "pages": [
+              "ig-brand/logs/week-01"
+            ]
+          }
+        ]
       }
     ]
   },
