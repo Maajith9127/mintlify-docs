@@ -610,6 +610,12 @@
             ]
           },
           {
+            "group": "Research",
+            "pages": [
+              "ig-brand/competitors"
+            ]
+          },
+          {
             "group": "Coaching Logs",
             "pages": [
               "ig-brand/logs/week-01"
