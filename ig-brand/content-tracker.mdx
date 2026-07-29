@@ -1,0 +1,52 @@
+---
+title: "Our Content Tracker"
+description: "Track the performance of @thesystemoverwill posts"
+---
+
+## 🚀 The 100 Post Challenge
+
+> **The Goal:** Post 100 times to gather baseline data on the Instagram algorithm for our specific audience. 
+> **The Workflow:** 3 Posts a day (Remixed from competitor outliers). Rescrape competitors every Sunday.
+
+---
+
+## 📊 Performance Dashboard
+
+| Post # | Date Posted | Format | Hook / Topic | Original Inspiration (Outlier URL) | Views | Likes | Comments | CTA Used | Notes / Performance |
+|--------|-------------|--------|--------------|------------------------------------|-------|-------|----------|----------|---------------------|
+| 1      |             |        |              |                                    |       |       |          |          |                     |
+| 2      |             |        |              |                                    |       |       |          |          |                     |
+| 3      |             |        |              |                                    |       |       |          |          |                     |
+| 4      |             |        |              |                                    |       |       |          |          |                     |
+| 5      |             |        |              |                                    |       |       |          |          |                     |
+| 6      |             |        |              |                                    |       |       |          |          |                     |
+| 7      |             |        |              |                                    |       |       |          |          |                     |
+
+*(Continue adding rows as you post)*
+
+---
+
+## 📈 Weekly Algorithm Review (VidIQ Audit)
+
+### Week 1 Review (Date: _________)
+- **Top Performing Post:** 
+- **What worked (Format/Visual/Hook):** 
+- **What failed (Leaking viewers):** 
+- **Optimal Video Length Found:** 
+
+### Week 2 Review (Date: _________)
+- **Top Performing Post:** 
+- **What worked (Format/Visual/Hook):** 
+- **What failed (Leaking viewers):** 
+- **Optimal Video Length Found:** 
+
+---
+
+## 🔁 The Weekly Scraping Loop
+
+**Checklist for every Sunday:**
+- [ ] Run Apify scraper on the competitor list
+- [ ] Drop new CSV data into `competitor_data.csv`
+- [ ] Run the Python extraction script to calculate new outliers
+- [ ] Review `competitors.mdx` for the new top 3 outliers per account
+- [ ] Script the next 21 posts (3/day for 7 days) based on the new outliers

@@ -78,6 +78,26 @@ def main():
         followers = prof.get("followersCount", "")
         total_posts_count = prof.get("postsCount", "")
 
+        # Luke's Rule: Only analyze content from the last 14-30 days
+        # Let's filter posts to only include those from the last 30 days for a good sample size
+        recent_posts = []
+        thirty_days_ago = datetime.now().timestamp() - (30 * 24 * 60 * 60)
+        
+        for p in posts_list:
+            timestamp_str = p.get("timestamp")
+            if timestamp_str:
+                try:
+                    # Parse ISO format: 2026-04-01T10:17:45.000Z
+                    # Replace Z with +00:00 for fromisoformat or just slice it
+                    dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                    if dt.timestamp() >= thirty_days_ago:
+                        recent_posts.append(p)
+                except ValueError:
+                    # If parsing fails, skip or include depending on preference
+                    pass
+        
+        posts_list = recent_posts
+
         likes = [p.get("likesCount", 0) or 0 for p in posts_list]
         comments = [p.get("commentsCount", 0) or 0 for p in posts_list]
         views = [p.get("videoViewCount") or p.get("videoPlayCount") or 0 for p in posts_list]
