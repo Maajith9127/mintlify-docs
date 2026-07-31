@@ -620,6 +620,13 @@
             "pages": [
               "ig-brand/logs/week-01"
             ]
+          },
+          {
+            "group": "Content Engine",
+            "pages": [
+              "ig-brand/top_50_queue",
+              "ig-brand/content-tracker"
+            ]
           }
         ]
       }
