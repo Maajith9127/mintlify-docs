@@ -14,8 +14,7 @@ QUEUE_FILE = "top_50_queue.mdx"
 COMPETITORS_FILE = "competitors.mdx"
 
 if not APIFY_TOKEN:
-    print("[ERROR] APIFY_API_TOKEN environment variable is not set. Execution aborted.")
-    sys.exit(1)
+    print("[WARNING] APIFY_API_TOKEN not set. Local fallback must be used.")
 
 def get_targets():
     """
@@ -146,7 +145,7 @@ def process_data(items):
             
             # Outlier Logic (Last 14 days, Video only)
             if post_timestamp > fourteen_days_ago and p.get("type") == "Video":
-                if views > (avg_views * 1.2) and views > 50000:
+                if views > (avg_views * 1.0) and views > 50000:
                     outliers.append({
                         "owner": owner,
                         "views": views,
