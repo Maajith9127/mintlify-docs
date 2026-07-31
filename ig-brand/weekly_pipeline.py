@@ -195,8 +195,7 @@ def update_queue(outliers):
         new_content += "### The Viral Hooks\n"
         for out in outliers:
             new_content += f"- **@{out['owner']}** | [Watch Reel]({out['url']})\n"
-            new_content += f"  - **Performance:** {out['views']:,} Views ({out['multiplier']}x Average)\n"
-            new_content += f"  - **Bait:** <img src=\"{out['thumbnail']}\" width=\"100\" />\n\n"
+            new_content += f"  - **Performance:** {out['views']:,} Views ({out['multiplier']}x Average)\n\n"
             
     try:
         with open(QUEUE_FILE, "r", encoding="utf-8") as f:
